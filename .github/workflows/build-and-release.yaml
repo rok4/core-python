@@ -1,0 +1,63 @@
+name: Build and release
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+          cache: 'pip'
+          cache-dependency-path: '**/setup.py'
+
+      - name: Install dependencies
+        run: |
+
+          sudo apt update
+          sudo apt install python3-rados
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel pytest moto[s3]
+
+          VERSION=${{ github.ref_name }} python setup.py install
+          
+      - name: Test with pytest
+        run: |
+          PYTHONPATH=/usr/lib/python3/dist-packages/ pytest
+
+      - name: Build wheel
+        run: |
+          VERSION=${{ github.ref_name }} python setup.py bdist_wheel
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+
+      - name: Add wheel package to release
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/rok4lib-${{ github.ref_name }}-py3-none-any.whl
+          asset_name: rok4lib-${{ github.ref_name }}-py3-none-any.whl
+          asset_content_type: application/zip
