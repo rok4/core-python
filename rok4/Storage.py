@@ -19,6 +19,7 @@ Using S3 storage requires environment variables :
 """
 
 import boto3
+import botocore.exceptions
 from boto3.s3.transfer import TransferConfig
 config = TransferConfig(multipart_chunksize=65536)
 import tempfile
@@ -315,6 +316,54 @@ def get_size(path: str) -> int:
         raise StorageError("UNKNOWN", "Unhandled storage type to get size")
 
 
+def exists(path: str) -> bool:
+    """Do the file or object exist ?
+
+    Args:
+        path (str): path of file/object to test
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+
+    Returns:
+        bool: file/object existing status
+    """
+
+    storage_type, path, tray_name, base_name  = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        
+        s3_client = __get_s3_client()
+
+        try:
+            s3_client.head_object(Bucket=tray_name, Key=base_name)
+            return True
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                return False
+            else:
+                raise StorageError("S3", e)
+
+    elif storage_type == StorageType.CEPH:
+
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.stat(base_name)
+            return True
+        except rados.ObjectNotFound as e:
+            return False
+        except Exception as e:
+            raise StorageError("CEPH", e)
+
+    elif storage_type == StorageType.FILE:
+
+        return os.path.exists(path)
+
+    else:
+        raise StorageError("UNKNOWN", "Unhandled storage type to test if exists")
+
 def remove(path: str) -> None:
     """Remove the file/object
 
@@ -325,7 +374,6 @@ def remove(path: str) -> None:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage removal issue
     """
-
     storage_type, path, tray_name, base_name  = get_infos_from_path(path)
 
     if storage_type == StorageType.S3:
@@ -346,6 +394,8 @@ def remove(path: str) -> None:
 
         try:
             ioctx.remove_object(base_name)
+        except rados.ObjectNotFound as e:
+            pass
         except Exception as e:
             raise StorageError("CEPH", e)
 
@@ -353,6 +403,8 @@ def remove(path: str) -> None:
 
         try:
             os.remove(path)
+        except FileNotFoundError as e:
+            pass
         except Exception as e:
             raise StorageError("FILE", e)
 
