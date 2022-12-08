@@ -369,6 +369,9 @@ class Pyramid:
             # On convertit le type de stockage selon l'énumération
             storage["type"] = StorageType[storage["type"]]
 
+            if storage["type"] == StorageType.FILE and name.find("/") != -1:
+                raise Exception(f"A FILE stored pyramid's name cannot contain '/' : '{name}'")
+
             pyramid = cls()
 
             # Attributs communs
@@ -527,7 +530,7 @@ class Pyramid:
 
             slab_type = SlabType[raw_slab_type]
 
-            return slab_type, level, column, row
+            return slab_type, level, int(column), int(row)
 
     def get_slab_path_from_infos(self, slab_type: SlabType, level: str, column: int, row: int, full: bool = True) -> str:
         if self.__storage["type"] == StorageType.FILE:

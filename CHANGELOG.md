@@ -2,7 +2,7 @@
 
 ## Summary
 
-Initialisation des librairies Python utilisées par les outils python à venir du dépôt [pytools](https://github.com/rok4/pytools).
+Complétion des librairies Python utilisées par les outils python à venir du dépôt [pytools](https://github.com/rok4/pytools).
 
 ## Changelog
 
@@ -15,6 +15,11 @@ Initialisation des librairies Python utilisées par les outils python à venir d
 
 * Librairie d'abstraction du stockage (S3, CEPH ou FILE)
   * la suppression d'un fichier ou objet n'existant pas ne lève pas d'erreur
+
+### [Fixed]
+
+* Sortie en erreur si le nom d'une pyramide FICHIER contient un slash
+* Les indices d'une dalle calculés à partir de son chemin sont bien typés en entiers
 
 <!-- 
 ### [Added]
