@@ -316,10 +316,21 @@ class Pyramid:
         pyramid.__descriptor = descriptor
         pyramid.__list = get_path_from_infos(pyramid.__storage["type"], pyramid.__storage["root"], f"{pyramid.__name}.list")
 
-        # Attributs communs
         try:
+            # Attributs communs
             pyramid.__tms = TileMatrixSet(data["tile_matrix_set"])
             pyramid.__format = data["format"]
+
+            # Attributs d'une pyramide raster
+            if pyramid.type == PyramidType.RASTER :
+                pyramid.__raster_specifications = data["raster_specifications"]
+
+                if "mask_format" in data:
+                    pyramid.__masks = True
+                else:
+                    pyramid.__masks = False
+
+            # Niveaux
             for l in data["levels"]:
                 lev = Level.from_descriptor(l, pyramid)
                 pyramid.__levels[lev.id] = lev
@@ -329,19 +340,6 @@ class Pyramid:
 
         except KeyError as e:
             raise MissingAttributeError(descriptor, e)
-
-        # Attributs d'une pyramide raster
-        if pyramid.type == PyramidType.RASTER :
-            try:
-                pyramid.__raster_specifications = data["raster_specifications"]
-
-            except KeyError as e:
-                raise MissingAttributeError(descriptor, e)
-
-            if "mask_format" in data:
-                pyramid.__masks = True
-            else:
-                pyramid.__masks = False
 
         if len(pyramid.__levels.keys()) == 0:
             raise Exception(f"Pyramid '{descriptor}' has no level")
@@ -384,19 +382,19 @@ class Pyramid:
             pyramid.__tms = other.__tms
             pyramid.__format = other.__format
 
+            # Attributs d'une pyramide raster
+            if pyramid.type == PyramidType.RASTER :
+                if other.own_masks:
+                    pyramid.__masks = True
+                else:
+                    pyramid.__masks = False
+                pyramid.__raster_specifications = other.__raster_specifications
 
+            # Niveaux
             for l in other.__levels.values():
                 lev = Level.from_other(l, pyramid)
                 pyramid.__levels[lev.id] = lev
 
-            # Attributs d'une pyramide raster
-            if pyramid.type == PyramidType.RASTER :
-                pyramid.__raster_specifications = other.__raster_specifications
-
-            if other.own_masks:
-                pyramid.__masks = True
-            else:
-                pyramid.__masks = False
 
         except KeyError as e:
             raise MissingAttributeError(descriptor, e)

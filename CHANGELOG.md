@@ -20,6 +20,7 @@ Complétion des librairies Python utilisées par les outils python à venir du d
 
 * Sortie en erreur si le nom d'une pyramide FICHIER contient un slash
 * Les indices d'une dalle calculés à partir de son chemin sont bien typés en entiers
+* Détection des masques dans un descripteur de pyramide raster
 
 <!-- 
 ### [Added]
