@@ -2,25 +2,14 @@
 
 ## Summary
 
-Complétion des librairies Python utilisées par les outils python à venir du dépôt [pytools](https://github.com/rok4/pytools).
+Prise en charge de plusieurs clusters S3 de stockage.
 
 ## Changelog
 
 ### [Added]
 
-* Librairie d'abstraction du stockage (S3, CEPH ou FILE)
-  * fonction de test de l'existence du fichier / objet
-
-### [Changed]
-
-* Librairie d'abstraction du stockage (S3, CEPH ou FILE)
-  * la suppression d'un fichier ou objet n'existant pas ne lève pas d'erreur
-
-### [Fixed]
-
-* Sortie en erreur si le nom d'une pyramide FICHIER contient un slash
-* Les indices d'une dalle calculés à partir de son chemin sont bien typés en entiers
-* Détection des masques dans un descripteur de pyramide raster
+* Librairie d'abstraction du stockage :
+  * Prise en charge de plusieurs clusters S3. Les variables d'environnement pour le stockage S3 précisent plusieurs valeurs séparées par des virgules, et les noms des buckets peuvent être suffixés par "@{S3 cluster host}". Par défaut, le premier cluster défini est utilisé. L'hôte du cluster n'est jamais écrit dans le descripteur de pyramide ou le fichier liste (puisque stockés sur le cluster, on sait sur lequel sont les objets). Les objets symboliques ne le précisent pas non plus et ne peuvent être qu'au sein d'un cluster S3
 
 <!-- 
 ### [Added]

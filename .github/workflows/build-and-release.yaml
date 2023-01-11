@@ -33,7 +33,7 @@ jobs:
           
       - name: Test with pytest
         run: |
-          PYTHONPATH=/usr/lib/python3/dist-packages/ pytest
+          pytest
 
       - name: Build wheel
         run: |

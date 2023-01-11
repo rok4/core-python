@@ -457,11 +457,23 @@ class Pyramid:
 
     @property
     def storage_root(self) -> StorageType: 
-        return self.__storage["root"]
+        return self.__storage["root"].split("@", 1)[0] # Suppression de l'éventuel host de spécification du cluster S3
 
     @property
     def storage_depth(self) -> int: 
         return self.__storage.get("depth", None)
+
+
+    @property
+    def storage_s3_cluster(self) -> str: 
+        if self.__storage["type"] == StorageType.S3:
+            try:
+                return self.__storage["root"].split("@")[1]
+            except IndexError:
+                return None
+        else:
+            return None
+
 
     @storage_depth.setter
     def storage_depth(self, d) -> None:

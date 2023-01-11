@@ -41,9 +41,20 @@ def test_wrong_tms(mocked_tms_constructor, mocked_get_data_str):
     mocked_tms_constructor.assert_called_once_with('PM')
     mocked_get_data_str.assert_called_once_with('file:///pyramid.json')
 
+@mock.patch.dict(os.environ, {}, clear=True)
+@mock.patch('rok4.Pyramid.get_data_str', return_value='{"format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}')
+@mock.patch('rok4.Pyramid.TileMatrixSet')
+def test_raster_missing_raster_specifications(mocked_tms_class, mocked_get_data_str):
+
+    with pytest.raises(MissingAttributeError) as exc:
+        pyramid = Pyramid.from_descriptor("file:///pyramid.json")
+
+    assert str(exc.value) == "Missing attribute 'raster_specifications' in 'file:///pyramid.json'"
+    mocked_get_data_str.assert_called_once_with('file:///pyramid.json')
+
 
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch('rok4.Pyramid.get_data_str', return_value='{"format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"unknown"}], "tile_matrix_set": "PM"}')
+@mock.patch('rok4.Pyramid.get_data_str', return_value='{"raster_specifications":{"channels":3,"nodata":"255,0,0","photometric":"rgb","interpolation":"bicubic"}, "format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"unknown"}], "tile_matrix_set": "PM"}')
 @mock.patch('rok4.Pyramid.TileMatrixSet')
 def test_wrong_level(mocked_tms_class, mocked_get_data_str):
     
@@ -59,18 +70,6 @@ def test_wrong_level(mocked_tms_class, mocked_get_data_str):
     mocked_get_data_str.assert_called_once_with('file:///pyramid.json')
     tms_instance.get_level.assert_called_once_with('unknown')
     assert str(exc.value) == "Pyramid file:///pyramid.json owns a level with the ID 'unknown', not defined in the TMS 'PM'"
-
-
-@mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch('rok4.Pyramid.get_data_str', return_value='{"format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}')
-@mock.patch('rok4.Pyramid.TileMatrixSet')
-def test_raster_missing_raster_specifications(mocked_tms_class, mocked_get_data_str):
-
-    with pytest.raises(MissingAttributeError) as exc:
-        pyramid = Pyramid.from_descriptor("file:///pyramid.json")
-
-    assert str(exc.value) == "Missing attribute 'raster_specifications' in 'file:///pyramid.json'"
-    mocked_get_data_str.assert_called_once_with('file:///pyramid.json')
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch('rok4.Pyramid.get_data_str', return_value='{"format": "TIFF_PBF_MVT","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}')
