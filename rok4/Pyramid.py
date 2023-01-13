@@ -57,7 +57,7 @@ def b36_number_decode(number: str) -> int:
 
     Returns:
         int: base-10 number
-    """    
+    """
     return int(number, 36)
 
 def b36_path_decode(path: str) -> Tuple[int, int]:

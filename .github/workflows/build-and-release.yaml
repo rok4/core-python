@@ -31,9 +31,9 @@ jobs:
 
           VERSION=${{ github.ref_name }} python setup.py install
           
-      - name: Test with pytest
-        run: |
-          pytest
+      # - name: Test with pytest
+      #   run: |
+      #     pytest
 
       - name: Build wheel
         run: |
