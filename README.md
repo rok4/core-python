@@ -4,20 +4,20 @@ Ces librairies Python sont utilisées par les outils python du dépôt [pytools]
 
 ## Compiler la librairie
 
-`VERSION=1.0.0 python setup.py bdist_wheel`
+`VERSION=1.0.0 python3 setup.py bdist_wheel`
 
 ## Installer la librairie
 
 ```sh
-apt install python3-rados
-python -m venv --system-site-packages venv
+apt install python3-rados python3-venv python3-pytest
+python3 -m venv --system-site-packages venv
 source venv/bin/activate
-pip install rok4lib-1.0.0-py3-none-any.whl
+python3 -m pip install dist/rok4lib-1.0.0-py3-none-any.whl
 ```
 
 ## Jouer les tests unitaires
 
-`pytest`
+`python3 -m pytest`
 
 ## Utiliser la librairie
 
@@ -34,6 +34,6 @@ except Exception as exc:
 
 ```bash
 source venv/bin/activate
-pip install pdoc3 
+python3 -m pip install pdoc3 
 VERSION=1.0.0 pdoc --html rok4
 ```
