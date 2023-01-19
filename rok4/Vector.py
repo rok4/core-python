@@ -58,13 +58,19 @@ class Vector :
                 data_y = data[0].index(column_y)
                 for i in range (1, len(data) - 1) :
                     point = ogr.Geometry(ogr.wkbPoint)
-                    point.AddPoint(float(data[i][data_x]), float(data[i][data_y]))
+                    try :
+                        point.AddPoint(float(data[i][data_x]), float(data[i][data_y]))
+                    except :
+                        raise Exception(f"{column_x} or {column_y} contains data which are not coordinates")
                     geomcol.AddGeometry(point)
             
             else :
                 data_WKT = data[0].index(column_WKT)
                 for i in range (1, len(data) - 1) :
-                    geom = ogr.CreateGeometryFromWKT(data[i][data_WKT])
+                    try :
+                        geom = ogr.CreateGeometryFromWKT(data[i][data_WKT])
+                    except :
+                        raise Exception(f"{column_WKT} contains data which are not WKT")
                     geomcol.AddGeometry(geom)
                     
             self.bbox = geomcol.GetEnvelope()
@@ -106,9 +112,16 @@ class Vector :
                 dataSource = ogr.Open(tmp_path + ".geojson", 0)
                 
                 os.remove(tmp_path + ".geojson")
+            
+            else :
+                raise Exception("This format of file cannot be loaded")
         
             multipolygon = ogr.Geometry(ogr.wkbGeometryCollection)
-            layer = dataSource.GetLayer()
+            dataSource = None
+            try :
+                layer = dataSource.GetLayer()
+            except AttributeError :
+                raise Exception(f"The content of {self.path} cannot be read")
             
             layers = []
             for i in range (dataSource.GetLayerCount()) :
@@ -130,6 +143,3 @@ class Vector :
                 
             self.layers = layers
             self.bbox = multipolygon.GetEnvelope()
-            
-        print(self.bbox)
-        print(self.layers)

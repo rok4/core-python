@@ -23,9 +23,13 @@ pip install rok4lib-1.0.0-py3-none-any.whl
 
 ```python
 from rok4.TileMatrixSet import TileMatrixSet
+from rok4.Vector import Vector
 
 try:
     tms = TileMatrixSet("file:///path/to/tms.json")
+    vector = Vector("file:///path/to/vector.shp")
+    vector_csv1 = Vector("file:///path/to/vector.csv", delimiter, column_x, column_y)
+    vector_csv1 = Vector("file:///path/to/vector.csv", delimiter, column_WKT)
 except Exception as exc:
     print(exc)
 ```
@@ -34,6 +38,6 @@ except Exception as exc:
 
 ```bash
 source venv/bin/activate
-pip install pdoc3 
+pip install pdoc3
 VERSION=1.0.0 pdoc --html rok4
 ```
