@@ -1,0 +1,7 @@
+[run]
+include =
+    */rok4/*
+omit =
+    */__init__.py
+command_line =
+    pytest

@@ -9,7 +9,7 @@ jobs:
 
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v3
@@ -25,15 +25,15 @@ jobs:
         run: |
 
           sudo apt update
-          sudo apt install python3-rados
+          sudo apt install python3-rados python3-gdal libgdal-dev
           python -m pip install --upgrade pip
-          python -m pip install --upgrade pip setuptools wheel pytest moto[s3]
+          python -m pip install --upgrade pip setuptools wheel pytest
 
           VERSION=${{ github.ref_name }} python setup.py install
           
-      # - name: Test with pytest
-      #   run: |
-      #     pytest
+      - name: Test with pytest
+        run: |
+          PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages/ pytest
 
       - name: Build wheel
         run: |
