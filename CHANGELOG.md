@@ -2,14 +2,30 @@
 
 ## Summary
 
-Prise en charge de plusieurs clusters S3 de stockage.
+Ajout des librairies pour l'utilitaire make-layer.py
 
 ## Changelog
 
 ### [Added]
 
-* Librairie d'abstraction du stockage :
-  * Prise en charge de plusieurs clusters S3. Les variables d'environnement pour le stockage S3 précisent plusieurs valeurs séparées par des virgules, et les noms des buckets peuvent être suffixés par "@{S3 cluster host}". Par défaut, le premier cluster défini est utilisé. L'hôte du cluster n'est jamais écrit dans le descripteur de pyramide ou le fichier liste (puisque stockés sur le cluster, on sait sur lequel sont les objets). Les objets symboliques ne le précisent pas non plus et ne peuvent être qu'au sein d'un cluster S3
+* Librairie Storage : complétion des tests unitaires
+
+* Librairie Pyramid :
+  * Ajout de getter sur les niveaux du haut et du bas
+
+* Ajout de la librairie de gestion d'une couche Layer :
+  * Chargement d'une couche depuis des paramètres
+  * Chargement d'une couche depuis un descripteur
+  * Écriture du descripteur au format attendu par le serveur
+  * Écriture des tests unitaires
+
+* Ajout d'une librairie d'utilitaires Utils
+  * Conversion d'un SRS en objet OSR SpatialReference
+  * Conversion d'une bbox en objet OGR Geometry
+  * Reprojection d'une bbox avec densification des côtés et reprojection partielle
+  * Écriture des tests unitaires
+
+* Configuration de l'outil coverage pour voir la couverture des tests unitaires
 
 <!-- 
 ### [Added]

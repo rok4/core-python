@@ -19,6 +19,14 @@ pip install rok4lib-1.0.0-py3-none-any.whl
 
 `pytest`
 
+Pour avoir la couverture des tests unitaires :
+```sh
+source venv/bin/activate
+pip install coverage
+coverage run -m pytest
+coverage report -m
+```
+
 ## Utiliser la librairie
 
 ```python
