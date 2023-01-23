@@ -16,48 +16,49 @@ from unittest import mock
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_missing_env():
     with pytest.raises(MissingEnvironmentError):
-        vector = Vector("ceph://vector.shp")
+        vector = Vector("ceph:///ign_std/vector.shp")
 
 @mock.patch('rok4.Vector.copy', side_effect=StorageError('FILE', 'Not found'))
 def test_wrong_file(mocked_copy):
     with pytest.raises(StorageError):
         vector = Vector("file:///vector.shp")
 
-@mock.patch('rok4.Vector.get_data_str', return_value="column_1;column_2\n no_coor;no_coor")
+@mock.patch('rok4.Vector.get_data_str', return_value="x;y\n no_coor;no_coor")
 def test_wrong_column_point(mocked_get_data_str):
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as exc:
         vector = Vector("file:///vector.csv" , ";", "x", "y")
-    assert str(exc.value) == "'x' or 'y' contains data which are not coordinates"
-    mocked_get_data_str.assert_called_once_with("file:///vector.shp")
+    assert str(exc.value) == "x or y contains data which are not coordinates"
+    mocked_get_data_str.assert_called_once_with("file:///vector.csv")
 
-@mock.patch('rok4.Vector.get_data_str', return_value="column_WKT\n no_coor")
+@mock.patch('rok4.Vector.get_data_str', return_value="WKT\n no_coor")
 def test_wrong_column_WKT(mocked_get_data_str):
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as exc:
         vector = Vector("file:///vector.csv" , ";", column_WKT="WKT")
-    assert str(exc.value) == "'WKT' contains data which are not WKT"
-    mocked_get_data_str.assert_called_once_with("file:///vector.shp")
+    assert str(exc.value) == "WKT contains data which are not WKT"
+    mocked_get_data_str.assert_called_once_with("file:///vector.csv")
 
 def test_wrong_format():
-    with pytest.raises(Exception):
+    with pytest.raises(Exception) as exc:
         vector = Vector("file:///vector.tif")
     assert str(exc.value) == "This format of file cannot be loaded"
 
-@mock.patch('rok4.Vector.copy', return_value="not a shape")
-def test_wrong_content(mocked_copy):
-    with pytest.raises(Exception):
+@mock.patch('rok4.Vector.copy')
+@mock.patch('rok4.Vector.ogr.Open', return_value="not a shape")
+@mock.patch('rok4.Vector.os.remove')
+def test_wrong_content(mocked_remove, mocked_open, mocked_copy):
+    with pytest.raises(Exception) as exc:
         vector = Vector("file:///vector.shp")
-    assert str(exc.value) == "The content of 'file:///vector.shp' cannot be read"
-    mocked_copy.assert_called_once_with("file:///vector.shp")
+    assert str(exc.value) == "The content of file:///vector.shp cannot be read"
+    mocked_copy.assert_has_calls([call('file:///vector.shp', 'file:///tmp/vector.shp'), call('file:///vector.shx', 'file:///tmp/vector.shx'), call('file:///vector.cpg', 'file:///tmp/vector.cpg'), call('file:///vector.dbf', 'file:///tmp/vector.dbf'), call('file:///vector.prj', 'file:///tmp/vector.prj')])
+    mocked_open.assert_called_once_with("/tmp/vector.shp", 0)
+    mocked_remove.assert_has_calls([call('/tmp/vector.shp'), call('/tmp/vector.shx'), call('/tmp/vector.cpg'), call('/tmp/vector.dbf'), call('/tmp/vector.prj')])
 
-@mock.patch('rok4.Vector.copy', return_value='{"type": "FeatureCollection","name": "Arrondissement","crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },"features": [{ "type": "Feature", "properties": { "ID": "ARRONDIS0000002150000279", "NOM": "Gex", "INSEE_ARR": "3", "INSEE_DEP": "01", "INSEE_REG": "84", "ID_AUT_ADM": "SURFACTI0000000008683448", "DATE_CREAT": "2018-11-24 00:00:00", "DATE_MAJ": "2019-02-13 14:32:06", "DATE_APP": null, "DATE_CONF": null }, "geometry": { "type": "Point", "coordinates": [923395, 6561814]}}]}')
+
 @mock.patch('rok4.Vector.get_data_str', return_value="id;x;y\n 1;20000;50000")
-def test_ok(mocked_copy, mocked_get_data_str) :
+def test_ok(mocked_get_data_str) :
     try :
-        vector = Vector("file:///vector.geojson")
-        assert vector.layers is [('Arrondissement', 1, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'DateTime'), ('DATE_MAJ', 'DateTime'), ('DATE_APP', 'String'), ('DATE_CONF', 'String')])]
         vector_csv1 = Vector("file:///vector.csv" , ";", "x", "y")
-        assert vector_csv1.layers is [('vector', 1, [('id', 'String'), ('x', 'String'), ('y', 'String')])]
-        mocked_copy.assert_called_once_with("file:///vector.geojson")
-        mocked_copy.assert_called_once_with("file:///vector.csv")
+        assert str(vector_csv1.layers) == "[('vector', 1, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        mocked_get_data_str.assert_called_once_with("file:///vector.csv")
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
