@@ -32,6 +32,14 @@ class Vector :
             column_x (only for CSV) : field of the x coordinate
             column_y (only for CSV) : field of the y coordinate
             column_WKT (only for CSV if geometry in WKT) : field of the WKT of the geometry
+            
+        Raises:
+            MissingEnvironmentError: Missing object storage informations
+            StorageError: Storage read issue
+            Exception: Wrong column
+            Exception: Wrong data in column
+            Exception: Wrong format of file
+            Exception: Wrong data in the file
 
         """
 
@@ -76,7 +84,7 @@ class Vector :
                 data_WKT = data[0].index(column_WKT)
                 for i in range (1, len(data)) :
                     try :
-                        geom = ogr.CreateGeometryFromWKT(data[i][data_WKT])
+                        geom = ogr.CreateGeometryFromWkt(data[i][data_WKT])
                     except :
                         raise Exception(f"{column_WKT} contains data which are not WKT")
                     geomcol.AddGeometry(geom)
@@ -125,7 +133,6 @@ class Vector :
                 raise Exception("This format of file cannot be loaded")
 
             multipolygon = ogr.Geometry(ogr.wkbGeometryCollection)
-            dataSource = None
             try :
                 layer = dataSource.GetLayer()
             except AttributeError :
