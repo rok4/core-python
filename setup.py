@@ -10,6 +10,6 @@ setup(
     url='https://github.com/rok4/core-python',
     install_requires=['boto3'],
     setup_requires=['pytest-runner','wheel'],
-    tests_require=['pytest==4.4.1', 'moto[s3]==4.0.8'],
+    tests_require=['pytest==4.4.1'],
     test_suite='tests',
 )

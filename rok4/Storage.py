@@ -111,6 +111,13 @@ def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
 
     return __S3_CLIENTS[host], host, bucket_name
 
+def disconnect_s3_clients() -> None:
+    """Clean S3 clients
+    """    
+    global __S3_CLIENTS, __S3_DEFAULT_CLIENT
+    __S3_CLIENTS = dict()
+    __S3_DEFAULT_CLIENT = None
+
 __CEPH_CLIENT = None
 __CEPH_IOCTXS = dict()
 def __get_ceph_ioctx(pool: str) -> 'rados.Ioctx':
@@ -152,6 +159,13 @@ def __get_ceph_ioctx(pool: str) -> 'rados.Ioctx':
             raise StorageError("CEPH", e)
     
     return __CEPH_IOCTXS[pool]
+
+def disconnect_ceph_clients() -> None:
+    """Clean CEPH clients
+    """    
+    global __CEPH_CLIENT, __CEPH_IOCTXS
+    __CEPH_CLIENT = None
+    __CEPH_IOCTXS = dict()
 
 __OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 
@@ -343,7 +357,7 @@ def get_size(path: str) -> int:
 
         try:
             size = s3_client.head_object(Bucket=tray_name, Key=base_name)["ContentLength"].strip('"')
-            return size
+            return int(size)
         except Exception as e:
             raise StorageError("S3", e)
 
@@ -504,13 +518,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         try:
             if to_tray != "":
                 os.makedirs(to_tray, exist_ok=True)
-                
+            
             s3_client.download_file(from_tray, from_base_name, to_path)
 
             if from_md5 is not None :
                 to_md5 = hash_file(to_path)
                 if to_md5 != from_md5:
-                    raise StorageError(f"S3 and FILE", f"Invalid MD5 sum control for copy S3 object {from_path} to file {to_path} : {from_md5} != {to_md5}")
+                    raise StorageError("S3 and FILE", f"Invalid MD5 sum control for copy S3 object {from_path} to file {to_path} : {from_md5} != {to_md5}")
 
         except Exception as e:
             raise StorageError(f"S3 and FILE", f"Cannot copy S3 object {from_path} to file {to_path} : {e}")
@@ -523,7 +537,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             s3_client.upload_file(from_path, to_tray, to_base_name)
 
             if from_md5 is not None :
-                to_md5 = s3_client.head_object(Bucket=to_bucket, Key=to_object)["ETag"].strip('"')
+                to_md5 = s3_client.head_object(Bucket=to_tray, Key=to_base_name)["ETag"].strip('"')
                 if to_md5 != from_md5:
                     raise StorageError(f"FILE and S3", f"Invalid MD5 sum control for copy file {from_path} to S3 object {to_path} : {from_md5} != {to_md5}")
         except Exception as e:
@@ -648,14 +662,14 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 to_ioctx.write(to_base_name, chunk, offset)
                 offset += size
 
-                if md5 is not None:
+                if from_md5 is not None:
                     checker.update(chunk)
 
                 if size < 65536:
                     break
 
-            if md5 is not None and md5 != checker.hexdigest():
-                raise StorageError(f"FILE and CEPH", f"Invalid MD5 sum control for copy CEPH object {from_path} to {to_path} : {md5} != {checker.hexdigest()}")
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(f"FILE and CEPH", f"Invalid MD5 sum control for copy CEPH object {from_path} to {to_path} : {from_md5} != {checker.hexdigest()}")
 
         except Exception as e:
             raise StorageError(f"CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
@@ -698,7 +712,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
             raise StorageError(f"S3", f"Cannot make link {link_path} -> {target_path} : link works only on the same S3 cluster")
 
         try:
-            s3_client.put_object(
+            target_s3_client.put_object(
                 Body = f"{__OBJECT_SYMLINK_SIGNATURE}{target_tray}/{target_base_name}".encode('utf-8'),
                 Bucket = link_tray,
                 Key = link_base_name
