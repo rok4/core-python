@@ -12,7 +12,8 @@ Prise en charge de plusieurs clusters S3 de stockage.
   * Chargement de données vecteur pour des fichiers shapefile, Geopackage, CSV et GeoJSON
   * Ecriture des tests unitaires
 * Librairie de lecture de données raster :
-  * Squelette minimal avec tests unitaires d'invocation du constructeur
+  * Constructeur implémenté
+    * Ce dernier fait appel à des fonctions internes qui ne sont pas encore implémentées.
 
 ### [Changed]
 
