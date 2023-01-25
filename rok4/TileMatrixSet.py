@@ -11,6 +11,7 @@ Loading a tile matrix set requires environment variables :
 
 from rok4.Exceptions import *
 from rok4.Storage import get_data_str
+from rok4.Utils import *
 
 from typing import Dict, List, Tuple
 from json.decoder import JSONDecodeError
@@ -49,8 +50,91 @@ class TileMatrix:
             self.origin = (level["pointOfOrigin"][0], level["pointOfOrigin"][1],)
             self.tile_size = (level["tileWidth"], level["tileHeight"],)
             self.matrix_size = (level["matrixWidth"], level["matrixHeight"],)
+            self.__latlon = (self.tms.sr.EPSGTreatsAsLatLong() or self.tms.sr.EPSGTreatsAsNorthingEasting())
         except KeyError as e:
             raise MissingAttributeError(tms.path, f"tileMatrices[].{e}")
+
+    def x_to_column(self, x: float) -> int:
+        """Convert west-east coordinate to tile's column
+
+        Args:
+            x (float): west-east coordinate (TMS coordinates system)
+
+        Returns:
+            int: tile's column
+        """    
+        if self.__latlon:
+            return int((x - self.origin[1]) / (self.resolution * self.tile_size[0]))
+        else:
+            return int((x - self.origin[0]) / (self.resolution * self.tile_size[0]))
+
+    def y_to_row(self, y: float) -> int:
+        """Convert north-south coordinate to tile's row
+
+        Args:
+            y (float): north-south coordinate (TMS coordinates system)
+
+        Returns:
+            int: tile's row
+        """        
+        if self.__latlon:
+            return int((self.origin[0] - y) / (self.resolution * self.tile_size[1]))
+        else:
+            return int((self.origin[1] - y) / (self.resolution * self.tile_size[1]))
+
+    def tile_to_bbox(self, tile_col: int, tile_row: int) -> Tuple[float, float, float, float]:    
+        """Get tile terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
+
+        TMS spatial reference is Lat / Lon case is handled.
+
+        Args:
+            tile_col (int): column indice
+            tile_row (int): row indice
+
+        Returns:
+            Tuple[float, float, float, float]: terrain extent (xmin, ymin, xmax, ymax)
+        """
+        if self.__latlon:
+            return (
+                self.origin[0] - self.resolution * (tile_row + 1) * self.tile_size[1],
+                self.origin[1] + self.resolution * tile_col * self.tile_size[0],
+                self.origin[0] - self.resolution * tile_row * self.tile_size[1],
+                self.origin[1] + self.resolution * (tile_col + 1) * self.tile_size[0]
+            )
+        else:
+            return (
+                self.origin[0] + self.resolution * tile_col * self.tile_size[0],
+                self.origin[1] - self.resolution * (tile_row + 1) * self.tile_size[1],
+                self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0],
+                self.origin[1] - self.resolution * tile_row * self.tile_size[1]
+            )
+
+    def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -> Tuple[int, int, int, int]:    
+        """Get extrems tile columns and rows corresponding to provided bounding box
+
+        TMS spatial reference is Lat / Lon case is handled.
+
+        Args:
+            bbox (Tuple[float, float, float, float]): bounding box (xmin, ymin, xmax, ymax), in TMS coordinates system
+
+        Returns:
+            Tuple[int, int, int, int]: extrem tiles (col_min, row_min, col_max, row_max)
+        """
+
+        if self.__latlon:
+            return (
+                self.x_to_column(bbox[1]),
+                self.y_to_row(bbox[2]),
+                self.x_to_column(bbox[3]),
+                self.y_to_row(bbox[0])
+            )
+        else:
+            return (
+                self.x_to_column(bbox[0]),
+                self.y_to_row(bbox[3]),
+                self.x_to_column(bbox[2]),
+                self.y_to_row(bbox[1])
+            )
 
 class TileMatrixSet:
     """A tile matrix set is multi levels grid definition
@@ -60,6 +144,7 @@ class TileMatrixSet:
         path (str): TMS origin path (JSON)
         id (str): TMS identifier
         srs (str): TMS coordinates system
+        sr (osgeo.osr.SpatialReference): TMS OSR spatial reference
         levels (Dict[str, TileMatrix]): TMS levels
     """
 
@@ -71,7 +156,7 @@ class TileMatrixSet:
 
         Raises:
             MissingEnvironmentError: Missing object storage informations
-            Exception: No level in the TMS
+            Exception: No level in the TMS, CRS not recognized by OSR
             StorageError: Storage read issue
             FormatError: Provided path is not a well formed JSON
             MissingAttributeError: Attribute is missing in the content
@@ -89,6 +174,7 @@ class TileMatrixSet:
 
             self.id = data["id"]
             self.srs = data["crs"]
+            self.sr = srs_to_spatialreference(self.srs)
             self.levels = {}
             for l in data["tileMatrices"]:
                 lev = TileMatrix(l, self)
@@ -103,6 +189,9 @@ class TileMatrixSet:
         except KeyError as e:
             raise MissingAttributeError(self.path, e)
 
+        except RuntimeError as e:
+            raise Exception(f"Wrong attribute 'crs' ('{self.srs}') in '{self.path}', not recognize by OSR")
+
     def get_level(self, level_id: str) -> 'TileMatrix':
         """Get one level according to its identifier
 
@@ -114,3 +203,8 @@ class TileMatrixSet:
         """
       
         return self.levels.get(level_id, None)
+
+    @property
+    def sorted_levels(self) -> List[TileMatrix]: 
+        return sorted(self.levels.values(), key=lambda l: l.resolution)
+
