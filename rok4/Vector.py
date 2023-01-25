@@ -10,6 +10,7 @@ from osgeo import ogr
 from rok4.Storage import get_data_str, copy
 from rok4.Exceptions import *
 import os
+import tempfile
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
@@ -32,7 +33,7 @@ class Vector :
             column_x (only for CSV) : field of the x coordinate
             column_y (only for CSV) : field of the y coordinate
             column_WKT (only for CSV if geometry in WKT) : field of the WKT of the geometry
-            
+
         Raises:
             MissingEnvironmentError: Missing object storage informations
             StorageError: Storage read issue
@@ -95,7 +96,7 @@ class Vector :
 
             if path.endswith(".shp") :
 
-                tmp_path = "/tmp/" + path_split[-1][:-4]
+                tmp_path = tempfile.gettempdir() + "/" + path_split[-1][:-4]
 
                 copy(path, "file://" + tmp_path + ".shp")
                 copy(path[:-4] + ".shx", "file://" + tmp_path + ".shx")
@@ -112,7 +113,7 @@ class Vector :
                 os.remove(tmp_path + ".prj")
 
             elif path.endswith(".gpkg") :
-                tmp_path = "/tmp/" + path_split[-1][:-5]
+                tmp_path = tempfile.gettempdir() + "/" + path_split[-1][:-5]
 
                 copy(path, "file://" + tmp_path + ".gpkg")
 
@@ -121,7 +122,7 @@ class Vector :
                 os.remove(tmp_path + ".gpkg")
 
             elif path.endswith(".geojson") :
-                tmp_path = "/tmp/" + path_split[-1][:-8]
+                tmp_path = tempfile.gettempdir() + "/" + path_split[-1][:-8]
 
                 copy(path, "file://" + tmp_path + ".geojson")
 
