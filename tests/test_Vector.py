@@ -58,14 +58,10 @@ def test_wrong_format():
 
 @mock.patch('rok4.Vector.copy')
 @mock.patch('rok4.Vector.ogr.Open', return_value="not a shape")
-@mock.patch('rok4.Vector.os.remove')
-def test_wrong_content(mocked_remove, mocked_open, mocked_copy):
+def test_wrong_content(mocked_open, mocked_copy):
     with pytest.raises(Exception) as exc:
         vector = Vector("file:///vector.shp")
     assert str(exc.value) == "The content of file:///vector.shp cannot be read"
-    mocked_copy.assert_has_calls([call('file:///vector.shp', 'file:///tmp/vector.shp'), call('file:///vector.shx', 'file:///tmp/vector.shx'), call('file:///vector.cpg', 'file:///tmp/vector.cpg'), call('file:///vector.dbf', 'file:///tmp/vector.dbf'), call('file:///vector.prj', 'file:///tmp/vector.prj')])
-    mocked_open.assert_called_once_with("/tmp/vector.shp", 0)
-    mocked_remove.assert_has_calls([call('/tmp/vector.shp'), call('/tmp/vector.shx'), call('/tmp/vector.cpg'), call('/tmp/vector.dbf'), call('/tmp/vector.prj')])
 
 @mock.patch('rok4.Vector.get_data_str', return_value="id;x;y\n 1;20000;50000")
 def test_ok_csv1(mocked_get_data_str) :

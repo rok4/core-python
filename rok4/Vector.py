@@ -95,40 +95,32 @@ class Vector :
         else :
 
             if path.endswith(".shp") :
+                with tempfile.TemporaryDirectory() as tmp :
+                    tmp_path = tmp + "/" + path_split[-1][:-4]
 
-                tmp_path = tempfile.gettempdir() + "/" + path_split[-1][:-4]
+                    copy(path, "file://" + tmp_path + ".shp")
+                    copy(path[:-4] + ".shx", "file://" + tmp_path + ".shx")
+                    copy(path[:-4] + ".cpg", "file://" + tmp_path + ".cpg")
+                    copy(path[:-4] + ".dbf", "file://" + tmp_path + ".dbf")
+                    copy(path[:-4] + ".prj", "file://" + tmp_path + ".prj")
 
-                copy(path, "file://" + tmp_path + ".shp")
-                copy(path[:-4] + ".shx", "file://" + tmp_path + ".shx")
-                copy(path[:-4] + ".cpg", "file://" + tmp_path + ".cpg")
-                copy(path[:-4] + ".dbf", "file://" + tmp_path + ".dbf")
-                copy(path[:-4] + ".prj", "file://" + tmp_path + ".prj")
-
-                dataSource = ogr.Open(tmp_path + ".shp", 0)
-
-                os.remove(tmp_path + ".shp")
-                os.remove(tmp_path + ".shx")
-                os.remove(tmp_path + ".cpg")
-                os.remove(tmp_path + ".dbf")
-                os.remove(tmp_path + ".prj")
+                    dataSource = ogr.Open(tmp_path + ".shp", 0)
 
             elif path.endswith(".gpkg") :
-                tmp_path = tempfile.gettempdir() + "/" + path_split[-1][:-5]
+                with tempfile.TemporaryDirectory() as tmp :
+                    tmp_path = tmp + "/" + path_split[-1][:-5]
 
-                copy(path, "file://" + tmp_path + ".gpkg")
+                    copy(path, "file://" + tmp_path + ".gpkg")
 
-                dataSource = ogr.Open(tmp_path + ".gpkg", 0)
-
-                os.remove(tmp_path + ".gpkg")
+                    dataSource = ogr.Open(tmp_path + ".gpkg", 0)
 
             elif path.endswith(".geojson") :
-                tmp_path = tempfile.gettempdir() + "/" + path_split[-1][:-8]
+                with tempfile.TemporaryDirectory() as tmp :
+                    tmp_path = tmp + "/" + path_split[-1][:-8]
 
-                copy(path, "file://" + tmp_path + ".geojson")
+                    copy(path, "file://" + tmp_path + ".geojson")
 
-                dataSource = ogr.Open(tmp_path + ".geojson", 0)
-
-                os.remove(tmp_path + ".geojson")
+                    dataSource = ogr.Open(tmp_path + ".geojson", 0)
 
             else :
                 raise Exception("This format of file cannot be loaded")
