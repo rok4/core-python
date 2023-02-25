@@ -39,9 +39,9 @@ jobs:
       max-parallel: 2
       fail-fast: true
       matrix:
-        # python-version: ["3.7", "3.8", "3.9", "3.10"]
+        # python-version: ["3.8", "3.9", "3.10"]
         # os: ["ubuntu-20.04", "ubuntu-22.04"]
-        python-version: ["3.7", "3.8"]
+        python-version: ["3.8", "3.9"]
         os: ["ubuntu-20.04"]
 
     runs-on: ${{ matrix.os }}
@@ -80,7 +80,7 @@ jobs:
         id: cache-sysdeps
         with:
           path: "~/deps"
-          key: sysdeps-${{ runner.os }}-${{ matrix.python-version }}
+          key: sysdeps-${{ matrix.os }}-${{ matrix.python-version }}
 
 
       - name: Copy system dependencies
@@ -101,29 +101,29 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .venv
-          key: pydeps-${{ runner.os }}-${{ matrix.python-version }}
+          key: pydeps-${{ matrix.os }}-${{ matrix.python-version }}
 
       - name: Install python dependencies
         if: steps.cache-pydeps.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root -E doc
 
       - name: Run unit tests
-        if: "(${{ runner.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.7')"
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
           poetry run coverage run -m pytest
           poetry run coverage report -m
           poetry run coverage html -d dist/tests/
 
       - name: Build package
-        if: "(${{ runner.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.7')"
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: poetry build
 
       - name: Build documentation
-        if: "(${{ runner.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.7')"
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: poetry run pdoc3 --html --output-dir dist/ rok4
 
       - name: Upload packages, tests results and documentation
-        if: "(${{ runner.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.7')"
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         uses: actions/upload-artifact@v3
         with:
           name: dist-py3
