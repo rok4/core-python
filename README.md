@@ -1,33 +1,37 @@
-# Librairies CORE Python
+# Librairies ROK4 Python
 
-Ces librairies Python sont utilisées par les outils python du dépôt [pytools](https://github.com/rok4/pytools)
-
-## Compiler la librairie
-
-`VERSION=1.0.0 python setup.py bdist_wheel`
-
-## Installer la librairie
-
-```sh
-apt install python3-rados python3-gdal
-python -m venv --system-site-packages venv
-source venv/bin/activate
-pip install rok4lib-1.0.0-py3-none-any.whl
-```
-
-## Jouer les tests unitaires
-
-`pytest`
-
-Pour avoir la couverture des tests unitaires :
-```sh
-source venv/bin/activate
-pip install coverage
-coverage run -m pytest
-coverage report -m
-```
+Ces librairies Python sont utilisées par les outils python du dépôt [pytools](https://github.com/rok4/pytools). Le gestion du projet s'appuie sur l'outil [poetry](https://python-poetry.org/docs/).
 
 ## Utiliser la librairie
+
+Installations système requises :
+
+* debian : `apt install python3-rados python3-gdal`
+
+### Installer depuis le fichier wheel en ligne
+
+Exemple avec la version 1.2.0 :
+
+```sh
+pip install https://github.com/rok4/core-python/releases/download/1.2.0/rok4-1.2.0-py3-none-any.whl
+# or, with poetry
+poetry add https://github.com/rok4/core-python/releases/download/1.2.0/rok4-1.2.0-py3-none-any.whl
+```
+
+### Installer depuis le code source
+
+Exemple avec la version 1.2.0 :
+
+```sh
+git clone --branch 1.2.0 --depth 1 https://github.com/rok4/core-python
+cd core-python
+poetry config virtualenvs.options.system-site-packages true
+poetry self add poetry-bumpversion
+poetry version 1.2.0
+poetry install --without=dev
+```
+
+### Appels dans le code python
 
 ```python
 from rok4.TileMatrixSet import TileMatrixSet
@@ -42,10 +46,30 @@ except Exception as exc:
     print(exc)
 ```
 
-## Compiler la documentation
 
-```bash
-source venv/bin/activate
-pip install pdoc3
-VERSION=1.0.0 pdoc --html rok4
+## Compiler la librairie
+
+La compilation s'appuie sur l'outil poetry :
+
+```sh
+# To detect rados and osgeo libraries, we enable system-site-packages
+poetry config virtualenvs.options.system-site-packages true
+# Install bumpversion poetry plugin
+poetry self add poetry-bumpversion
+# Change version into pyproject.toml and rok4/__init__.py
+poetry version 1.2.0
+# Install dependencies
+apt install python3-rados python3-gdal
+poetry install --no-interaction --no-root
+# Run unit tests
+poetry run coverage run -m pytest
+# Get unit tests coverage
+poetry run coverage report -m
+# Build unit test coverage HTML report
+poetry run coverage html -d dist/${{ github.ref_name }}/tests/
+# Build wheel and tarball files
+poetry build
+# Build devs documentation
+poetry install -E doc
+poetry run pdoc3 --html --output-dir dist/1.2.0/ rok4
 ```
