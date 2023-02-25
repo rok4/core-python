@@ -399,6 +399,9 @@ class Pyramid:
             if storage["type"] == StorageType.FILE and name.find("/") != -1:
                 raise Exception(f"A FILE stored pyramid's name cannot contain '/' : '{name}'")
 
+            if storage["type"] == StorageType.FILE and "depth" not in storage:
+                storage["depth"] = 2
+
             pyramid = cls()
 
             # Attributs communs
