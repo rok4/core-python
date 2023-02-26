@@ -55,24 +55,25 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache poetry install
-        uses: actions/cache@v3        
-        with:
-          path: ~/.local
-          key: poetry-${{ matrix.os }}-${{ matrix.python-version }}
-
       - name: Install Poetry
-        uses: snok/install-poetry@v1
+        uses: dschep/install-poetry-action@v1.2
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+          path: ~/.virtualenvs
+          key: poetry-${{ matrix.os }}-${{ matrix.python-version }}
+          restore-keys: |
+            poetry-${{ matrix.os }}-${{ matrix.python-version }}
 
       - name: Configure Poetry
-        run : |
+        run: |
+          poetry config settings.virtualenvs.in-project false
           poetry config virtualenvs.options.system-site-packages true
+          poetry config settings.virtualenvs.path ~/.virtualenvs
           poetry self add poetry-bumpversion
           poetry version ${{ github.ref_name }} 
-
 
       - uses: actions/cache@v3
         name: Cache system dependencies
@@ -80,7 +81,6 @@ jobs:
         with:
           path: "~/deps"
           key: sysdeps-${{ matrix.os }}-${{ matrix.python-version }}
-
 
       - name: Copy system dependencies
         if: steps.cache-sysdeps.outputs.cache-hit == 'true'
@@ -95,22 +95,13 @@ jobs:
           sudo dpkg -L python3-rados | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/deps/
           sudo dpkg -L python3-gdal | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/deps/
 
-      - name: Cache python dependencies
-        id: cache-pydeps
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: pydeps-${{ matrix.os }}-${{ matrix.python-version }}
-
       - name: Install python dependencies
-        if: steps.cache-pydeps.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root -E doc
+        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Run unit tests
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          poetry config --list
-          poetry env info
           poetry run coverage run -m pytest
           poetry run coverage report -m
           poetry run coverage html -d dist/tests/
