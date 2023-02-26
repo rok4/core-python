@@ -7,14 +7,17 @@ Created on Wed Jan 18 12:04:07 2023
 """
 from rok4.Vector import Vector
 from rok4.Exceptions import *
+from rok4.Storage import disconnect_ceph_clients
 
 import pytest
 import os
 from unittest.mock import *
 from unittest import mock
 
+
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_missing_env():
+    disconnect_ceph_clients()
     with pytest.raises(MissingEnvironmentError):
         vector = Vector("ceph:///ign_std/vector.shp")
 

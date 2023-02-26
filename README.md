@@ -1,6 +1,6 @@
 # Librairies ROK4 Python
 
-Ces librairies Python sont utilisées par les outils python du dépôt [pytools](https://github.com/rok4/pytools). Le gestion du projet s'appuie sur l'outil [poetry](https://python-poetry.org/docs/).
+Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés. Le gestion du projet s'appuie sur l'outil [poetry](https://python-poetry.org/docs/).
 
 ## Utiliser la librairie
 
@@ -10,24 +10,20 @@ Installations système requises :
 
 ### Installer depuis le fichier wheel en ligne
 
-Exemple avec la version 1.2.0 :
-
 ```sh
-pip install https://github.com/rok4/core-python/releases/download/1.2.0/rok4-1.2.0-py3-none-any.whl
+pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl
 # or, with poetry
-poetry add https://github.com/rok4/core-python/releases/download/1.2.0/rok4-1.2.0-py3-none-any.whl
+poetry add https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl
 ```
 
 ### Installer depuis le code source
 
-Exemple avec la version 1.2.0 :
-
 ```sh
-git clone --branch 1.2.0 --depth 1 https://github.com/rok4/core-python
+git clone --branch x.y.z --depth 1 https://github.com/rok4/core-python
 cd core-python
 poetry config virtualenvs.options.system-site-packages true
 poetry self add poetry-bumpversion
-poetry version 1.2.0
+poetry version x.y.z
 poetry install --without=dev
 ```
 
@@ -54,10 +50,12 @@ La compilation s'appuie sur l'outil poetry :
 ```sh
 # To detect rados and osgeo libraries, we enable system-site-packages
 poetry config virtualenvs.options.system-site-packages true
+# venv in the project directory
+poetry config virtualenvs.in-project true
 # Install bumpversion poetry plugin
 poetry self add poetry-bumpversion
 # Change version into pyproject.toml and rok4/__init__.py
-poetry version 1.2.0
+poetry version x.y.z
 # Install dependencies
 apt install python3-rados python3-gdal
 poetry install --no-interaction --no-root
@@ -66,10 +64,10 @@ poetry run coverage run -m pytest
 # Get unit tests coverage
 poetry run coverage report -m
 # Build unit test coverage HTML report
-poetry run coverage html -d dist/${{ github.ref_name }}/tests/
+poetry run coverage html -d dist/x.y.z/tests/
 # Build wheel and tarball files
 poetry build
 # Build devs documentation
 poetry install -E doc
-poetry run pdoc3 --html --output-dir dist/1.2.0/ rok4
+poetry run pdoc3 --html --output-dir dist/x.y.z/ rok4
 ```
