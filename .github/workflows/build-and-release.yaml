@@ -41,7 +41,7 @@ jobs:
       matrix:
         # python-version: ["3.8", "3.9", "3.10"]
         # os: ["ubuntu-20.04", "ubuntu-22.04"]
-        python-version: ["3.8", "3.9"]
+        python-version: ["3.8"]
         os: ["ubuntu-20.04"]
 
     runs-on: ${{ matrix.os }}
@@ -78,32 +78,19 @@ jobs:
         if: steps.cache-pydeps.outputs.cache-hit != 'true'
         run: |
           poetry install --no-interaction --no-root -E doc
-          cat .venv/pyvenv.cfg
-
-      - uses: actions/cache@v3
-        name: Load cached system dependencies
-        id: cache-sysdeps
-        with:
-          path: "~/deps"
-          key: sysdeps-${{ matrix.os }}-${{ matrix.python-version }}
-
-      - name: Copy system dependencies
-        if: steps.cache-sysdeps.outputs.cache-hit == 'true'
-        run: sudo cp --verbose --force --recursive ~/deps/* /
+          poetry run python -c 'import sys; print (sys.path)'
 
       - name: Install system dependencies
         if: steps.cache-sysdeps.outputs.cache-hit != 'true'
         run: |
           sudo apt update
           sudo apt -y install python3-rados python3-gdal
-          mkdir -p ~/deps
-          sudo dpkg -L python3-rados | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/deps/
-          sudo dpkg -L python3-gdal | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/deps/
+          sudo dpkg -L python3-rados
+          sudo dpkg -L python3-gdal
 
       - name: Run unit tests
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          cat .venv/pyvenv.cfg
           poetry run coverage run -m pytest
           poetry run coverage report -m
           poetry run coverage html -d dist/tests/
@@ -115,7 +102,6 @@ jobs:
       - name: Build documentation
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          cat .venv/pyvenv.cfg
           poetry run pdoc3 --html --output-dir dist/ rok4
 
       - name: Upload packages, tests results and documentation
