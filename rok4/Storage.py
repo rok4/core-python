@@ -673,6 +673,29 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(f"CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
+            
+    elif from_type == StorageType.CEPH and to_type == StorageType.S3 :
+
+        from_ioctx = __get_ceph_ioctx(from_tray)
+
+        to_s3_client, to_host, to_tray = __get_s3_client(to_tray)
+
+        try:
+
+            offset = 0
+            size = 0
+
+            with tempfile.NamedTemporaryFile("w+b") as f:
+                size, mtime = from_ioctx.stat(from_base_name)
+                chunk = from_ioctx.read(from_base_name, size)
+                f.write(chunk)
+                to_s3_client.upload_file(f.name, to_tray, to_base_name)
+
+            if from_md5 is not None :
+                to_md5 = to_s3_client.head_object(Bucket=to_tray, Key=to_base_name)["ETag"].strip('"')
+                if to_md5 != from_md5:
+                    raise StorageError(f"CEPH and S3", f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {to_md5}")
+
 
 
     else:
