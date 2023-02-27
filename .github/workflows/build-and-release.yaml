@@ -74,7 +74,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt -y install python3-rados python3-gdal
-          cp *.pth .venv/lib/python${{ matrix.python-version }}/site-packages/
+          cp site-packages/*.pth .venv/lib/python${{ matrix.python-version }}/site-packages/
           poetry run python -c 'import sys; print (sys.path)'
 
       - name: Run unit tests
@@ -83,6 +83,7 @@ jobs:
           poetry run coverage run -m pytest
           poetry run coverage report -m
           poetry run coverage html -d dist/tests/
+          rm dist/tests/.gitignore
 
       - name: Build package
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
@@ -185,8 +186,6 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          ls -R docs/versions/${{ github.ref_name }}/
-          cat .gitignore
           git add -v docs/versions/${{ github.ref_name }}/ docs/index.md docs/versions.md
           git commit -m "Add documentation for version ${{ github.ref_name }}"
           git push
