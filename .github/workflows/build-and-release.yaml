@@ -61,12 +61,12 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
+      - name: Load cached python dependencies
+        id: cache-pydeps
         uses: actions/cache@v3
         with:
           path: .venv
-          key: venv-${{ matrix.os }}-${{ matrix.python-version }}
+          key: pydeps-${{ matrix.os }}-${{ matrix.python-version }}
 
       - name: Configure Poetry
         run: |
@@ -74,12 +74,14 @@ jobs:
           poetry self add poetry-bumpversion
           poetry version ${{ github.ref_name }} 
 
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root -E doc
+      - name: Install python dependencies
+        if: steps.cache-pydeps.outputs.cache-hit != 'true'
+        run: |
+          poetry install --no-interaction --no-root -E doc
+          cat .venv/pyvenv.cfg
 
       - uses: actions/cache@v3
-        name: Cache system dependencies
+        name: Load cached system dependencies
         id: cache-sysdeps
         with:
           path: "~/deps"
@@ -98,17 +100,13 @@ jobs:
           sudo dpkg -L python3-rados | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/deps/
           sudo dpkg -L python3-gdal | while IFS= read -r f; do if test -f $f; then echo $f; fi; done | xargs cp --parents --target-directory ~/deps/
 
-      - name: Install python dependencies
-        run: poetry install --no-interaction --no-root -E doc
-        if: steps.cache.outputs.cache-hit != 'true'
-
       - name: Run unit tests
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          source .venv/bin/activate
-          coverage run -m pytest
-          coverage report -m
-          coverage html -d dist/tests/
+          cat .venv/pyvenv.cfg
+          poetry run coverage run -m pytest
+          poetry run coverage report -m
+          poetry run coverage html -d dist/tests/
 
       - name: Build package
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
@@ -117,8 +115,8 @@ jobs:
       - name: Build documentation
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          source .venv/bin/activate
-          pdoc3 --html --output-dir dist/ rok4
+          cat .venv/pyvenv.cfg
+          poetry run pdoc3 --html --output-dir dist/ rok4
 
       - name: Upload packages, tests results and documentation
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
