@@ -1,28 +1,25 @@
-# Librairies ROK4 core Python
-
 ## Summary
 
-Complétion des librairies Python utilisées par les outils python à venir du dépôt [pytools](https://github.com/rok4/pytools).
+Ajout de la librairie de lecture de données vecteur, de tests unitaires et ajout de fonctionnalité pour le stockage. Amélioration de la gestion du projet et de l'intégration continue.
 
 ## Changelog
 
 ### [Added]
 
-* Librairie d'abstraction du stockage (S3, CEPH ou FILE)
-  * fonction de test de l'existence du fichier / objet
+* Librairie de lecture de données vecteur :
+  * Chargement de données vecteur pour des fichiers shapefile, Geopackage, CSV et GeoJSON
+  * Ecriture des tests unitaires
+* Librairie Pyramid : complétion des tests unitaires
+* Librairie Storage : prise en charge de la copie CEPH -> S3
+* Gestion du projet (compilations, dépendances...) via poetry
+* Injection de la version dans le fichier `pyproject.toml` et `__init__.py` (définition de la variable `__version__`)
+* Évolution de la CI github
+    * Vérification des installations et tests unitaires sous python 3.8, 3.9 et 3.10, sous ubuntu 20.04 et ubuntu 22.04
+    * Publication de l'artefact avec les résultats des tests unitaires
+    * Nettoyage de la release en cas d'erreur
+    * Compilation de la documentation et publication sur la branche gh-pages
 
-### [Changed]
-
-* Librairie d'abstraction du stockage (S3, CEPH ou FILE)
-  * la suppression d'un fichier ou objet n'existant pas ne lève pas d'erreur
-
-### [Fixed]
-
-* Sortie en erreur si le nom d'une pyramide FICHIER contient un slash
-* Les indices d'une dalle calculés à partir de son chemin sont bien typés en entiers
-* Détection des masques dans un descripteur de pyramide raster
-
-<!-- 
+<!--
 ### [Added]
 
 ### [Changed]
@@ -33,5 +30,5 @@ Complétion des librairies Python utilisées par les outils python à venir du d
 
 ### [Fixed]
 
-### [Security] 
+### [Security]
 -->

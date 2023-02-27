@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "vector",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::2154" } },
+"features": [
+{ "type": "Feature", "properties": { "id": "01402_0127_00254", "id_fantoir": "01402_0127", "numero": 254, "rep": null, "nom_voie": "Chemin des Juillets", "code_postal": 1190, "code_insee": 1402, "nom_commune": "Sermoyer", "code_insee_ancienne_commune": null, "nom_ancienne_commune": null, "x": 852059.72, "y": 6601258.91, "lon": 4.982786, "lat": 46.494144, "type_position": "entrée", "alias": null, "nom_ld": null, "libelle_acheminement": "SERMOYER", "nom_afnor": "CHEMIN DES JUILLETS", "source_position": "inconnue", "source_nom_voie": "inconnue", "certification_commune": 0, "cad_parcelles": null }, "geometry": { "type": "Point", "coordinates": [ 852059.71999999997206, 6601258.910000000149012 ] } }
+]
+}

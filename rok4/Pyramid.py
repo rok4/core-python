@@ -57,7 +57,7 @@ def b36_number_decode(number: str) -> int:
 
     Returns:
         int: base-10 number
-    """    
+    """
     return int(number, 36)
 
 def b36_path_decode(path: str) -> Tuple[int, int]:
@@ -265,10 +265,39 @@ class Level:
     def id(self) -> str: 
         return self.__id
 
+    @property
+    def bbox(self) -> Tuple[float, float, float, float]: 
+        """Return level extent, based on tile limits
+
+        Returns:
+            Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
+        """        
+        min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["min_col"], self.__tile_limits["max_row"])
+        max_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["max_col"], self.__tile_limits["min_row"])
+
+        return (min_bbox[0], min_bbox[1], max_bbox[2], max_bbox[3])
 
     @property
     def resolution(self) -> str: 
         return self.__pyramid.tms.get_level(self.__id).resolution
+
+    def update_limits(self, bbox: Tuple[float, float, float, float]) -> None:
+        """Update tile limits, based on provided bounding box
+
+        Args:
+            bbox (Tuple[float, float, float, float]): terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
+
+        """
+        print(self.id)
+        print(self.__tile_limits)
+        col_min, row_min, col_max, row_max = self.__pyramid.tms.get_level(self.__id).bbox_to_tiles(bbox)
+        self.__tile_limits = {
+            "min_row": row_min,
+            "max_col": col_max,
+            "max_row": row_max,
+            "min_col": col_min
+        }
+        print(self.__tile_limits)
 
 
 class Pyramid:
@@ -370,6 +399,9 @@ class Pyramid:
             if storage["type"] == StorageType.FILE and name.find("/") != -1:
                 raise Exception(f"A FILE stored pyramid's name cannot contain '/' : '{name}'")
 
+            if storage["type"] == StorageType.FILE and "depth" not in storage:
+                storage["depth"] = 2
+
             pyramid = cls()
 
             # Attributs communs
@@ -450,6 +482,10 @@ class Pyramid:
     @property
     def tms(self) -> TileMatrixSet:
         return self.__tms
+        
+    @property
+    def raster_specifications(self) -> Dict:
+        return self.__raster_specifications
 
     @property
     def storage_type(self) -> StorageType: 
@@ -457,11 +493,23 @@ class Pyramid:
 
     @property
     def storage_root(self) -> StorageType: 
-        return self.__storage["root"]
+        return self.__storage["root"].split("@", 1)[0] # Suppression de l'éventuel hôte de spécification du cluster S3
 
     @property
     def storage_depth(self) -> int: 
         return self.__storage.get("depth", None)
+
+
+    @property
+    def storage_s3_cluster(self) -> str: 
+        if self.__storage["type"] == StorageType.S3:
+            try:
+                return self.__storage["root"].split("@")[1]
+            except IndexError:
+                return None
+        else:
+            return None
+
 
     @storage_depth.setter
     def storage_depth(self, d) -> None:
@@ -472,6 +520,18 @@ class Pyramid:
     @property
     def own_masks(self) -> int: 
         return self.__masks
+
+    @property
+    def format(self) -> str: 
+        return self.__format
+
+    @property
+    def bottom_level(self) -> 'Level': 
+        return sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
+
+    @property
+    def top_level(self) -> 'Level': 
+        return sorted(self.__levels.values(), key=lambda l: l.resolution)[-1]
 
     @property
     def type(self) -> PyramidType:
@@ -491,6 +551,59 @@ class Pyramid:
         """
       
         return self.__levels.get(level_id, None)
+
+
+    def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[Level]:
+        """Get sorted levels from bottom and top provided
+
+        Args:
+            bottom_id (str): optionnal specific bottom level id. Defaults to None.
+            top_id (str): optionnal specific top level id. Defaults to None.
+
+        Raises:
+            Exception: Provided levels are not consistent (bottom > top or not in the pyramid)
+
+        Returns:
+            List[Level]: asked sorted levels
+        """
+
+        sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution)
+        
+        levels = []
+
+        begin = False
+        if bottom_id is None:
+            # Pas de niveau du bas fourni, on commence tout en bas
+            begin = True
+        else:
+            if self.get_level(bottom_id) is None:
+                raise Exception(f"Pyramid {self.name} does not contain the provided bottom level {bottom_id}")
+
+        if top_id is not None and self.get_level(top_id) is None:
+            raise Exception(f"Pyramid {self.name} does not contain the provided top level {top_id}")
+
+        end = False
+
+        for l in sorted_levels:
+            if not begin and l.id == bottom_id:
+                begin = True
+
+            if begin:
+                levels.append(l)
+                if top_id is not None and l.id == top_id:
+                    end = True
+                    break
+                else:
+                    continue
+        
+        if top_id is None:
+            # Pas de niveau du haut fourni, on a été jusqu'en haut et c'est normal
+            end = True
+
+        if not begin or not end:
+            raise Exception(f"Provided levels ids are not consistent to extract levels from the pyramid {self.name}")
+      
+        return levels
 
     def write_descriptor(self) -> None:
         content = json.dumps(self.serializable)
