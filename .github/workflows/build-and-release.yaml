@@ -39,10 +39,8 @@ jobs:
       max-parallel: 2
       fail-fast: true
       matrix:
-        # python-version: ["3.8", "3.9", "3.10"]
-        # os: ["ubuntu-20.04", "ubuntu-22.04"]
-        python-version: ["3.8"]
-        os: ["ubuntu-20.04"]
+        python-version: ["3.8", "3.9", "3.10"]
+        os: ["ubuntu-20.04", "ubuntu-22.04"]
 
     runs-on: ${{ matrix.os }}
 
@@ -116,10 +114,6 @@ jobs:
         with:
           name: dist-py3
           path: dist/
-
-      - name: Artefact content
-        run: |
-          ls -R dist
 
       - name: Add wheel package to release
         id: upload-release-whl
