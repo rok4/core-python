@@ -105,7 +105,7 @@ jobs:
 
   publish_artefacts:
     name: Add built artefacts to release
-    needs: build_and_test
+    needs: [create_release, build_and_test]
     if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
     runs-on: ubuntu-latest
 
@@ -164,7 +164,8 @@ jobs:
       - name: Copy version elements to final location
         run: |
           mkdir -p docs/versions/${{ github.ref_name }}
-          cp -r artifact/rok4 artifact/tests docs/versions/${{ github.ref_name }}/
+          cp -r artifact/rok4 docs/versions/${{ github.ref_name }}/
+          cp -r artifact/tests docs/versions/${{ github.ref_name }}/
 
       - name: Add pages from templates
         run: |
