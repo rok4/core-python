@@ -1,4 +1,4 @@
-name: Build and release
+name: Test, build and release artefacts, build documentation
 
 on:
   push:
@@ -7,37 +7,15 @@ on:
 
 jobs:
 
-  build:
-
-    runs-on: ubuntu-20.04
-
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      job_status: ${{ job.status }}
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.8"
-          cache: 'pip'
-          cache-dependency-path: '**/setup.py'
-
-      - name: Install dependencies
-        run: |
-
-          sudo apt update
-          sudo apt install python3-rados python3-gdal libgdal-dev
-          python -m pip install --upgrade pip
-          python -m pip install --upgrade pip setuptools wheel pytest
-
-          VERSION=${{ github.ref_name }} python setup.py install
-          
-      - name: Test with pytest
-        run: |
-          PYTHONPATH=$PYTHONPATH:/usr/lib/python3/dist-packages/ pytest
-
-      - name: Build wheel
-        run: |
-          VERSION=${{ github.ref_name }} python setup.py bdist_wheel
+      - name: Checkout project
+        uses: actions/checkout@v3
 
       - name: Create Release
         id: create_release
@@ -45,19 +23,179 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }} 
+          release_name: Release ${{ github.ref_name }} 
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
 
+  build_and_test:
+
+    name: Test and build artefacts
+    needs: create_release
+    outputs:
+      job_status: ${{ job.status }}
+    strategy:
+      max-parallel: 2
+      fail-fast: true
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
+        os: ["ubuntu-20.04", "ubuntu-22.04"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Configure Poetry
+        run: |
+          poetry self add poetry-bumpversion
+          poetry version ${{ github.ref_name }} 
+
+      - name: Install python dependencies
+        run: |
+          poetry install --no-interaction --no-root -E doc
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt -y install python3-rados python3-gdal
+          cp site-packages/*.pth .venv/lib/python${{ matrix.python-version }}/site-packages/
+          poetry run python -c 'import sys; print (sys.path)'
+
+      - name: Run unit tests
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        run: |
+          poetry run coverage run -m pytest
+          poetry run coverage report -m
+          poetry run coverage html -d dist/tests/
+          rm dist/tests/.gitignore
+
+      - name: Build package
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        run: poetry build
+
+      - name: Build documentation
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        run: |
+          poetry run pdoc3 --html --output-dir dist/ rok4
+          cp README.md CHANGELOG.md dist/
+
+      - name: Upload packages, tests results and documentation
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-py3
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish_artefacts:
+    name: Add built artefacts to release
+    needs: [create_release, build_and_test]
+    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-py3
+          path: dist/
+
       - name: Add wheel package to release
-        id: upload-release-asset 
+        id: upload-release-whl
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/rok4lib-${{ github.ref_name }}-py3-none-any.whl
-          asset_name: rok4lib-${{ github.ref_name }}-py3-none-any.whl
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./dist/rok4-${{ github.ref_name }}-py3-none-any.whl
+          asset_name: rok4-${{ github.ref_name }}-py3-none-any.whl
           asset_content_type: application/zip
+
+      - name: Add tarball package to release
+        id: upload-release-targz 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./dist/rok4-${{ github.ref_name }}.tar.gz
+          asset_name: rok4-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/zip
+
+
+  commit_documentation:
+    name: Add documentation and unit tests results into gh-pages branch
+    needs: build_and_test
+    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')" 
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout project on gh-pages
+        uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist-py3
+          path: artifact/
+
+      - name: Copy version elements to final location
+        run: |
+          mkdir -p docs/versions/${{ github.ref_name }}
+          cp -r artifact/rok4 docs/versions/${{ github.ref_name }}/
+          cp -r artifact/tests docs/versions/${{ github.ref_name }}/
+
+      - name: Add pages from templates
+        run: |
+          sed "s#__version__#${{ github.ref_name }}#" templates/TESTS.template.md >docs/versions/${{ github.ref_name }}/TESTS.md
+          sed "s#__version__#${{ github.ref_name }}#" templates/DOCUMENTATION.template.md >docs/versions/${{ github.ref_name }}/DOCUMENTATION.md
+          sed "s#__version__#${{ github.ref_name }}#" templates/CHANGELOG.template.md >docs/versions/${{ github.ref_name }}/CHANGELOG.md
+          cat artifact/CHANGELOG.md >>docs/versions/${{ github.ref_name }}/CHANGELOG.md
+          sed "s#__version__#${{ github.ref_name }}#" templates/README.template.md >docs/versions/${{ github.ref_name }}/README.md
+          cat artifact/README.md >>docs/versions/${{ github.ref_name }}/README.md
+          sed "s#__version__#${{ github.ref_name }}#" templates/index.template.md >docs/index.md
+          echo "# Versions" >docs/versions.md
+          echo "" >>docs/versions.md
+          for v in `ls -t docs/versions`; do sed "s#__version__#$v#" templates/versions.template.md >>docs/versions.md; done
+          rm -r artifact
+
+      - name: Publish on gh-pages branch
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add -v docs/versions/${{ github.ref_name }}/ docs/index.md docs/versions.md
+          git commit -m "Add documentation for version ${{ github.ref_name }}"
+          git push
+
+  delete_version:
+    name: Remove release and tag if error occured
+    needs: build_and_test
+    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status!='success')" 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Remove release and tag
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          tag_name: ${{ github.ref_name }}
+          delete_release: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

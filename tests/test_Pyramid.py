@@ -85,7 +85,21 @@ def test_vector_missing_tables(mocked_tms_class, mocked_get_data_str):
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch('rok4.Pyramid.get_data_str', return_value='{"raster_specifications":{"channels":3,"nodata":"255,0,0","photometric":"rgb","interpolation":"bicubic"}, "format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_prefix":"SCAN1000/DATA_0","pool_name":"pool1","type":"CEPH"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}')
 @mock.patch('rok4.Pyramid.TileMatrixSet')
-def test_raster_ok(mocked_tms_class, mocked_get_data_str):
+@mock.patch('rok4.Pyramid.put_data_str', return_value=None)
+def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
+
+
+    tms_instance = MagicMock()
+    tms_instance.name = "PM"
+    tms_instance.srs = "EPSG:3857"
+
+    tm_instance = MagicMock()
+    tm_instance.id = "0"
+    tm_instance.resolution = 1
+
+    tms_instance.get_level.return_value = tm_instance
+
+    mocked_tms_class.return_value = tms_instance
 
     try:
         pyramid = Pyramid.from_descriptor("ceph://pool1/sub/pyramid.json")
@@ -102,6 +116,12 @@ def test_raster_ok(mocked_tms_class, mocked_get_data_str):
         assert clone.storage_root == "/data/ign"
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
+        assert clone.get_infos_from_slab_path("IMAGE/12/00/00/00.tif") == (SlabType.DATA, "12", 0, 0)
+
+        assert len(clone.get_levels()) == 1
+
+        clone.write_descriptor()
+        mocked_put_data_str.assert_called_once_with('{"tile_matrix_set": "PM", "format": "TIFF_JPG_UINT8", "levels": [{"id": "0", "tiles_per_width": 16, "tiles_per_height": 16, "tile_limits": {"min_col": 0, "max_row": 15, "max_col": 15, "min_row": 0}, "storage": {"type": "FILE", "image_directory": "titi/DATA/0", "path_depth": 2}}], "raster_specifications": {"channels": 3, "nodata": "255,0,0", "photometric": "rgb", "interpolation": "bicubic"}}', 'file:///data/ign/titi.json')
     except Exception as exc:
         assert False, f"Pyramid creation raises an exception: {exc}"
 

@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "rok4"
+version = "0.0.0"
+description = "Python core libraries for ROK4 project"
+authors = ["Géoportail <tout_rdev@ign.fr>"]
+packages = [{include = "rok4"}]
+license = "CECILL-C"
+readme = "README.md"
+homepage = "https://rok4.github.io"
+repository = "https://github.com/rok4/core-python"
+documentation = "https://rok4.github.io/core-python/"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+boto3 = "1.26.54"
+pdoc3 = { version = "^0.10.0", optional = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.1.2"
+coverage = "^7.0.5"
+
+[tool.poetry.extras]
+doc = ["pdoc3"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry_bumpversion.file."rok4/__init__.py"]
