@@ -56,16 +56,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Poetry
-        uses: dschep/install-poetry-action@v1.2
-
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
+        uses: snok/install-poetry@v1
         with:
-          path: ~/.virtualenvs
-          key: poetry-${{ matrix.os }}-${{ matrix.python-version }}
-          restore-keys: |
-            poetry-${{ matrix.os }}-${{ matrix.python-version }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ matrix.os }}-${{ matrix.python-version }}
 
       - name: Configure Poetry
         run: |
@@ -74,6 +75,10 @@ jobs:
           poetry config settings.virtualenvs.path ~/.virtualenvs
           poetry self add poetry-bumpversion
           poetry version ${{ github.ref_name }} 
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root -E doc
 
       - uses: actions/cache@v3
         name: Cache system dependencies
@@ -102,9 +107,10 @@ jobs:
       - name: Run unit tests
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          poetry run coverage run -m pytest
-          poetry run coverage report -m
-          poetry run coverage html -d dist/tests/
+          source .venv/bin/activate
+          coverage run -m pytest
+          coverage report -m
+          coverage html -d dist/tests/
 
       - name: Build package
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
@@ -112,7 +118,9 @@ jobs:
 
       - name: Build documentation
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
-        run: poetry run pdoc3 --html --output-dir dist/ rok4
+        run: |
+          source .venv/bin/activate
+          pdoc3 --html --output-dir dist/ rok4
 
       - name: Upload packages, tests results and documentation
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
