@@ -13,7 +13,7 @@ import os
 import re
 
 from rok4.Exceptions import *
-from rok4.TileMatrixSet import TileMatrixSet
+from rok4.TileMatrixSet import TileMatrixSet, TileMatrix
 from rok4.Storage import *
 
 class PyramidType(Enum):
@@ -273,13 +273,19 @@ class Level:
             Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
         """        
         min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["min_col"], self.__tile_limits["max_row"])
+        print(min_bbox)
         max_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["max_col"], self.__tile_limits["min_row"])
+        print(max_bbox)
 
         return (min_bbox[0], min_bbox[1], max_bbox[2], max_bbox[3])
 
     @property
     def resolution(self) -> str: 
         return self.__pyramid.tms.get_level(self.__id).resolution
+
+    @property
+    def tile_matrix(self) -> TileMatrix: 
+        return self.__pyramid.tms.get_level(self.__id)
 
     def update_limits(self, bbox: Tuple[float, float, float, float]) -> None:
         """Update tile limits, based on provided bounding box
@@ -654,4 +660,39 @@ class Pyramid:
         else:
             return slab_path
         
+
+    def get_tile_data_binary(self, level: str, column: int, row: int) -> str:
+        """Get a pyramid's tile as binary string
+
+        Args:
+            level (str): Tile's level
+            column (int): Tile's column
+            row (int): Tile's row
+
+        Returns:
+            str: data, as binary string
+        """
+
+        return b""
+
+    def get_tile_indices(self, x: float, y: float, level: str = None) -> Tuple[str, int, int, int, int]:
+        """Get pyramid's tile and pixel indices from point's coordinates
+
+        Args:
+            x (float): point's x
+            y (float): point's y
+            level (str, optional): Pyramid's level to take into account, the bottom one if None . Defaults to None.
+
+        Returns:
+            Tuple[str, int, int, int, int]: Level identifier, tile's column, tile's row, pixel's (in the tile) column, pixel's row
+        """
+
+        level_object = self.bottom_level
+        if level is not None:
+            level_object = self.get_level(level)
+        
+        if level_object is None:
+            raise Exception(f"Cannot found the level to calculate indices")
+
+        return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
 

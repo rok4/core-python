@@ -229,10 +229,10 @@ class Layer:
                 "authorized": True
             },
             "bbox": {
-                "east": self.__geobbox[3],
+                "south": self.__geobbox[0],
                 "west": self.__geobbox[1],
                 "north": self.__geobbox[2],
-                "south": self.__geobbox[0]
+                "east": self.__geobbox[3]
             },
             "pyramids": []
         }

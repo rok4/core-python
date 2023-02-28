@@ -50,6 +50,14 @@ def test_wrong_crs(mocked_get_data_str):
     mocked_get_data_str.assert_called_once_with('file:///path/to/tms.json')
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
+@mock.patch('rok4.TileMatrixSet.get_data_str', return_value='{"crs":"epsg:4326","orderedAxes":["Lat","Lon"],"tileMatrices":[{"id":"0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"id":"PM"}')
+def test_wrong_axes_order(mocked_get_data_str):
+    with pytest.raises(Exception) as exc:
+        tms = TileMatrixSet("tms")
+    assert str(exc.value) == "TMS 'file:///path/to/tms.json' own invalid axes order : only X,Y or Lon,Lat are handled"
+    mocked_get_data_str.assert_called_once_with('file:///path/to/tms.json')
+
+@mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch('rok4.TileMatrixSet.get_data_str', return_value='{"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}')
 def test_missing_levels(mocked_get_data_str):
     with pytest.raises(MissingAttributeError) as exc:

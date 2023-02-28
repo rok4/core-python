@@ -62,11 +62,8 @@ class TileMatrix:
 
         Returns:
             int: tile's column
-        """    
-        if self.__latlon:
-            return int((x - self.origin[1]) / (self.resolution * self.tile_size[0]))
-        else:
-            return int((x - self.origin[0]) / (self.resolution * self.tile_size[0]))
+        """
+        return int((x - self.origin[0]) / (self.resolution * self.tile_size[0]))
 
     def y_to_row(self, y: float) -> int:
         """Convert north-south coordinate to tile's row
@@ -76,11 +73,8 @@ class TileMatrix:
 
         Returns:
             int: tile's row
-        """        
-        if self.__latlon:
-            return int((self.origin[0] - y) / (self.resolution * self.tile_size[1]))
-        else:
-            return int((self.origin[1] - y) / (self.resolution * self.tile_size[1]))
+        """
+        return int((self.origin[1] - y) / (self.resolution * self.tile_size[1]))
 
     def tile_to_bbox(self, tile_col: int, tile_row: int) -> Tuple[float, float, float, float]:    
         """Get tile terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
@@ -96,10 +90,10 @@ class TileMatrix:
         """
         if self.__latlon:
             return (
-                self.origin[0] - self.resolution * (tile_row + 1) * self.tile_size[1],
-                self.origin[1] + self.resolution * tile_col * self.tile_size[0],
-                self.origin[0] - self.resolution * tile_row * self.tile_size[1],
-                self.origin[1] + self.resolution * (tile_col + 1) * self.tile_size[0]
+                self.origin[1] - self.resolution * (tile_row + 1) * self.tile_size[1],
+                self.origin[0] + self.resolution * tile_col * self.tile_size[0],
+                self.origin[1] - self.resolution * tile_row * self.tile_size[1],
+                self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0]
             )
         else:
             return (
@@ -135,6 +129,24 @@ class TileMatrix:
                 self.x_to_column(bbox[2]),
                 self.y_to_row(bbox[1])
             )
+
+    def point_to_indices(self, x: float, y: float) -> Tuple[int, int, int, int]:
+        """Get pyramid's tile and pixel indices from point's coordinates
+
+        TMS spatial reference is Lat / Lon case is handled.
+
+        Args:
+            x (float): point's x
+            y (float): point's y
+
+        Returns:
+            Tuple[int, int, int, int]: tile's column, tile's row, pixel's (in the tile) column, pixel's row
+        """        
+        
+        absolute_pixel_column = int((x - self.origin[0]) / self.resolution)
+        absolute_pixel_row = int((self.origin[1] - y) / self.resolution)
+
+        return absolute_pixel_column // self.tile_size[0], absolute_pixel_row // self.tile_size[1], absolute_pixel_column % self.tile_size[0], absolute_pixel_row % self.tile_size[1]
 
 class TileMatrixSet:
     """A tile matrix set is multi levels grid definition
@@ -182,6 +194,9 @@ class TileMatrixSet:
 
             if len(self.levels.keys()) == 0:
                 raise Exception(f"TMS '{self.path}' has no level")
+
+            if data["orderedAxes"] != ["X", "Y"] and data["orderedAxes"] != ["Lon", "Lat"]:
+                raise Exception(f"TMS '{self.path}' own invalid axes order : only X/Y or Lon/Lat are handled")
 
         except JSONDecodeError as e:
             raise FormatError("JSON", self.path, e)
