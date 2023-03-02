@@ -1,6 +1,6 @@
 [run]
 include =
-    */rok4/*
+    rok4/*
 omit =
     */__init__.py
 command_line =

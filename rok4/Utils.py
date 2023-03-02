@@ -14,6 +14,9 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
     Args:
         srs (str): coordinates system PROJ4 compliant, with authority and code, like EPSG:3857 or IGNF:LAMB93
 
+    Raises:
+        RuntimeError: Provided SRS is invalid for OSR
+
     Returns:
         osgeo.osr.SpatialReference: Corresponding OSR spatial reference
     """
@@ -21,13 +24,10 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
     authority, code = srs.split(':', 1)
 
     sr = osr.SpatialReference()
-    try:
-        if authority.upper() == "EPSG":
-            sr.ImportFromEPSG(int(code))
-        else:
-            sr.ImportFromProj4(f"+init={srs.upper()} +wktext")
-    except RuntimeError as e:
-        raise Exception(f"Cannot get the OSR spatial reference corresponding to {srs}")
+    if authority.upper() == "EPSG":
+        sr.ImportFromEPSG(int(code))
+    else:
+        sr.ImportFromProj4(f"+init={srs.upper()} +wktext")
 
     return sr
 
@@ -39,6 +39,9 @@ def bbox_to_geometry(bbox: Tuple[float, float, float, float], srs: str = None, d
         srs (str, optional): coordinates system. Defaults to None.
         densification (int, optional): Number of point to add for each side of bounding box. Defaults to 0.
 
+    Raises:
+        RuntimeError: Provided SRS is invalid for OSR
+        
     Returns:
         osgeo.ogr.Geometry: Corresponding OGR geometry, with spatial reference if provided
     """    

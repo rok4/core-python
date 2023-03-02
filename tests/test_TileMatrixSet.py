@@ -46,7 +46,7 @@ def test_missing_crs(mocked_get_data_str):
 def test_wrong_crs(mocked_get_data_str):
     with pytest.raises(Exception) as exc:
         tms = TileMatrixSet("tms")
-    assert str(exc.value) == "Cannot get the OSR spatial reference corresponding to epsg:123456"
+    assert str(exc.value) == "Wrong attribute 'crs' ('epsg:123456') in 'file:///path/to/tms.json', not recognize by OSR"
     mocked_get_data_str.assert_called_once_with('file:///path/to/tms.json')
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)

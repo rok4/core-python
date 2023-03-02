@@ -673,7 +673,48 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(f"CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
+            
+    elif from_type == StorageType.CEPH and to_type == StorageType.S3 :
 
+        from_ioctx = __get_ceph_ioctx(from_tray)
+
+        to_s3_client, to_host, to_tray = __get_s3_client(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            offset = 0
+            size = 0
+
+            with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
+                name_fich = f.name
+                while True:
+                    chunk = from_ioctx.read(from_base_name, 65536, offset)
+                    size = len(chunk)
+                    offset += size
+                    f.write(chunk)
+
+                    if from_md5 is not None:
+                        checker.update(chunk)
+
+                    if size < 65536:
+                        break
+
+            to_s3_client.upload_file(name_fich, to_tray, to_base_name)
+
+            os.remove(name_fich)
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(f"CEPH and S3", f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {checker.hexdigest()}")
+
+            if from_md5 is not None :
+                to_md5 = to_s3_client.head_object(Bucket=to_tray, Key=to_base_name)["ETag"].strip('"')
+                if to_md5 != from_md5 and "-" not in to_md5:
+                    raise StorageError(f"CEPH and S3", f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {to_md5}")
+
+        except Exception as e:
+            raise StorageError(f"CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}")
 
     else:
         raise StorageError(f"{from_type.name} and {to_type.name}", f"Cannot copy from {from_type.name} to {to_type.name}")

@@ -341,7 +341,35 @@ def test_copy_ceph_ceph_ok(mock_file, mocked_rados_client):
     try:
         copy("ceph://pool1/source.ext", "ceph://pool2/destination.ext", "8d777f385d3dfec8815d20f7496026dc")
     except Exception as exc:
-        assert False, f"FILE -> CEPH copy raises an exception: {exc}"
+        assert False, f"CEPH -> CEPH copy raises an exception: {exc}"
+
+
+@mock.patch.dict(os.environ, {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c", "ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True)  
+@mock.patch('rok4.Storage.rados.Rados')
+@mock.patch('rok4.Storage.boto3.client')
+@patch("builtins.open", new_callable=mock_open, read_data=b"data")
+def test_copy_ceph_s3_ok(mock_file, mocked_s3_client, mocked_rados_client):
+
+    disconnect_ceph_clients()
+    ioctx_instance = MagicMock()
+    ioctx_instance.read.return_value = b"data"
+    ceph_instance = MagicMock()
+    ceph_instance.open_ioctx.return_value = ioctx_instance
+    mocked_rados_client.return_value = ceph_instance
+
+
+    disconnect_s3_clients()
+    s3_instance = MagicMock()
+    s3_instance.upload_file.return_value = None
+    s3_instance.head_object.return_value = {"ETag": "8d777f385d3dfec8815d20f7496026dc"}
+    mocked_s3_client.return_value = s3_instance
+
+    try:
+        copy("ceph://pool1/source.ext", "s3://bucket/destination.ext", "8d777f385d3dfec8815d20f7496026dc")
+    except Exception as exc:
+        assert False, f"CEPH -> S3 copy raises an exception: {exc}"
+
+
 
 ############ link
 
