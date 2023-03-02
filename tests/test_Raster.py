@@ -1,7 +1,10 @@
 """Describes unit tests for the rok4.Raster module."""
 
-from rok4.Raster import *
+from rok4.Raster import Raster, _compute_bbox
 from rok4.Storage import StorageType
+
+from osgeo import gdal
+import random
 
 import pytest
 from unittest.mock import *
@@ -48,16 +51,19 @@ class TestConstructorFile(TestCase):
         
         self.get_infos_from_path = (StorageType.FILE, self.path['image']['system'], self.path['base_location'], self.path['base_name'])
 
+        self.bbox = (-5.4, 41.3, 9.8, 51.3)
+
 
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
-    @mock.patch('rok4.Raster._compute_samples', return_value=3)
-    @mock.patch('rok4.Raster._compute_bbox', return_value=[-5.4, 41.3, 9.8, 51.3])
+    @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, False])
-    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_compute_samples, mocked_gdal_open, mocked_get_infos_from_path):
+    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path):
         """Test case : Constructor called nominally on an image without mask."""
 
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
+        mocked_compute_bbox.return_value = self.bbox
+        mocked_gdal_open.return_value = type('', (object,), {'RasterCount': 3})
 
         raster_object = Raster( self.path['image']['full'] )
 
@@ -68,39 +74,35 @@ class TestConstructorFile(TestCase):
         assert raster_object.mask is None
 
         mocked_compute_bbox.assert_called_once()
-        assert raster_object.bbox == [-5.4, 41.3, 9.8, 51.3]
-
-        mocked_compute_samples.assert_called_once()
+        assert raster_object.bbox == self.bbox
         assert raster_object.samples == 3
 
 
-    @mock.patch('rok4.Raster.ogr.GetDriverByName')
+    @mock.patch('rok4.Raster.gdal.IdentifyDriver')
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
-    @mock.patch('rok4.Raster._compute_samples', return_value=3)
-    @mock.patch('rok4.Raster._compute_bbox', return_value=[-5.4, 41.3, 9.8, 51.3])
+    @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, True])
-    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_compute_samples, mocked_gdal_open, mocked_get_infos_from_path, mocked_get_driver):
+    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_identifydriver):
         """Test case : Constructor called nominally on an image with mask."""
 
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
-        # This next line emulates the return of ogr.GetDriverByName()
-        # TODO : manage to implent this using unittest.mock
-        mocked_get_driver.return_value = type('', (object,), {'Open': mocked_gdal_open})
+        mocked_compute_bbox.return_value = self.bbox
+        mocked_gdal_open.return_value = type('', (object,), {'RasterCount': 3})
+        # This next line emulates the return of gdal.IdentifyDriver()
+        mocked_identifydriver.return_value = type('', (object,), {'ShortName': 'GTiff'})
 
         raster_object = Raster(self.path['image']['full'])
 
         mocked_exists.assert_has_calls([ call(self.path['image']['full']), call(self.path['mask']['full']) ])
         mocked_get_infos_from_path.assert_called_once_with(self.path['image']['full'])
-        mocked_get_driver.assert_called_once_with('GTiff')
-        mocked_gdal_open.assert_has_calls([ call(self.path['image']['system']), call(self.path['mask']['system']) ])
+        mocked_identifydriver.assert_called_once_with(self.path['mask']['system'])
+        mocked_gdal_open.assert_called_once_with(self.path['image']['system'])
         assert raster_object.path == self.path['image']['full']
         assert raster_object.mask == self.path['mask']['full']
 
         mocked_compute_bbox.assert_called_once()
-        assert raster_object.bbox == [-5.4, 41.3, 9.8, 51.3]
-
-        mocked_compute_samples.assert_called_once()
+        assert raster_object.bbox == self.bbox
         assert raster_object.samples == 3
 
 
@@ -119,24 +121,23 @@ class TestConstructorFile(TestCase):
         mocked_gdal_open.assert_called_once_with(self.path['image']['system'])
 
 
-    @mock.patch('rok4.Raster.ogr.GetDriverByName')
+    @mock.patch('rok4.Raster.gdal.IdentifyDriver')
     @mock.patch('rok4.Raster.get_infos_from_path')
-    @mock.patch('rok4.Raster.gdal.Open', side_effect=[None, RuntimeError])
+    @mock.patch('rok4.Raster.gdal.Open', side_effect=None)
     @mock.patch('rok4.Raster.exists', side_effect=[True, True])
-    def test_unsupported_mask_format(self, mocked_exists, mocked_gdal_open, mocked_get_infos_from_path, mocked_get_driver):
+    def test_unsupported_mask_format(self, mocked_exists, mocked_gdal_open, mocked_get_infos_from_path, mocked_identifydriver):
         """Test case : Constructor called on an unsupported mask file or object."""
 
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
-        # This next line emulates the return of ogr.GetDriverByName()
-        # TODO : manage to implent this using unittest.mock
-        mocked_get_driver.return_value = type('', (object,), {'Open': mocked_gdal_open})
+        # This next line emulates the return of gdal.IdentifyDriver()
+        mocked_identifydriver.return_value = type('', (object,), {'ShortName': 'JPG'})
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(Exception):
             Raster(self.path['image']['full'])      
 
         mocked_exists.assert_has_calls([call(self.path['image']['full']), call(self.path['mask']['full'])])
-        mocked_get_driver.assert_called_once_with('GTiff')
-        mocked_gdal_open.assert_has_calls([ call(self.path['image']['system']), call(self.path['mask']['system']) ])
+        mocked_identifydriver.assert_called_once_with(self.path['mask']['system'])
+        mocked_gdal_open.assert_called_once_with(self.path['image']['system'])
 
 
 
@@ -169,21 +170,23 @@ class TestConstructorObject(TestCase):
         self.tmp_path['image']['full'] = f"file://{self.tmp_path['image']['system']}"
         self.tmp_path['mask']['full'] = f"file://{self.tmp_path['mask']['system']}"
 
+        self.bbox = (-5.4, 41.3, 9.8, 51.3)
+
 
     @mock.patch('rok4.Raster.copy')
     @mock.patch('rok4.Raster.tempfile.NamedTemporaryFile')
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
-    @mock.patch('rok4.Raster._compute_samples', return_value=3)
-    @mock.patch('rok4.Raster._compute_bbox', return_value=[-5.4, 41.3, 9.8, 51.3])
+    @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, False])
-    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_compute_samples, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy):
+    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy):
         """Test case : Constructor called nominally on an image without mask."""
         
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
+        mocked_compute_bbox.return_value = self.bbox
         mocked_tmp_file_close = Mock()
+        mocked_gdal_open.return_value = type('', (object,), {'RasterCount': 3})
         # This next line emulates the return of tempfile.NamedTemporaryFile()
-        # TODO : manage to implent this using unittest.mock
         mocked_create_temporary_file.return_value = type('', (object,), {'name': self.tmp_path['image']['system'], 'close': mocked_tmp_file_close})
 
         raster_object = Raster(self.path['image']['full'])
@@ -197,34 +200,31 @@ class TestConstructorObject(TestCase):
         assert raster_object.mask is None
 
         mocked_compute_bbox.assert_called_once()
-        assert raster_object.bbox == [-5.4, 41.3, 9.8, 51.3]
-
-        mocked_compute_samples.assert_called_once()
+        assert raster_object.bbox == self.bbox
         assert raster_object.samples == 3
 
 
-    @mock.patch('rok4.Raster.ogr.GetDriverByName')
+    @mock.patch('rok4.Raster.gdal.IdentifyDriver')
     @mock.patch('rok4.Raster.copy')
     @mock.patch('rok4.Raster.tempfile.NamedTemporaryFile')
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
-    @mock.patch('rok4.Raster._compute_samples', return_value=3)
-    @mock.patch('rok4.Raster._compute_bbox', return_value=[-5.4, 41.3, 9.8, 51.3])
+    @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, True])
-    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_compute_samples, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_get_driver):
+    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_identifydriver):
         """Test case : Constructor called nominally on an image with mask."""
         
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
+        mocked_compute_bbox.return_value = self.bbox
         mocked_tmp_file_close = Mock()
+        mocked_gdal_open.return_value = type('', (object,), {'RasterCount': 3})
         # This next instruction emulates the return of tempfile.NamedTemporaryFile()
-        # TODO : manage to implent this using unittest.mock
         mocked_create_temporary_file.side_effect = [
             type('', (object,), {'name': self.tmp_path['image']['system'], 'close': mocked_tmp_file_close}),
             type('', (object,), {'name': self.tmp_path['mask']['system'], 'close': mocked_tmp_file_close})
         ]
-        # This next line emulates the return of ogr.GetDriverByName()
-        # TODO : manage to implent this using unittest.mock
-        mocked_get_driver.return_value = type('', (object,), {'Open': mocked_gdal_open})
+        # This next line emulates the return of gdal.IdentifyDriver()
+        mocked_identifydriver.return_value = type('', (object,), {'ShortName': 'GTiff'})
 
         raster_object = Raster(self.path['image']['full'])
 
@@ -236,15 +236,13 @@ class TestConstructorObject(TestCase):
         mocked_get_infos_from_path.assert_called_once_with(self.path['image']['full'])
         mocked_create_temporary_file.assert_has_calls([call(mode='r', delete=False), call(mode='r', delete=False)])
         mocked_copy.assert_has_calls(expected_copy_calls)
-        mocked_get_driver.assert_called_once_with('GTiff')
-        mocked_gdal_open.assert_has_calls([ call(self.tmp_path['image']['system']), call(self.tmp_path['mask']['system']) ])
+        mocked_identifydriver.assert_called_once_with(self.tmp_path['mask']['system'])
+        mocked_gdal_open.assert_called_once_with(self.tmp_path['image']['system'])
         assert raster_object.path == self.path['image']['full']
         assert raster_object.mask == self.path['mask']['full']
 
         mocked_compute_bbox.assert_called_once()
-        assert raster_object.bbox == [-5.4, 41.3, 9.8, 51.3]
-
-        mocked_compute_samples.assert_called_once()
+        assert raster_object.bbox == self.bbox
         assert raster_object.samples == 3
 
     
@@ -259,7 +257,6 @@ class TestConstructorObject(TestCase):
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
         mocked_tmp_file_close = Mock()
         # This next line emulates the return of tempfile.NamedTemporaryFile()
-        # TODO : manage to implent this using unittest.mock
         mocked_create_temporary_file.return_value = type('', (object,), {'name': self.tmp_path['image']['system'], 'close': mocked_tmp_file_close})
 
         with pytest.raises(RuntimeError):
@@ -272,28 +269,26 @@ class TestConstructorObject(TestCase):
         mocked_gdal_open.assert_called_once_with(self.tmp_path['image']['system'])
 
 
-    @mock.patch('rok4.Raster.ogr.GetDriverByName')
+    @mock.patch('rok4.Raster.gdal.IdentifyDriver')
     @mock.patch('rok4.Raster.copy')
     @mock.patch('rok4.Raster.tempfile.NamedTemporaryFile')
     @mock.patch('rok4.Raster.get_infos_from_path')
-    @mock.patch('rok4.Raster.gdal.Open', side_effect=[None, RuntimeError])
+    @mock.patch('rok4.Raster.gdal.Open', side_effect=None)
     @mock.patch('rok4.Raster.exists', side_effect=[True, True])
-    def test_unsupported_mask_format(self, mocked_exists, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_get_driver):
+    def test_unsupported_mask_format(self, mocked_exists, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_identifydriver):
         """Test case : Constructor called on an unsupported mask file or object."""
         
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
         mocked_tmp_file_close = Mock()
         # This next instruction emulates the return of tempfile.NamedTemporaryFile()
-        # TODO : manage to implent this using unittest.mock
         mocked_create_temporary_file.side_effect = [
             type('', (object,), {'name': self.tmp_path['image']['system'], 'close': mocked_tmp_file_close}),
             type('', (object,), {'name': self.tmp_path['mask']['system'], 'close': mocked_tmp_file_close})
         ]
-        # This next line emulates the return of ogr.GetDriverByName()
-        # TODO : manage to implent this using unittest.mock
-        mocked_get_driver.return_value = type('', (object,), {'Open': mocked_gdal_open})
+        # This next line emulates the return of gdal.IdentifyDriver()
+        mocked_identifydriver.return_value = type('', (object,), {'ShortName': 'JPG'})
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(Exception):
             Raster(self.path['image']['full'])
 
         expected_copy_calls = [
@@ -304,16 +299,52 @@ class TestConstructorObject(TestCase):
         mocked_get_infos_from_path.assert_called_once_with(self.path['image']['full'])
         mocked_create_temporary_file.assert_has_calls([call(mode='r', delete=False), call(mode='r', delete=False)])
         mocked_copy.assert_has_calls(expected_copy_calls)
-        mocked_get_driver.assert_called_once_with('GTiff')
-        mocked_gdal_open.assert_has_calls([ call(self.tmp_path['image']['system']), call(self.tmp_path['mask']['system']) ])
+        mocked_identifydriver.assert_called_once_with(self.tmp_path['mask']['system'])
+        mocked_gdal_open.assert_called_once_with(self.tmp_path['image']['system'])
 
 
 
 class TestComputeBbox(TestCase):
     """Test class for the rok4.Raster._compute_bbox function."""
 
+    def test_nominal(self):
+        mocked_datasource = MagicMock(gdal.Dataset)
+        random.seed()
+
+        image_size = (
+            random.randint(1, 1000),
+            random.randint(1, 1000)
+        )
+        mocked_datasource.RasterXSize = image_size[0]
+        mocked_datasource.RasterYSize = image_size[1]
+
+        transform_tuple = (
+            random.uniform(-10000000.0, 10000000.0),
+            random.uniform(-10000, 10000),
+            random.uniform(-10000, 10000),
+            random.uniform(-10000000.0, 10000000.0),
+            random.uniform(-10000, 10000),
+            random.uniform(-10000, 10000)
+        )
+        mocked_datasource.GetGeoTransform = Mock(return_value = transform_tuple)
+
+        x_range = (
+            transform_tuple[0],
+            transform_tuple[0] + image_size[0] * transform_tuple[1] + image_size[1] * transform_tuple[2]
+        )
+        y_range = (
+            transform_tuple[3],
+            transform_tuple[3] + image_size[0] * transform_tuple[4] + image_size[1] * transform_tuple[5]
+        )
+
+        expected = (
+            min(x_range),
+            min(y_range),
+            max(x_range),
+            max(y_range)
+        )
+        result = _compute_bbox(mocked_datasource)
+        assert expected == result
 
 
-class TestComputeSamples(TestCase):
-    """Test class for the rok4.Raster._compute_samples function."""
 

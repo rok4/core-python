@@ -10,7 +10,7 @@ Ces librairies Python sont utilisées par les outils python du dépôt [pytools]
 
 ```sh
 apt install python3-rados python3-gdal python3-venv python3-pytest
-python -m venv --system-site-packages venv
+python3 -m venv --system-site-packages venv
 source venv/bin/activate
 python3 -m pip install dist/rok4lib-1.0.0-py3-none-any.whl
 ```

@@ -57,7 +57,7 @@ class Raster():
         image_datasource = gdal.Open(work_image_path)
         self.path = path
 
-        path_pattern = re.compile('(/[^/]+?)\.[a-zA-Z0-9_-]+$')
+        path_pattern = re.compile('(/[^/]+?)[.][a-zA-Z0-9_-]+$')
         mask_path = path_pattern.sub('\\1.msk', path)
 
         tmp_mask_file = None
@@ -69,24 +69,60 @@ class Raster():
                 tmp_mask_file = tempfile.NamedTemporaryFile(mode='r', delete=False)
                 tmp_mask_file.close()
                 work_mask_path = tmp_mask_file.name
+
+                tmp_mask_file = None
                 copy(mask_path, f"file://{work_mask_path}") 
             
-            ogr.GetDriverByName('GTiff').Open(work_mask_path)
+            mask_driver = gdal.IdentifyDriver(work_mask_path).ShortName
+            if 'GTiff' != mask_driver:
+                raise Exception(f"Mask file '{mask_path}' is not a TIFF image. (GDAL driver : '{mask_driver}'")
 
             self.mask = mask_path
         else:
             self.mask = None
 
-        self.bbox = _compute_bbox()
-        self.samples = _compute_samples()
+        self.bbox = _compute_bbox(image_datasource)
+        self.samples = image_datasource.RasterCount
 
         tmp_image_file = None
 
 
-def _compute_bbox() -> tuple:
-    return None
+def _compute_bbox(source_dataset: gdal.Dataset) -> tuple:
+    """Image boundingbox computing method
 
+    Args:
+        source_dataset (gdal.Dataset): Dataset object created from the raster image
 
-def _compute_samples() -> int:
-    return None
+    Raises:
+        AttributeError: source_dataset is not a gdal.Dataset instance.
+        Exception: The dataset does not contain transform data.
+    """
+
+    transform_vector = source_dataset.GetGeoTransform()
+
+    if transform_vector is None:
+        raise Exception(f"No transform vector found in the dataset created from the following file : {source_dataset.GetFileList()[0]}")
+
+    width = source_dataset.RasterXSize
+    height = source_dataset.RasterYSize
+
+    x_range = (
+        transform_vector[0],
+        transform_vector[0] + width * transform_vector[1] + height * transform_vector[2]
+    )
+
+    y_range = (
+        transform_vector[3],
+        transform_vector[3] + width * transform_vector[4] + height * transform_vector[5]
+    )
+
+    bbox = (
+            min(x_range),
+            min(y_range),
+            max(x_range),
+            max(y_range)
+    )
+
+    return bbox
+
 
