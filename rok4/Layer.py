@@ -103,8 +103,12 @@ class Layer:
         """Create a default layer from parameters
 
         Args:
-            pyramids (List[Tuple[Pyramid, str, str]]): pyramids to use and extrem levels, bottom and top
+            pyramids (List[Dict[str, str]]): pyramids to use and extrem levels, bottom and top
             name (str): layer's technical name
+            **title (str): Layer's title (will be equal to name if not provided)
+            **abstract (str): Layer's abstract (will be equal to name if not provided)
+            **styles (List[str]): Styles identifier to authorized for the layer
+            **resampling (str): Interpolation to use for resampling
 
         Raises:
             Exception: name contains forbidden characters or used pyramids do not shared same parameters (format, tms...)
@@ -162,6 +166,17 @@ class Layer:
         self.__pyramids = []
 
     def __load_pyramids(self, pyramids: List[Dict[str, str]]) -> None:
+        """Load and check pyramids
+
+        Args:
+            pyramids (List[Dict[str, str]]): List of descriptors' paths and optionnaly top and bottom levels
+
+        Raises:
+            Exception: Pyramids' do not all own the same format
+            Exception: Pyramids' do not all own the same TMS
+            Exception: Pyramids' do not all own the same channels number
+            Exception: Overlapping in usage pyramids' levels
+        """        
 
         ## Toutes les pyramides doivent avoir les même caractéristiques
         channels = None
@@ -229,10 +244,10 @@ class Layer:
                 "authorized": True
             },
             "bbox": {
-                "east": self.__geobbox[3],
+                "south": self.__geobbox[0],
                 "west": self.__geobbox[1],
                 "north": self.__geobbox[2],
-                "south": self.__geobbox[0]
+                "east": self.__geobbox[3]
             },
             "pyramids": []
         }
