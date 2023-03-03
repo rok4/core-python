@@ -48,8 +48,6 @@ except Exception as exc:
 La compilation s'appuie sur l'outil poetry :
 
 ```sh
-# To detect rados and osgeo libraries, we enable system-site-packages
-poetry config virtualenvs.options.system-site-packages true
 # venv in the project directory
 poetry config virtualenvs.in-project true
 # Install bumpversion poetry plugin
@@ -59,6 +57,9 @@ poetry version x.y.z
 # Install dependencies
 apt install python3-rados python3-gdal
 poetry install --no-interaction --no-root
+# To look for system libraries
+# adapt python version to yours
+cp site-packages/*.pth .venv/lib/python3.8/site-packages/
 # Run unit tests
 poetry run coverage run -m pytest
 # Get unit tests coverage

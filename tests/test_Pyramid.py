@@ -88,7 +88,6 @@ def test_vector_missing_tables(mocked_tms_class, mocked_get_data_str):
 @mock.patch('rok4.Pyramid.put_data_str', return_value=None)
 def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
 
-
     tms_instance = MagicMock()
     tms_instance.name = "PM"
     tms_instance.srs = "EPSG:3857"
@@ -96,6 +95,7 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
     tm_instance = MagicMock()
     tm_instance.id = "0"
     tm_instance.resolution = 1
+    tm_instance.point_to_indices.return_value = (0,0,128,157)
 
     tms_instance.get_level.return_value = tm_instance
 
@@ -117,6 +117,8 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
         assert clone.get_infos_from_slab_path("IMAGE/12/00/00/00.tif") == (SlabType.DATA, "12", 0, 0)
+        assert clone.get_tile_indices(102458, 6548125) == ("0",0,0,128,157)
+
 
         assert len(clone.get_levels()) == 1
 
@@ -144,6 +146,37 @@ def test_vector_ok(mocked_tms_class, mocked_get_data_str):
         assert clone.storage_type == StorageType.S3
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
+    except Exception as exc:
+        assert False, f"Pyramid creation raises an exception: {exc}"
+
+    with pytest.raises(Exception) as exc:
+        pyramid.get_tile_data_raster("12", 5, 6)
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+@mock.patch('rok4.Pyramid.TileMatrixSet')
+def test_tile_read(mocked_tms_class):
+
+    tms_instance = MagicMock()
+    tms_instance.name = "UTM20W84MART_1M_MNT"
+    tms_instance.srs = "IGNF:UTM20W84MART"
+    
+    tm_instance = MagicMock()
+    tm_instance.id = "8"
+    tm_instance.resolution = 1
+    tm_instance.point_to_indices.return_value = (0,0,128,157)
+    tm_instance.tile_size = (256,256)
+
+    tms_instance.get_level.return_value = tm_instance
+
+    mocked_tms_class.return_value = tms_instance
+
+    try:
+        pyramid = Pyramid.from_descriptor("file://tests/fixtures/TIFF_ZIP_FLOAT32.json")
+        data = pyramid.get_tile_data_raster("8",2748,40537)
+
+        assert data.shape == (256,256,1)
+        assert data[128][128][0] == 447.25
     except Exception as exc:
         assert False, f"Pyramid creation raises an exception: {exc}"
 
