@@ -1,0 +1,32 @@
+{
+    "levels":
+    [
+        {
+            "tile_limits":
+            {
+                "min_col": 2746,
+                "max_row": 40539,
+                "min_row": 40535,
+                "max_col": 2750
+            },
+            "tiles_per_height": 2,
+            "tiles_per_width": 2,
+            "storage":
+            {
+                "image_directory": "TIFF_ZIP_FLOAT32/DATA/8",
+                "path_depth": 2,
+                "type": "FILE"
+            },
+            "id": "8"
+        }
+    ],
+    "format": "TIFF_ZIP_FLOAT32",
+    "raster_specifications":
+    {
+        "nodata": "-99999",
+        "photometric": "gray",
+        "channels": 1,
+        "interpolation": "bicubic"
+    },
+    "tile_matrix_set": "UTM20W84MART_1M_MNT"
+}

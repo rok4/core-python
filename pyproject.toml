@@ -18,6 +18,7 @@ pdoc3 = { version = "^0.10.0", optional = true }
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.1.2"
 coverage = "^7.0.5"
+pillow = "^9.4.0"
 
 [tool.poetry.extras]
 doc = ["pdoc3"]

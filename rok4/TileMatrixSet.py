@@ -133,7 +133,7 @@ class TileMatrix:
     def point_to_indices(self, x: float, y: float) -> Tuple[int, int, int, int]:
         """Get pyramid's tile and pixel indices from point's coordinates
 
-        TMS spatial reference is Lat / Lon case is handled.
+        TMS spatial reference with Lat / Lon order is handled.
 
         Args:
             x (float): point's x
@@ -143,8 +143,12 @@ class TileMatrix:
             Tuple[int, int, int, int]: tile's column, tile's row, pixel's (in the tile) column, pixel's row
         """        
         
-        absolute_pixel_column = int((x - self.origin[0]) / self.resolution)
-        absolute_pixel_row = int((self.origin[1] - y) / self.resolution)
+        if self.__latlon:
+            absolute_pixel_column = int((y - self.origin[0]) / self.resolution)
+            absolute_pixel_row = int((self.origin[1] - x) / self.resolution)
+        else:
+            absolute_pixel_column = int((x - self.origin[0]) / self.resolution)
+            absolute_pixel_row = int((self.origin[1] - y) / self.resolution)
 
         return absolute_pixel_column // self.tile_size[0], absolute_pixel_row // self.tile_size[1], absolute_pixel_column % self.tile_size[0], absolute_pixel_row % self.tile_size[1]
 
