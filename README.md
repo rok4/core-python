@@ -2,6 +2,12 @@
 
 Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés. Le gestion du projet s'appuie sur l'outil [poetry](https://python-poetry.org/docs/).
 
+- [Utiliser la librairie](#utiliser-la-librairie)
+    - [Installer depuis le fichier wheel en ligne](#installer-depuis-le-fichier-wheel-en-ligne)
+    - [Installer depuis le code source](#installer-depuis-le-code-source)
+    - [Appels dans le code python](#appels-dans-le-code-python)
+- [Compiler la librairie](#compiler-la-librairie)
+
 ## Utiliser la librairie
 
 Installations système requises :
@@ -21,7 +27,7 @@ poetry add https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.
 ```sh
 git clone --branch x.y.z --depth 1 https://github.com/rok4/core-python
 cd core-python
-poetry config virtualenvs.options.system-site-packages true
+poetry config virtualenvs.in-project true
 poetry self add poetry-bumpversion
 poetry version x.y.z
 poetry install --without=dev
