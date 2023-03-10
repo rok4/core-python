@@ -70,13 +70,14 @@ jobs:
           python3 -m pip install --upgrade build bump2version
           bump2version --current-version 0.0.0 --new-version ${{ github.ref_name }} patch pyproject.toml src/rok4/__init__.py
           pip install -e .
+          echo "/usr/lib/python3/dist-packages/" >.venv/lib/python${{ matrix.python-version }}/site-packages/system.pth
 
       - name: Run unit tests
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
           source .venv/bin/activate
           pip install -e .[test]
-          run -m pytest
+          coverage run -m pytest
           coverage report -m
 
       - name: Build unit tests report
