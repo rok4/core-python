@@ -4,19 +4,16 @@
 
 Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
 
-## Utiliser la librairie
+## Installer la librairie
 
 Installations système requises :
 
 * debian : `apt install python3-rados python3-gdal`
 
-### Installer depuis le fichier wheel disponible sur GitHub
+Depuis [PyPI](https://pypi.org/project/rok4/) : `pip install rok4`
+Depuis [GitHub](https://github.com/rok4/core-python/releases/) : `pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl`
 
-```sh
-pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl
-```
-
-### Appels dans le code python
+## Utiliser la librairie
 
 ```python
 from rok4.TileMatrixSet import TileMatrixSet
@@ -65,5 +62,5 @@ Configurer le fichier `$HOME/.pypirc` avec les accès à votre compte PyPI.
 
 ```sh
 python3 -m pip install --upgrade twine
-python3 -m twine upload --repository pypi dist/rok4-x.y.z-py3-none-any.whl rok4-x.y.z.tar.gz
+python3 -m twine upload --repository pypi dist/rok4-x.y.z-py3-none-any.whl dist/rok4-x.y.z.tar.gz
 ```

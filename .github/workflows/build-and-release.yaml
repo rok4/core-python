@@ -111,7 +111,7 @@ jobs:
           retention-days: 1
 
   publish_artefacts:
-    name: Add built artefacts to release adn PyPI
+    name: Add built artefacts to release and PyPI
     needs: [create_release, build_and_test]
     if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
     runs-on: ubuntu-latest
