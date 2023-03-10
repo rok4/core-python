@@ -1,4 +1,4 @@
-name: Test, build and release artefacts, build documentation
+name: Test, build and publish artefacts and documentation
 
 on:
   push:
@@ -55,45 +55,50 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Configure Poetry
-        run: |
-          poetry self add poetry-bumpversion
-          poetry version ${{ github.ref_name }} 
-
-      - name: Install python dependencies
-        run: |
-          poetry install --no-interaction --no-root -E doc
+          cache: 'pip'
+          cache-dependency-path: '**/pyproject.toml'
 
       - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt -y install python3-rados python3-gdal
-          cp site-packages/*.pth .venv/lib/python${{ matrix.python-version }}/site-packages/
-          poetry run python -c 'import sys; print (sys.path)'
+
+      - name: Install python dependencies
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install --upgrade build bump2version
+          bump2version --current-version 0.0.0 --new-version ${{ github.ref_name }} patch pyproject.toml src/rok4/__init__.py
+          pip install -e .
+          echo "/usr/lib/python3/dist-packages/" >.venv/lib/python${{ matrix.python-version }}/site-packages/system.pth
 
       - name: Run unit tests
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          poetry run coverage run -m pytest
-          poetry run coverage report -m
-          poetry run coverage html -d dist/tests/
+          source .venv/bin/activate
+          pip install -e .[test]
+          coverage run -m pytest
+          coverage report -m
+
+      - name: Build unit tests report
+        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        run: |
+          source .venv/bin/activate
+          coverage html -d dist/tests/
           rm dist/tests/.gitignore
 
       - name: Build package
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
-        run: poetry build
+        run: |
+          source .venv/bin/activate
+          python3 -m build
 
       - name: Build documentation
         if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
-          poetry run pdoc3 --html --output-dir dist/ rok4
+          source .venv/bin/activate
+          pip install -e .[doc]
+          pdoc3 --html --output-dir dist/ rok4
           cp README.md CHANGELOG.md dist/
 
       - name: Upload packages, tests results and documentation
@@ -106,7 +111,7 @@ jobs:
           retention-days: 1
 
   publish_artefacts:
-    name: Add built artefacts to release
+    name: Add built artefacts to release and PyPI
     needs: [create_release, build_and_test]
     if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
     runs-on: ubuntu-latest
@@ -140,6 +145,16 @@ jobs:
           asset_name: rok4-${{ github.ref_name }}.tar.gz
           asset_content_type: application/zip
 
+      - name: Isolate wheel and tarball
+        run: |
+          mkdir to_publish
+          cp ./dist/rok4-${{ github.ref_name }}* to_publish/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: to_publish/
 
   commit_documentation:
     name: Add documentation and unit tests results into gh-pages branch

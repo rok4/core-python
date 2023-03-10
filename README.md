@@ -1,39 +1,24 @@
 # Librairies ROK4 Python
 
-Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés. Le gestion du projet s'appuie sur l'outil [poetry](https://python-poetry.org/docs/).
+![ROK4 Logo](https://rok4.github.io/assets/images/rok4.png)
 
+Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
+
+- [Installer la librairie](#installer-la-librairie)
 - [Utiliser la librairie](#utiliser-la-librairie)
-    - [Installer depuis le fichier wheel en ligne](#installer-depuis-le-fichier-wheel-en-ligne)
-    - [Installer depuis le code source](#installer-depuis-le-code-source)
-    - [Appels dans le code python](#appels-dans-le-code-python)
 - [Compiler la librairie](#compiler-la-librairie)
+- [Publier la librairie sur Pypi](#publier-la-librairie-sur-pypi)
 
-## Utiliser la librairie
+## Installer la librairie
 
 Installations système requises :
 
 * debian : `apt install python3-rados python3-gdal`
 
-### Installer depuis le fichier wheel en ligne
+Depuis [PyPI](https://pypi.org/project/rok4/) : `pip install rok4`
+Depuis [GitHub](https://github.com/rok4/core-python/releases/) : `pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl`
 
-```sh
-pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl
-# or, with poetry
-poetry add https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl
-```
-
-### Installer depuis le code source
-
-```sh
-git clone --branch x.y.z --depth 1 https://github.com/rok4/core-python
-cd core-python
-poetry config virtualenvs.in-project true
-poetry self add poetry-bumpversion
-poetry version x.y.z
-poetry install --without=dev
-```
-
-### Appels dans le code python
+## Utiliser la librairie
 
 ```python
 from rok4.TileMatrixSet import TileMatrixSet
@@ -48,33 +33,39 @@ except Exception as exc:
     print(exc)
 ```
 
-
 ## Compiler la librairie
 
-La compilation s'appuie sur l'outil poetry :
+```sh
+apt install python3-venv
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade build bump2version
+bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4/__init__.py
+
+# Run unit tests
+pip install -e .[test]
+# To use system installed modules rados and osgeo
+echo "/usr/lib/python3/dist-packages/" >.venv/lib/python3.10/site-packages/system.pth
+python -c 'import sys; print (sys.path)'
+# Run tests
+coverage run -m pytest
+# Get tests report and generate site
+coverage report -m
+coverage html -d dist/tests/
+
+# Build documentation
+pip install -e .[doc]
+pdoc3 --html --output-dir dist/ rok4
+
+# Build artefacts
+python3 -m build
+```
+
+## Publier la librairie sur Pypi
+
+Configurer le fichier `$HOME/.pypirc` avec les accès à votre compte PyPI.
 
 ```sh
-# venv in the project directory
-poetry config virtualenvs.in-project true
-# Install bumpversion poetry plugin
-poetry self add poetry-bumpversion
-# Change version into pyproject.toml and rok4/__init__.py
-poetry version x.y.z
-# Install dependencies
-apt install python3-rados python3-gdal
-poetry install --no-interaction --no-root
-# To look for system libraries
-# adapt python version to yours
-cp site-packages/*.pth .venv/lib/python3.8/site-packages/
-# Run unit tests
-poetry run coverage run -m pytest
-# Get unit tests coverage
-poetry run coverage report -m
-# Build unit test coverage HTML report
-poetry run coverage html -d dist/x.y.z/tests/
-# Build wheel and tarball files
-poetry build
-# Build devs documentation
-poetry install -E doc
-poetry run pdoc3 --html --output-dir dist/x.y.z/ rok4
+python3 -m pip install --upgrade twine
+python3 -m twine upload --repository pypi dist/rok4-x.y.z-py3-none-any.whl dist/rok4-x.y.z.tar.gz
 ```

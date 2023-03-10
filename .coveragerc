@@ -1,6 +1,6 @@
 [run]
-include =
-    */rok4/*
+include = 
+    */src/*
 omit =
     */__init__.py
 command_line =
