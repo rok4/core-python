@@ -193,6 +193,7 @@ jobs:
           echo "# Versions" >docs/versions.md
           echo "" >>docs/versions.md
           for v in `ls -t docs/versions`; do sed "s#__version__#$v#" templates/versions.template.md >>docs/versions.md; done
+          sed "s#__version__#${{ github.ref_name }}#" templates/latest.template.html >docs/versions/latest/index.html
           rm -r artifact
 
       - name: Publish on gh-pages branch
