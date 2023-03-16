@@ -4,6 +4,8 @@ Available storage types are :
 - S3 (path are preffixed with `s3://`)
 - CEPH (path are preffixed with `ceph://`)
 - FILE (path are preffixed with `file://`, but it is the default paths' interpretation)
+- HTTP (path are preffixed with `https://`)
+- HTTPS (path are preffixed with `https://`)
 
 According to functions, all storage types are not necessarily available.
 
@@ -35,6 +37,7 @@ import re
 import os
 import rados
 import hashlib
+import requests
 from typing import Dict, List, Tuple
 from enum import Enum
 from shutil import copyfile
@@ -45,6 +48,8 @@ class StorageType(Enum):
     FILE = "file://"
     S3 = "s3://"
     CEPH = "ceph://"
+    HTTP = "http://"
+    HTTPS = "https://"
 
 __S3_CLIENTS = dict()
 __S3_DEFAULT_CLIENT = None
@@ -62,7 +67,7 @@ def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
 
     Returns:
         Tuple['boto3.client', str, str]: the S3 client, the cluster host and the simple bucket name
-    """    
+    """
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
 
     if not __S3_CLIENTS:
@@ -113,7 +118,7 @@ def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
 
 def disconnect_s3_clients() -> None:
     """Clean S3 clients
-    """    
+    """
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
     __S3_CLIENTS = dict()
     __S3_DEFAULT_CLIENT = None
@@ -134,7 +139,7 @@ def __get_ceph_ioctx(pool: str) -> 'rados.Ioctx':
 
     Returns:
         rados.Ioctx: IO ceph context
-    """    
+    """
     global __CEPH_CLIENT, __CEPH_IOCTXS
 
     if __CEPH_CLIENT is None:
@@ -146,7 +151,7 @@ def __get_ceph_ioctx(pool: str) -> 'rados.Ioctx':
             )
 
             __CEPH_CLIENT.connect()
-            
+
         except KeyError as e:
             raise MissingEnvironmentError(e)
         except Exception as e:
@@ -157,12 +162,12 @@ def __get_ceph_ioctx(pool: str) -> 'rados.Ioctx':
             __CEPH_IOCTXS[pool] = __CEPH_CLIENT.open_ioctx(pool)
         except Exception as e:
             raise StorageError("CEPH", e)
-    
+
     return __CEPH_IOCTXS[pool]
 
 def disconnect_ceph_clients() -> None:
     """Clean CEPH clients
-    """    
+    """
     global __CEPH_CLIENT, __CEPH_IOCTXS
     __CEPH_CLIENT = None
     __CEPH_IOCTXS = dict()
@@ -173,8 +178,8 @@ def get_infos_from_path(path: str) -> Tuple[StorageType, str, str, str]:
     """Extract storage type, the unprefixed path, the container and the basename from path (Default: FILE storage)
 
     For a FILE storage, the tray is the directory and the basename is the file name.
-    
-    For an object storage (CEPH or S3), the tray is the bucket or the pool and the basename is the object name. 
+
+    For an object storage (CEPH or S3), the tray is the bucket or the pool and the basename is the object name.
     For a S3 bucket, format can be <bucket name>@<cluster name> to use several clusters. Cluster name is the host (without protocol)
 
     Args:
@@ -192,6 +197,10 @@ def get_infos_from_path(path: str) -> Tuple[StorageType, str, str, str]:
         return StorageType.CEPH, path[7:], pool_name, object_name
     elif path.startswith("file://"):
         return StorageType.FILE, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
+    elif path.startswith("http://"):
+        return StorageType.HTTP, path, "NULL", "NULL"
+    elif path.startswith("https://"):
+        return StorageType.HTTPS, path, "NULL", "NULL"
     else:
         return StorageType.FILE, path, os.path.dirname(path), os.path.basename(path)
 
@@ -206,7 +215,7 @@ def get_path_from_infos(storage_type: StorageType, *args) -> str:
 
     Returns:
         str: Full path
-    """    
+    """
     return f"{storage_type.value}{os.path.join(*args)}"
 
 
@@ -247,7 +256,7 @@ def get_data_str(path: str) -> str:
     return get_data_binary(path).decode('utf-8')
 
 
-def get_data_binary(path: str, range: Tuple[int, int] = None) -> str: 
+def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     """Load data into a binary string
 
     Args:
@@ -262,10 +271,10 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
         str: Data binary content
     """
 
-    storage_type, path, tray_name, base_name  = get_infos_from_path(path)        
+    storage_type, path, tray_name, base_name  = get_infos_from_path(path)
 
     if storage_type == StorageType.S3:
-        
+
         s3_client, host, tray_name = __get_s3_client(tray_name)
 
         try:
@@ -285,7 +294,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
             raise StorageError("S3", e)
 
     elif storage_type == StorageType.CEPH:
-        
+
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
@@ -307,10 +316,21 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
             else:
                 f.seek(range[0])
                 data = f.read(range[1])
-            
+
             f.close()
         except Exception as e:
             raise StorageError("FILE", e)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+
+        try:
+            reponse = requests.get(path)
+            data = reponse.content
+            print(reponse.content)
+            if reponse.status_code == 404 :
+                raise StorageError("HTTP", "Requested file does not exist")
+        except Exception as e:
+            raise StorageError("HTTP", e)
 
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to read binary data")
@@ -334,7 +354,7 @@ def put_data_str(data: str, path: str) -> None:
     storage_type, path, tray_name, base_name  = get_infos_from_path(path)
 
     if storage_type == StorageType.S3:
-        
+
         s3_client, host, tray_name = __get_s3_client(tray_name)
 
         try:
@@ -347,7 +367,7 @@ def put_data_str(data: str, path: str) -> None:
             raise StorageError("S3", e)
 
     elif storage_type == StorageType.CEPH:
-        
+
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
@@ -412,6 +432,14 @@ def get_size(path: str) -> int:
         except Exception as e:
             raise StorageError("FILE", e)
 
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+
+        try:
+            reponse = requests.get(path)
+            return reponse.content.__sizeof__()
+        except Exception as e:
+            raise StorageError("HTTP", e)
+
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to get size")
 
@@ -460,6 +488,17 @@ def exists(path: str) -> bool:
     elif storage_type == StorageType.FILE:
 
         return os.path.exists(path)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+
+        try:
+            reponse = requests.get(path)
+            if reponse.status_code == 200 :
+                return True
+            else :
+                return False
+        except Exception as e:
+            raise StorageError("HTTP", e)
 
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to test if exists")
@@ -529,7 +568,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
     # Réalisation de la copie, selon les types de stockage
     if from_type == StorageType.FILE and to_type == StorageType.FILE :
-        
+
         try:
             if to_tray != "":
                 os.makedirs(to_tray, exist_ok=True)
@@ -545,13 +584,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             raise StorageError(f"FILE", f"Cannot copy file {from_path} to {to_path} : {e}")
 
     elif from_type == StorageType.S3 and to_type == StorageType.FILE :
-        
+
         s3_client, host, from_tray = __get_s3_client(from_tray)
 
         try:
             if to_tray != "":
                 os.makedirs(to_tray, exist_ok=True)
-            
+
             s3_client.download_file(from_tray, from_base_name, to_path)
 
             if from_md5 is not None :
@@ -565,7 +604,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
     elif from_type == StorageType.FILE and to_type == StorageType.S3 :
 
         s3_client, host, to_tray = __get_s3_client(to_tray)
-        
+
         try:
             s3_client.upload_file(from_path, to_tray, to_base_name)
 
@@ -587,7 +626,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                     {
                         'Bucket': from_tray,
                         'Key': from_base_name
-                    }, 
+                    },
                     to_tray, to_base_name
                 )
             else:
@@ -602,7 +641,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(f"S3", f"Cannot copy S3 object {from_path} to {to_path} : {e}")
-        
+
 
     elif from_type == StorageType.CEPH and to_type == StorageType.FILE :
 
@@ -644,7 +683,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
     elif from_type == StorageType.FILE and to_type == StorageType.CEPH :
 
         ioctx = __get_ceph_ioctx(to_tray)
-        
+
         if from_md5 is not None:
             checker = hashlib.md5()
 
@@ -706,7 +745,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(f"CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
-            
+
     elif from_type == StorageType.CEPH and to_type == StorageType.S3 :
 
         from_ioctx = __get_ceph_ioctx(from_tray)
@@ -748,6 +787,52 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(f"CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}")
+
+    elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.FILE :
+
+        try:
+            reponse = requests.get(from_path, stream = True)
+            with open(to_path, "wb") as f:
+                for chunk in reponse.iter_content(chunk_size=65536) :
+                    if chunk:
+                        f.write(chunk)
+
+        except Exception as e:
+            raise StorageError(f"HTTP(S) and FILE", f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}")
+
+    elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.CEPH :
+
+        to_ioctx = __get_ceph_ioctx(to_tray)
+
+        try:
+            reponse = requests.get(from_path, stream = True)
+            offset = 0
+            for chunk in reponse.iter_content(chunk_size=65536) :
+                if chunk:
+                    to_ioctx.write(to_base_name, chunk, offset)
+                    offset += 65536
+
+        except Exception as e:
+            raise StorageError(f"HTTP(S) and CEPH", f"Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}")
+
+    elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.S3 :
+
+        to_s3_client, to_host, to_tray = __get_s3_client(to_tray)
+
+        try:
+            reponse = requests.get(from_path, stream = True)
+            with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
+                name_fich = f.name
+                for chunk in reponse.iter_content(chunk_size=65536) :
+                    if chunk:
+                        f.write(chunk)
+
+            to_s3_client.upload_file(name_fich, to_tray, to_base_name)
+
+            os.remove(name_fich)
+
+        except Exception as e:
+            raise StorageError(f"HTTP(S) and S3", f"Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}")
 
     else:
         raise StorageError(f"{from_type.name} and {to_type.name}", f"Cannot copy from {from_type.name} to {to_type.name}")
@@ -795,7 +880,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
             raise StorageError("S3", e)
 
     elif target_type == StorageType.CEPH:
-        
+
         ioctx = __get_ceph_ioctx(link_tray)
 
         try:
