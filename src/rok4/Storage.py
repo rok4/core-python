@@ -324,7 +324,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
         try:
-            reponse = requests.get(path)
+            reponse = requests.get(path, stream=True)
             data = reponse.content
             print(reponse.content)
             if reponse.status_code == 404 :
@@ -435,7 +435,7 @@ def get_size(path: str) -> int:
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
         try:
-            reponse = requests.get(path)
+            reponse = requests.get(path, stream=True)
             return reponse.content.__sizeof__()
         except Exception as e:
             raise StorageError("HTTP", e)
@@ -492,7 +492,7 @@ def exists(path: str) -> bool:
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
         try:
-            reponse = requests.get(path)
+            reponse = requests.get(path, stream=True)
             if reponse.status_code == 200 :
                 return True
             else :
@@ -809,8 +809,9 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             offset = 0
             for chunk in reponse.iter_content(chunk_size=65536) :
                 if chunk:
+                    size = len(chunk)
                     to_ioctx.write(to_base_name, chunk, offset)
-                    offset += 65536
+                    offset += size
 
         except Exception as e:
             raise StorageError(f"HTTP(S) and CEPH", f"Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}")
