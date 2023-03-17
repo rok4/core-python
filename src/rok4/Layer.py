@@ -87,7 +87,7 @@ class Layer:
                 layer.__bbox = reproject_bbox(layer.__geobbox, "EPSG:4326", layer.__tms.srs, 5)
                 # On force l'emprise de la couche, on recalcule donc les tuiles limites correspondantes pour chaque niveau
                 for l in layer.__levels.values():
-                    l.update_limits(layer.__bbox)
+                    l.set_limits_from_bbox(layer.__bbox)
             else:
                 layer.__bbox = layer.__best_level.bbox
                 layer.__geobbox = reproject_bbox(layer.__bbox, layer.__tms.srs, "EPSG:4326", 5)

@@ -1,6 +1,7 @@
 from rok4.Pyramid import *
 from rok4.TileMatrixSet import TileMatrixSet
 from rok4.Storage import StorageType
+from rok4.Utils import *
 from rok4.Exceptions import *
 
 import pytest
@@ -91,6 +92,7 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
     tms_instance = MagicMock()
     tms_instance.name = "PM"
     tms_instance.srs = "EPSG:3857"
+    tms_instance.sr = sr_src = srs_to_spatialreference("EPSG:3857")
 
     tm_instance = MagicMock()
     tm_instance.id = "0"
@@ -117,7 +119,8 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
         assert clone.get_infos_from_slab_path("IMAGE/12/00/00/00.tif") == (SlabType.DATA, "12", 0, 0)
-        assert clone.get_tile_indices(102458, 6548125) == ("0",0,0,128,157)
+        assert clone.get_tile_indices(102458, 6548125, srs = "EPSG:3857") == ("0",0,0,128,157)
+        assert clone.get_tile_indices(43, 2, srs = "EPSG:4326") == ("0",0,0,128,157)
 
 
         assert len(clone.get_levels()) == 1
