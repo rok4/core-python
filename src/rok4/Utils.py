@@ -8,8 +8,11 @@ from osgeo import ogr, osr
 ogr.UseExceptions()
 osr.UseExceptions()
 
+__SR_BOOK = dict()
 def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
     """Convert coordinates system as string to OSR spatial reference
+
+    Using a cache, to instanciate a Spatial Reference from a string only once.
 
     Args:
         srs (str): coordinates system PROJ4 compliant, with authority and code, like EPSG:3857 or IGNF:LAMB93
@@ -21,15 +24,22 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
         osgeo.osr.SpatialReference: Corresponding OSR spatial reference
     """
 
-    authority, code = srs.split(':', 1)
+    global __SR_BOOK
 
-    sr = osr.SpatialReference()
-    if authority.upper() == "EPSG":
-        sr.ImportFromEPSG(int(code))
-    else:
-        sr.ImportFromProj4(f"+init={srs.upper()} +wktext")
+    if srs.upper() not in __SR_BOOK:
 
-    return sr
+        authority, code = srs.split(':', 1)
+
+        sr = osr.SpatialReference()
+        if authority.upper() == "EPSG":
+            sr.ImportFromEPSG(int(code))
+        else:
+            sr.ImportFromProj4(f"+init={srs.upper()} +wktext")
+
+        __SR_BOOK[srs.upper()] = sr
+
+
+    return __SR_BOOK[srs.upper()]
 
 def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int = 0) -> 'osgeo.ogr.Geometry':  
     """Convert bbox coordinates to OGR geometry
