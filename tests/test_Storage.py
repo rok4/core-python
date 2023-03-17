@@ -64,7 +64,7 @@ def test_s3_invalid_endpoint(mocked_s3_client):
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("builtins.open", side_effect=FileNotFoundError("not_found"))
 def test_file_read_error(mock_file):
-    with pytest.raises(StorageError):
+    with pytest.raises(FileNotFoundError):
         data = get_data_str("file:///path/to/file.ext")
     
     mock_file.assert_called_with("/path/to/file.ext", "rb")
