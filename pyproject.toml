@@ -33,7 +33,8 @@ classifiers = [
 dependencies = [
   "boto3 >= 1.26.54",
   "pillow >= 9.4.0",
-  "numpy >= 1.24.2"
+  "numpy >= 1.24.2",
+  "mapbox-vector-tile >= 2.0.1"
 ]
 
 [project.optional-dependencies]

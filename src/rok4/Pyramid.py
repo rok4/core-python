@@ -14,6 +14,7 @@ import re
 import numpy
 import zlib
 import io
+import mapbox_vector_tile
 from PIL import Image
 
 from rok4.Exceptions import *
@@ -815,7 +816,12 @@ class Pyramid:
         # Une dalle ROK4 a une en-tête fixe de 2048 octets, 
         # puis sont stockés les offsets (chacun sur 4 octets)
         # puis les tailles (chacune sur 4 octets)
-        binary_index = get_data_binary(slab_path, (2048, 2 * 4 * level_object.slab_width * level_object.slab_height))
+        try:
+            binary_index = get_data_binary(slab_path, (2048, 2 * 4 * level_object.slab_width * level_object.slab_height))
+        except FileNotFoundError as e:
+            # L'absence de la dalle est gérée comme simplement une absence de données
+            return None
+
         offsets = numpy.frombuffer(
             binary_index,
             dtype = numpy.dtype('uint32'),
@@ -925,6 +931,47 @@ class Pyramid:
 
         else:
             raise NotImplementedError(f"Cannot get tile as raster data for format {self.__format}")
+
+        return data
+
+    def get_tile_data_vector(self, level: str, column: int, row: int) -> Dict:
+        """Get a vector pyramid's tile as GeoJSON dictionnary
+
+        Args:
+            level (str): Tile's level
+            column (int): Tile's column
+            row (int): Tile's row
+
+        Raises:
+            Exception: Cannot get vector data for a raster pyramid
+            Exception: Level not found in the pyramid
+            NotImplementedError: Pyramid owns one-tile slabs
+            NotImplementedError: Vector pyramid format not handled
+            MissingEnvironmentError: Missing object storage informations
+            StorageError: Storage read issue
+            FormatError: Cannot decode tile
+
+        Returns:
+            str: data, as GeoJSON dictionnary. None if no data
+        """
+
+        if self.type == PyramidType.RASTER:
+            raise Exception("Cannot get tile as vector data : it's a raster pyramid")
+
+        binary_tile = self.get_tile_data_binary(level, column, row)
+
+        if binary_tile is None:
+            return None
+
+        level_object = self.get_level(level)
+
+        if self.__format == "TIFF_PBF_MVT":
+            try:
+                data = mapbox_vector_tile.decode(binary_tile)
+            except Exception as e:
+                raise FormatError("PBF (MVT)", "binary tile", e)
+        else:
+            raise NotImplementedError(f"Cannot get tile as vector data for format {self.__format}")
 
         return data
 
