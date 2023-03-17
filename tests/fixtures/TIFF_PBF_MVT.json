@@ -1,0 +1,23 @@
+{
+    "levels": [
+        {
+            "storage": {
+                "image_directory": "TIFF_PBF_MVT/DATA/4",
+                "type": "FILE",
+                "path_depth": 2
+            },
+            "tables": [],
+            "id": "4",
+            "tiles_per_height": 4,
+            "tile_limits": {
+                "max_col": 15,
+                "min_col": 0,
+                "max_row": 25,
+                "min_row": 0
+            },
+            "tiles_per_width": 4
+        }
+    ],
+    "format": "TIFF_PBF_MVT",
+    "tile_matrix_set": "PM"
+}

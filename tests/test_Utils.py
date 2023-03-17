@@ -41,5 +41,22 @@ def test_reproject_bbox_ok():
     try:
         bbox = reproject_bbox((-90, -180, 90, 180), "EPSG:4326", "EPSG:3857")
         assert bbox[0] == -20037508.342789244
+        bbox = reproject_bbox((43, 3, 44, 4), "EPSG:4326", "IGNF:WGS84G")
+        assert bbox[0] == 3
+    except Exception as exc:
+        assert False, f"Bbox reprojection raises an exception: {exc}"
+
+def test_reproject_point_ok():
+    try:
+        sr_4326 = srs_to_spatialreference("EPSG:4326")
+        sr_3857 = srs_to_spatialreference("EPSG:3857")
+        sr_ignf = srs_to_spatialreference("IGNF:WGS84G")
+        x,y = reproject_point((43, 3), sr_4326, sr_3857)
+        assert (x,y) == (333958.4723798207, 5311971.846945471)
+        x,y = reproject_point((43, 3), sr_4326, sr_ignf)
+        assert (x,y) == (3, 43)
+
+        bbox = reproject_bbox((43, 3, 44, 4), "EPSG:4326", "IGNF:WGS84G")
+        assert bbox[0] == 3
     except Exception as exc:
         assert False, f"Bbox reprojection raises an exception: {exc}"

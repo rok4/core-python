@@ -248,6 +248,7 @@ def get_data_str(path: str) -> str:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
 
     Returns:
         str: Data content
@@ -266,6 +267,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
 
     Returns:
         str: Data binary content
@@ -290,6 +292,12 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
                     Range=f"bytes=${range[0]}-${range[1] - range[0] - 1}"
                 )['Body'].read()
 
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                raise FileNotFoundError(f"{storage_type.value}{path}")
+            else:
+                raise StorageError("S3", e)
+
         except Exception as e:
             raise StorageError("S3", e)
 
@@ -303,6 +311,9 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
                 data = ioctx.read(base_name, size)
             else:
                 data = ioctx.read(base_name, range[1], range[0])
+
+        except rados.ObjectNotFound as e:
+            raise FileNotFoundError(f"{storage_type.value}{path}")
 
         except Exception as e:
             raise StorageError("CEPH", e)
@@ -318,6 +329,10 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
                 data = f.read(range[1])
 
             f.close()
+
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"{storage_type.value}{path}")
+
         except Exception as e:
             raise StorageError("FILE", e)
 
