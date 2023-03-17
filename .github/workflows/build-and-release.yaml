@@ -192,7 +192,7 @@ jobs:
           sed "s#__version__#${{ github.ref_name }}#" templates/index.template.md >docs/index.md
           echo "# Versions" >docs/versions.md
           echo "" >>docs/versions.md
-          for v in `ls -t docs/versions`; do sed "s#__version__#$v#" templates/versions.template.md >>docs/versions.md; done
+          for v in `ls -t docs/versions | grep -v latest`; do sed "s#__version__#$v#" templates/versions.template.md >>docs/versions.md; done
           sed "s#__version__#${{ github.ref_name }}#" templates/latest.template.html >docs/versions/latest/index.html
           rm -r artifact
 

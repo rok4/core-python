@@ -19,6 +19,7 @@ from PIL import Image
 from rok4.Exceptions import *
 from rok4.TileMatrixSet import TileMatrixSet, TileMatrix
 from rok4.Storage import *
+from rok4.Utils import *
 
 class PyramidType(Enum):
     RASTER = "RASTER"
@@ -299,15 +300,26 @@ class Level:
     def slab_height(self) -> int: 
         return self.__slab_size[1]
 
-    def update_limits(self, bbox: Tuple[float, float, float, float]) -> None:
-        """Update tile limits, based on provided bounding box
+    def is_in_limits(self, column: int, row: int) -> bool:
+        """Is the tile indices in limits ?
+
+        Args:
+            column (int): tile's column
+            row (int): tile's row
+
+        Returns:
+            bool: True if tiles' limits contain the provided tile's indices
+        """
+        return self.__tile_limits["min_row"] <= row and self.__tile_limits["max_row"] >= row and self.__tile_limits["min_col"] <= column and self.__tile_limits["max_col"] >= column
+
+    def set_limits_from_bbox(self, bbox: Tuple[float, float, float, float]) -> None:
+        """Set tile limits, based on provided bounding box
 
         Args:
             bbox (Tuple[float, float, float, float]): terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
 
         """
-        print(self.id)
-        print(self.__tile_limits)
+        
         col_min, row_min, col_max, row_max = self.__pyramid.tms.get_level(self.__id).bbox_to_tiles(bbox)
         self.__tile_limits = {
             "min_row": row_min,
@@ -315,7 +327,6 @@ class Level:
             "max_row": row_max,
             "min_col": col_min
         }
-        print(self.__tile_limits)
 
 
 class Pyramid:
@@ -772,7 +783,7 @@ class Pyramid:
             StorageError: Storage read issue
 
         Returns:
-            str: data, as binary string
+            str: data, as binary string, None if no data
         """
 
         level_object = self.get_level(level)
@@ -782,6 +793,9 @@ class Pyramid:
 
         if level_object.slab_width == 1 and level_object.slab_height == 1:
             raise NotImplementedError(f"One-tile slab pyramid is not handled")
+
+        if not level_object.is_in_limits(column, row):
+            return None
 
         # Indices de la dalle
         slab_column = column // level_object.slab_width
@@ -814,6 +828,9 @@ class Pyramid:
             count = level_object.slab_width * level_object.slab_height
         )
 
+        if sizes[tile_index] == 0:
+            return None
+
         return get_data_binary(slab_path, (offsets[tile_index], sizes[tile_index]))
 
     def get_tile_data_raster(self, level: str, column: int, row: int) -> numpy.ndarray:
@@ -836,9 +853,10 @@ class Pyramid:
             NotImplementedError: Raster pyramid format not handled
             MissingEnvironmentError: Missing object storage informations
             StorageError: Storage read issue
+            FormatError: Cannot decode tile
 
         Returns:
-            str: data, as binary string
+            str: data, as numpy array, None if no data
         """
 
         if self.type == PyramidType.VECTOR:
@@ -846,11 +864,19 @@ class Pyramid:
 
         binary_tile = self.get_tile_data_binary(level, column, row)
 
+        if binary_tile is None:
+            return None
+
         level_object = self.get_level(level)
+
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
             
-            img = Image.open(io.BytesIO(binary_tile))
+            try:
+                img = Image.open(io.BytesIO(binary_tile))
+            except Exception as e:
+                raise FormatError("JPEG", "binary tile", e)
+            
             data = numpy.asarray(img)
 
         elif self.__format == "TIFF_RAW_UINT8":
@@ -861,21 +887,33 @@ class Pyramid:
             data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
 
         elif self.__format == "TIFF_PNG_UINT8":
-            img = Image.open(io.BytesIO(binary_tile))
+            try:
+                img = Image.open(io.BytesIO(binary_tile))
+            except Exception as e:
+                raise FormatError("PNG", "binary tile", e)
+            
             data = numpy.asarray(img)
 
         elif self.__format == "TIFF_ZIP_UINT8":
-            data = numpy.frombuffer(
-                zlib.decompress( binary_tile ),
-                dtype = numpy.dtype('uint8')
-            )
+            try:
+                data = numpy.frombuffer(
+                    zlib.decompress( binary_tile ),
+                    dtype = numpy.dtype('uint8')
+                )
+            except Exception as e:
+                raise FormatError("ZIP", "binary tile", e)
+
             data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
 
         elif self.__format == "TIFF_ZIP_FLOAT32":
-            data = numpy.frombuffer(
-                zlib.decompress( binary_tile ),
-                dtype = numpy.dtype('float32')
-            )
+            try:
+                data = numpy.frombuffer(
+                    zlib.decompress( binary_tile ),
+                    dtype = numpy.dtype('float32')
+                )
+            except Exception as e:
+                raise FormatError("ZIP", "binary tile", e)
+
             data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
 
         elif self.__format == "TIFF_RAW_FLOAT32":
@@ -888,10 +926,9 @@ class Pyramid:
         else:
             raise NotImplementedError(f"Cannot get tile as raster data for format {self.__format}")
 
-
         return data
 
-    def get_tile_indices(self, x: float, y: float, level: str = None) -> Tuple[str, int, int, int, int]:
+    def get_tile_indices(self, x: float, y: float, level: str = None, **kwargs) -> Tuple[str, int, int, int, int]:
         """Get pyramid's tile and pixel indices from point's coordinates
 
         Used coordinates system have to be the pyramide one. If EPSG:4326, x is latitude and y longitude.
@@ -900,9 +937,11 @@ class Pyramid:
             x (float): point's x
             y (float): point's y
             level (str, optional): Pyramid's level to take into account, the bottom one if None . Defaults to None.
+            **srs (string): spatial reference system of provided coordinates, with authority and code (same as the pyramid's one if not provided)
 
         Raises:
             Exception: Cannot find level to calculate indices
+            RuntimeError: Provided SRS is invalid for OSR
 
         Returns:
             Tuple[str, int, int, int, int]: Level identifier, tile's column, tile's row, pixel's (in the tile) column, pixel's row
@@ -915,5 +954,8 @@ class Pyramid:
         if level_object is None:
             raise Exception(f"Cannot found the level to calculate indices")
 
-        return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
+        if "srs" in kwargs and kwargs["srs"] is not None and kwargs["srs"].upper() != self.__tms.srs.upper():
+            sr = srs_to_spatialreference(kwargs["srs"])
+            x, y = reproject_point((x, y), sr, self.__tms.sr )
 
+        return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
