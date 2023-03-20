@@ -1,23 +1,28 @@
 ## Summary
 
-Fonction de lecture d'une tuile vecteur décodée.
+Lecture par système de fichier virtuel avec GDAL
 
 ## Changelog
 
 ### [Added]
 
-* Pyramid
-    * Décodage d'une tuile vecteur avec `get_tile_data_vector` (le pendant vecteur de `get_tile_data_raster`) : le résultat est un "dictionnaire GeoJSON", et les coordonnées sont en relatif à la tuile (souvent entre 0 et 4096)
-* Utils
-    * Ajout d'un cache pour la création de spatial reference (via la fonction `srs_to_spatialreference`)
+* Storage
+    * Fonction `get_osgeo_path` permettant de configurer le bon sytème de fichier virtuel en fonction du chemin fourni, et retourne celui à utiliser dans le Open de gdal ou ogr
 
 ### [Changed]
 
 * Storage
-    * La lecture d'un fichier ou objet qui n'existe pas émet toujours une exception `FileNotFoundError`
-* Pyramid
-    * Si la tuile que l'on veut lire est dans une dalle qui n'existe pas, on retourne `None`
+    * la récupération d'un client S3 (`__get_s3_client`) permet de récupérer le client, l'hôte, les clés d'accès et secrète, ainsi que le nom du bucket sans l'éventuel hôte du cluster
 
+### [Fixed]
+
+* Storage
+    * Lecture binaire S3 : mauvaise configuration du nom du bucket et de l'objet et mauvaise lecture partielle
+
+### [Removed]
+
+* Exceptions
+    * `NotImplementedError` est une exceptions native
 <!--
 ### [Added]
 

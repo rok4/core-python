@@ -601,3 +601,31 @@ def test_remove_s3_ok(mocked_s3_client):
         remove("s3://bucket/object.ext")
     except Exception as exc:
         assert False, f"S3 deletion raises an exception: {exc}"
+
+
+############ get_osgeo_path
+
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_get_osgeo_path_file_ok():
+    try:
+        path = get_osgeo_path("file:///path/to/file.ext")
+        assert path == "/path/to/file.ext"
+    except Exception as exc:
+        assert False, f"FILE osgeo path raises an exception: {exc}"
+
+@mock.patch.dict(os.environ, {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True) 
+def test_get_osgeo_path_s3_ok():
+
+    disconnect_s3_clients()
+    
+    try:
+        path = get_osgeo_path("s3://bucket@b/to/object.ext")
+        assert path == "/vsis3/bucket/to/object.ext"
+    except Exception as exc:
+        assert False, f"S3 osgeo path raises an exception: {exc}"
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_get_osgeo_path_nok():
+    with pytest.raises(NotImplementedError):
+        get_osgeo_path("ceph://pool/data.ext")

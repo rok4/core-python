@@ -16,7 +16,10 @@ Installations système requises :
 * debian : `apt install python3-rados python3-gdal`
 
 Depuis [PyPI](https://pypi.org/project/rok4/) : `pip install rok4`
+
 Depuis [GitHub](https://github.com/rok4/core-python/releases/) : `pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl`
+
+L'environnement d'exécution doit avoir accès aux librairies système. Dans le cas d'une utilisation au sein d'un environnement python, précisez bien à la création `python3 -m venv --system-site-packages .venv`.
 
 ## Utiliser la librairie
 
