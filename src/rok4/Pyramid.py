@@ -11,10 +11,16 @@ import json
 from json.decoder import JSONDecodeError
 import os
 import re
+import numpy
+import zlib
+import io
+import mapbox_vector_tile
+from PIL import Image
 
 from rok4.Exceptions import *
-from rok4.TileMatrixSet import TileMatrixSet
+from rok4.TileMatrixSet import TileMatrixSet, TileMatrix
 from rok4.Storage import *
+from rok4.Utils import *
 
 class PyramidType(Enum):
     RASTER = "RASTER"
@@ -273,7 +279,9 @@ class Level:
             Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
         """        
         min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["min_col"], self.__tile_limits["max_row"])
+        print(min_bbox)
         max_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["max_col"], self.__tile_limits["min_row"])
+        print(max_bbox)
 
         return (min_bbox[0], min_bbox[1], max_bbox[2], max_bbox[3])
 
@@ -281,15 +289,38 @@ class Level:
     def resolution(self) -> str: 
         return self.__pyramid.tms.get_level(self.__id).resolution
 
-    def update_limits(self, bbox: Tuple[float, float, float, float]) -> None:
-        """Update tile limits, based on provided bounding box
+    @property
+    def tile_matrix(self) -> TileMatrix: 
+        return self.__pyramid.tms.get_level(self.__id)
+
+    @property
+    def slab_width(self) -> int: 
+        return self.__slab_size[0]
+
+    @property
+    def slab_height(self) -> int: 
+        return self.__slab_size[1]
+
+    def is_in_limits(self, column: int, row: int) -> bool:
+        """Is the tile indices in limits ?
+
+        Args:
+            column (int): tile's column
+            row (int): tile's row
+
+        Returns:
+            bool: True if tiles' limits contain the provided tile's indices
+        """
+        return self.__tile_limits["min_row"] <= row and self.__tile_limits["max_row"] >= row and self.__tile_limits["min_col"] <= column and self.__tile_limits["max_col"] >= column
+
+    def set_limits_from_bbox(self, bbox: Tuple[float, float, float, float]) -> None:
+        """Set tile limits, based on provided bounding box
 
         Args:
             bbox (Tuple[float, float, float, float]): terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
 
         """
-        print(self.id)
-        print(self.__tile_limits)
+        
         col_min, row_min, col_max, row_max = self.__pyramid.tms.get_level(self.__id).bbox_to_tiles(bbox)
         self.__tile_limits = {
             "min_row": row_min,
@@ -297,10 +328,10 @@ class Level:
             "max_row": row_max,
             "min_col": col_min
         }
-        print(self.__tile_limits)
 
 
 class Pyramid:
+
     """A data pyramid, raster or vector
 
     Attributes:
@@ -485,14 +516,39 @@ class Pyramid:
         
     @property
     def raster_specifications(self) -> Dict:
+        """Get raster specifications for a RASTER pyramid
+
+        Example:
+            {
+                "channels": 3,
+                "nodata": "255,0,0",
+                "photometric": "rgb",
+                "interpolation": "bicubic"
+            }
+        
+        Returns:
+            Dict: Raster specifications, None if VECTOR pyramid
+        """        
         return self.__raster_specifications
 
     @property
     def storage_type(self) -> StorageType: 
+        """Get the storage type
+
+        Returns:
+            StorageType: FILE, S3 or CEPH
+        """        
         return self.__storage["type"]
 
     @property
-    def storage_root(self) -> StorageType: 
+    def storage_root(self) -> str: 
+        """Get the pyramid's storage root.
+
+        If storage is S3, the used cluster is removed.
+
+        Returns:
+            str: Pyramid's storage root
+        """        
         return self.__storage["root"].split("@", 1)[0] # Suppression de l'éventuel hôte de spécification du cluster S3
 
     @property
@@ -501,7 +557,12 @@ class Pyramid:
 
 
     @property
-    def storage_s3_cluster(self) -> str: 
+    def storage_s3_cluster(self) -> str:
+        """Get the pyramid's storage S3 cluster (host name)
+
+        Returns:
+            str: the host if known, None if the default one have to be used or if storage is not S3
+        """        
         if self.__storage["type"] == StorageType.S3:
             try:
                 return self.__storage["root"].split("@")[1]
@@ -512,13 +573,21 @@ class Pyramid:
 
 
     @storage_depth.setter
-    def storage_depth(self, d) -> None:
+    def storage_depth(self, d: int) -> None:
+        """Set the tree depth for a FILE storage
+
+        Args:
+            d (int): file storage depth
+
+        Raises:
+            Exception: the depth is not equal to the already known depth
+        """        
         if "depth" in self.__storage and self.__storage["depth"] != d:
             raise Exception(f"Pyramid {pyramid.__descriptor} owns levels with different path depths")
         self.__storage["depth"] = d
 
     @property
-    def own_masks(self) -> int: 
+    def own_masks(self) -> bool:
         return self.__masks
 
     @property
@@ -527,14 +596,29 @@ class Pyramid:
 
     @property
     def bottom_level(self) -> 'Level': 
+        """Get the best resolution level in the pyramid
+
+        Returns:
+            Level: the bottom level
+        """   
         return sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
 
     @property
-    def top_level(self) -> 'Level': 
+    def top_level(self) -> 'Level':
+        """Get the low resolution level in the pyramid
+
+        Returns:
+            Level: the top level
+        """        
         return sorted(self.__levels.values(), key=lambda l: l.resolution)[-1]
 
     @property
     def type(self) -> PyramidType:
+        """Get the pyramid's type (RASTER or VECTOR) from its format
+
+        Returns:
+            PyramidType: RASTER or VECTOR
+        """        
         if self.__format == "TIFF_PBF_MVT":
             return PyramidType.VECTOR
         else:
@@ -606,10 +690,20 @@ class Pyramid:
         return levels
 
     def write_descriptor(self) -> None:
+        """Write the pyramid's descriptor to the final location (in the pyramid's storage root)
+        """        
         content = json.dumps(self.serializable)
         put_data_str(content, self.__descriptor)
 
     def get_infos_from_slab_path(self, path: str) -> Tuple[SlabType, str, int, int]:
+        """Get the slab's indices from its storage path
+
+        Args:
+            path (str): Slab's storage path
+
+        Returns:
+            Tuple[SlabType, str, int, int]: Slab's type (DATA or MASK), level identifier, slab's column and slab's row
+        """        
         if self.__storage["type"] == StorageType.FILE:
             parts = path.split("/")
 
@@ -644,6 +738,18 @@ class Pyramid:
             return slab_type, level, int(column), int(row)
 
     def get_slab_path_from_infos(self, slab_type: SlabType, level: str, column: int, row: int, full: bool = True) -> str:
+        """Get slab's storage path from the indices
+
+        Args:
+            slab_type (SlabType): DATA or MASK
+            level (str): Level identifier
+            column (int): Slab's column
+            row (int): Slab's row
+            full (bool, optional): Full path or just relative path from pyramid storage root. Defaults to True.
+
+        Returns:
+            str: Absolute or relative slab's storage path
+        """        
         if self.__storage["type"] == StorageType.FILE:
             slab_path = os.path.join(slab_type.value, level, b36_path_encode(column, row, self.__storage["depth"]))
         else:
@@ -655,3 +761,248 @@ class Pyramid:
             return slab_path
         
 
+    def get_tile_data_binary(self, level: str, column: int, row: int) -> str:
+        """Get a pyramid's tile as binary string
+
+        To get a tile, 3 steps :
+            * calculate slab path from tile indice
+            * read slab index to get offsets and sizes of slab's tiles
+            * read the tile into the slab
+
+        Args:
+            level (str): Tile's level
+            column (int): Tile's column
+            row (int): Tile's row
+
+        Limitations:
+            Pyramids with one-tile slab are not handled
+
+        Raises:
+            Exception: Level not found in the pyramid
+            NotImplementedError: Pyramid owns one-tile slabs
+            MissingEnvironmentError: Missing object storage informations
+            StorageError: Storage read issue
+
+        Returns:
+            str: data, as binary string, None if no data
+        """
+
+        level_object = self.get_level(level)
+        
+        if level_object is None:
+            raise Exception(f"No level {level} in the pyramid")
+
+        if level_object.slab_width == 1 and level_object.slab_height == 1:
+            raise NotImplementedError(f"One-tile slab pyramid is not handled")
+
+        if not level_object.is_in_limits(column, row):
+            return None
+
+        # Indices de la dalle
+        slab_column = column // level_object.slab_width
+        slab_row = row // level_object.slab_height
+
+        # Indices de la tuile dans la dalle
+        relative_tile_column = column % level_object.slab_width
+        relative_tile_row = row % level_object.slab_height
+
+        # Numéro de la tuile dans le header
+        tile_index = relative_tile_row * level_object.slab_width + relative_tile_column
+
+        # Calcul du chemin de la dalle contenant la tuile voulue
+        slab_path = self.get_slab_path_from_infos(SlabType.DATA, level, slab_column, slab_row)
+
+        # Récupération des offset et tailles des tuiles dans la dalle
+        # Une dalle ROK4 a une en-tête fixe de 2048 octets, 
+        # puis sont stockés les offsets (chacun sur 4 octets)
+        # puis les tailles (chacune sur 4 octets)
+        try:
+            binary_index = get_data_binary(slab_path, (2048, 2 * 4 * level_object.slab_width * level_object.slab_height))
+        except FileNotFoundError as e:
+            # L'absence de la dalle est gérée comme simplement une absence de données
+            return None
+
+        offsets = numpy.frombuffer(
+            binary_index,
+            dtype = numpy.dtype('uint32'),
+            count = level_object.slab_width * level_object.slab_height
+        )
+        sizes = numpy.frombuffer(
+            binary_index,
+            dtype = numpy.dtype('uint32'),
+            offset = 4 * level_object.slab_width * level_object.slab_height,
+            count = level_object.slab_width * level_object.slab_height
+        )
+
+        if sizes[tile_index] == 0:
+            return None
+
+        return get_data_binary(slab_path, (offsets[tile_index], sizes[tile_index]))
+
+    def get_tile_data_raster(self, level: str, column: int, row: int) -> numpy.ndarray:
+        """Get a raster pyramid's tile as 3-dimension numpy ndarray
+
+        First dimension is the row, second one is column, third one is band.
+
+        Args:
+            level (str): Tile's level
+            column (int): Tile's column
+            row (int): Tile's row
+
+        Limitations:
+            Packbits (pyramid formats TIFF_PKB_FLOAT32 and TIFF_PKB_UINT8) and LZW (pyramid formats TIFF_LZW_FLOAT32 and TIFF_LZW_UINT8) compressions are not handled.
+
+        Raises:
+            Exception: Cannot get raster data for a vector pyramid
+            Exception: Level not found in the pyramid
+            NotImplementedError: Pyramid owns one-tile slabs
+            NotImplementedError: Raster pyramid format not handled
+            MissingEnvironmentError: Missing object storage informations
+            StorageError: Storage read issue
+            FormatError: Cannot decode tile
+
+        Returns:
+            str: data, as numpy array, None if no data
+        """
+
+        if self.type == PyramidType.VECTOR:
+            raise Exception("Cannot get tile as raster data : it's a vector pyramid")
+
+        binary_tile = self.get_tile_data_binary(level, column, row)
+
+        if binary_tile is None:
+            return None
+
+        level_object = self.get_level(level)
+
+
+        if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
+            
+            try:
+                img = Image.open(io.BytesIO(binary_tile))
+            except Exception as e:
+                raise FormatError("JPEG", "binary tile", e)
+            
+            data = numpy.asarray(img)
+
+        elif self.__format == "TIFF_RAW_UINT8":
+            data = numpy.frombuffer(
+                binary_tile,
+                dtype = numpy.dtype('uint8')
+            )
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+
+        elif self.__format == "TIFF_PNG_UINT8":
+            try:
+                img = Image.open(io.BytesIO(binary_tile))
+            except Exception as e:
+                raise FormatError("PNG", "binary tile", e)
+            
+            data = numpy.asarray(img)
+
+        elif self.__format == "TIFF_ZIP_UINT8":
+            try:
+                data = numpy.frombuffer(
+                    zlib.decompress( binary_tile ),
+                    dtype = numpy.dtype('uint8')
+                )
+            except Exception as e:
+                raise FormatError("ZIP", "binary tile", e)
+
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+
+        elif self.__format == "TIFF_ZIP_FLOAT32":
+            try:
+                data = numpy.frombuffer(
+                    zlib.decompress( binary_tile ),
+                    dtype = numpy.dtype('float32')
+                )
+            except Exception as e:
+                raise FormatError("ZIP", "binary tile", e)
+
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+
+        elif self.__format == "TIFF_RAW_FLOAT32":
+            data = numpy.frombuffer(
+                binary_tile,
+                dtype = numpy.dtype('float32')
+            )
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+
+        else:
+            raise NotImplementedError(f"Cannot get tile as raster data for format {self.__format}")
+
+        return data
+
+    def get_tile_data_vector(self, level: str, column: int, row: int) -> Dict:
+        """Get a vector pyramid's tile as GeoJSON dictionnary
+
+        Args:
+            level (str): Tile's level
+            column (int): Tile's column
+            row (int): Tile's row
+
+        Raises:
+            Exception: Cannot get vector data for a raster pyramid
+            Exception: Level not found in the pyramid
+            NotImplementedError: Pyramid owns one-tile slabs
+            NotImplementedError: Vector pyramid format not handled
+            MissingEnvironmentError: Missing object storage informations
+            StorageError: Storage read issue
+            FormatError: Cannot decode tile
+
+        Returns:
+            str: data, as GeoJSON dictionnary. None if no data
+        """
+
+        if self.type == PyramidType.RASTER:
+            raise Exception("Cannot get tile as vector data : it's a raster pyramid")
+
+        binary_tile = self.get_tile_data_binary(level, column, row)
+
+        if binary_tile is None:
+            return None
+
+        level_object = self.get_level(level)
+
+        if self.__format == "TIFF_PBF_MVT":
+            try:
+                data = mapbox_vector_tile.decode(binary_tile)
+            except Exception as e:
+                raise FormatError("PBF (MVT)", "binary tile", e)
+        else:
+            raise NotImplementedError(f"Cannot get tile as vector data for format {self.__format}")
+
+        return data
+
+    def get_tile_indices(self, x: float, y: float, level: str = None, **kwargs) -> Tuple[str, int, int, int, int]:
+        """Get pyramid's tile and pixel indices from point's coordinates
+
+        Used coordinates system have to be the pyramide one. If EPSG:4326, x is latitude and y longitude.
+
+        Args:
+            x (float): point's x
+            y (float): point's y
+            level (str, optional): Pyramid's level to take into account, the bottom one if None . Defaults to None.
+            **srs (string): spatial reference system of provided coordinates, with authority and code (same as the pyramid's one if not provided)
+
+        Raises:
+            Exception: Cannot find level to calculate indices
+            RuntimeError: Provided SRS is invalid for OSR
+
+        Returns:
+            Tuple[str, int, int, int, int]: Level identifier, tile's column, tile's row, pixel's (in the tile) column, pixel's row
+        """
+
+        level_object = self.bottom_level
+        if level is not None:
+            level_object = self.get_level(level)
+        
+        if level_object is None:
+            raise Exception(f"Cannot found the level to calculate indices")
+
+        if "srs" in kwargs and kwargs["srs"] is not None and kwargs["srs"].upper() != self.__tms.srs.upper():
+            sr = srs_to_spatialreference(kwargs["srs"])
+            x, y = reproject_point((x, y), sr, self.__tms.sr )
+
+        return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)

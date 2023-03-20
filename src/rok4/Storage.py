@@ -231,7 +231,7 @@ def hash_file(path: str) -> str:
     return checker.hexdigest()
 
 def get_data_str(path: str) -> str:
-    """Load data into a string
+    """Load full data into a string
 
     Args:
         path (str): path to data
@@ -239,23 +239,56 @@ def get_data_str(path: str) -> str:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
 
     Returns:
         str: Data content
     """
 
-    storage_type, path, tray_name, base_name  = get_infos_from_path(path)
+    return get_data_binary(path).decode('utf-8')
+
+
+def get_data_binary(path: str, range: Tuple[int, int] = None) -> str: 
+    """Load data into a binary string
+
+    Args:
+        path (str): path to data
+        range (Tuple[int, int], optional): offset and size, to make a partial read. Defaults to None.
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+
+    Returns:
+        str: Data binary content
+    """
+
+    storage_type, path, tray_name, base_name  = get_infos_from_path(path)        
 
     if storage_type == StorageType.S3:
         
         s3_client, host, tray_name = __get_s3_client(tray_name)
 
         try:
-            with tempfile.NamedTemporaryFile("w+b") as f:
-                s3_client.download_fileobj(tray_name, base_name, f)
-                f.seek(0)
-                data = f.read().decode('utf-8')
-                f.close()
+            if range is None:
+                data = s3_client.get_object(
+                    Bucket='tray_name',
+                    Key='base_name',
+                )['Body'].read()
+            else:
+                data = s3_client.get_object(
+                    Bucket='tray_name',
+                    Key='base_name',
+                    Range=f"bytes=${range[0]}-${range[1] - range[0] - 1}"
+                )['Body'].read()
+
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                raise FileNotFoundError(f"{storage_type.value}{path}")
+            else:
+                raise StorageError("S3", e)
+
         except Exception as e:
             raise StorageError("S3", e)
 
@@ -264,25 +297,40 @@ def get_data_str(path: str) -> str:
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
-            size, mtime = ioctx.stat(base_name)
-            data = ioctx.read(base_name, size).decode('utf-8')
+            if range is None:
+                size, mtime = ioctx.stat(base_name)
+                data = ioctx.read(base_name, size)
+            else:
+                data = ioctx.read(base_name, range[1], range[0])
+
+        except rados.ObjectNotFound as e:
+            raise FileNotFoundError(f"{storage_type.value}{path}")
+
         except Exception as e:
             raise StorageError("CEPH", e)
 
     elif storage_type == StorageType.FILE:
 
         try:
-            f = open(path)
-            data = f.read()
+            f = open(path, 'rb')
+            if range is None:
+                data = f.read()
+            else:
+                f.seek(range[0])
+                data = f.read(range[1])
+            
             f.close()
+
+        except FileNotFoundError as e:
+            raise FileNotFoundError(f"{storage_type.value}{path}")
+
         except Exception as e:
             raise StorageError("FILE", e)
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to read string data")
+        raise StorageError("UNKNOWN", "Unhandled storage type to read binary data")
 
     return data
-
 
 def put_data_str(data: str, path: str) -> None:
     """Store string data into a file or an object

@@ -64,18 +64,18 @@ def test_s3_invalid_endpoint(mocked_s3_client):
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("builtins.open", side_effect=FileNotFoundError("not_found"))
 def test_file_read_error(mock_file):
-    with pytest.raises(StorageError):
+    with pytest.raises(FileNotFoundError):
         data = get_data_str("file:///path/to/file.ext")
     
-    mock_file.assert_called_with("/path/to/file.ext")
+    mock_file.assert_called_with("/path/to/file.ext", "rb")
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
-@patch("builtins.open", new_callable=mock_open, read_data="data")
+@patch("builtins.open", new_callable=mock_open, read_data=b"data")
 def test_file_read_ok(mock_file):
     try:
         data = get_data_str("file:///path/to/file.ext")
-        mock_file.assert_called_with("/path/to/file.ext")
+        mock_file.assert_called_with("/path/to/file.ext", "rb")
         assert data == "data"
     except Exception as exc:
         assert False, f"FILE read raises an exception: {exc}"
@@ -85,28 +85,26 @@ def test_file_read_ok(mock_file):
 def test_s3_read_nok(mocked_s3_client):
     disconnect_s3_clients()
     s3_instance = MagicMock()
-    s3_instance.download_fileobj.side_effect = Exception('Bucket or object not found')
+    s3_instance.get_object.side_effect = Exception('Bucket or object not found')
     mocked_s3_client.return_value = s3_instance
     with pytest.raises(StorageError):
         data = get_data_str("s3://bucket/path/to/object")
 
 @mock.patch.dict(os.environ, {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True)  
-@mock.patch('rok4.Storage.tempfile.NamedTemporaryFile')
 @mock.patch('rok4.Storage.boto3.client')
-def test_s3_read_ok(mocked_s3_client, mock_tempfile):
-
-    tempfile_instance = MagicMock()
-    tempfile_instance.read.return_value = b"data"
-    mock_tempfile.return_value.__enter__.return_value = tempfile_instance
+def test_s3_read_ok(mocked_s3_client):
 
     disconnect_s3_clients()
     s3_instance = MagicMock()
-    s3_instance.download_fileobj.return_value = None
+    s3_body = MagicMock()
+    s3_body.read.return_value = b"data"
+    s3_instance.get_object.return_value = {
+        "Body": s3_body
+    }
     mocked_s3_client.return_value = s3_instance
 
     try:
         data = get_data_str("s3://bucket/path/to/object")
-        mock_tempfile.assert_called_with("w+b")
         assert data == "data"
     except Exception as exc:
         assert False, f"S3 read raises an exception: {exc}"

@@ -1,6 +1,7 @@
 from rok4.Pyramid import *
 from rok4.TileMatrixSet import TileMatrixSet
 from rok4.Storage import StorageType
+from rok4.Utils import *
 from rok4.Exceptions import *
 
 import pytest
@@ -88,14 +89,15 @@ def test_vector_missing_tables(mocked_tms_class, mocked_get_data_str):
 @mock.patch('rok4.Pyramid.put_data_str', return_value=None)
 def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
 
-
     tms_instance = MagicMock()
     tms_instance.name = "PM"
     tms_instance.srs = "EPSG:3857"
+    tms_instance.sr = sr_src = srs_to_spatialreference("EPSG:3857")
 
     tm_instance = MagicMock()
     tm_instance.id = "0"
     tm_instance.resolution = 1
+    tm_instance.point_to_indices.return_value = (0,0,128,157)
 
     tms_instance.get_level.return_value = tm_instance
 
@@ -117,6 +119,9 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
         assert clone.get_infos_from_slab_path("IMAGE/12/00/00/00.tif") == (SlabType.DATA, "12", 0, 0)
+        assert clone.get_tile_indices(102458, 6548125, srs = "EPSG:3857") == ("0",0,0,128,157)
+        assert clone.get_tile_indices(43, 2, srs = "EPSG:4326") == ("0",0,0,128,157)
+
 
         assert len(clone.get_levels()) == 1
 
@@ -147,6 +152,64 @@ def test_vector_ok(mocked_tms_class, mocked_get_data_str):
     except Exception as exc:
         assert False, f"Pyramid creation raises an exception: {exc}"
 
+    with pytest.raises(Exception) as exc:
+        pyramid.get_tile_data_raster("12", 5, 6)
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+@mock.patch('rok4.Pyramid.TileMatrixSet')
+def test_tile_read_raster(mocked_tms_class):
+
+    tms_instance = MagicMock()
+    tms_instance.name = "UTM20W84MART_1M_MNT"
+    tms_instance.srs = "IGNF:UTM20W84MART"
+    
+    tm_instance = MagicMock()
+    tm_instance.id = "8"
+    tm_instance.tile_size = (256,256)
+
+    tms_instance.get_level.return_value = tm_instance
+
+    mocked_tms_class.return_value = tms_instance
+
+    try:
+        pyramid = Pyramid.from_descriptor("file://tests/fixtures/TIFF_ZIP_FLOAT32.json")
+        data = pyramid.get_tile_data_raster("8",2748,40537)
+
+        assert data.shape == (256,256,1)
+        assert data[128][128][0] == 447.25
+    except Exception as exc:
+        assert False, f"Pyramid raster tile read raises an exception: {exc}"
+
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+@mock.patch('rok4.Pyramid.TileMatrixSet')
+def test_tile_read_vector(mocked_tms_class):
+
+    tms_instance = MagicMock()
+    tms_instance.name = "PM"
+    tms_instance.srs = "EPSG:3857"
+    
+    tm_instance = MagicMock()
+    tm_instance.id = "4"
+    tm_instance.tile_size = (256,256)
+
+    tms_instance.get_level.return_value = tm_instance
+
+    mocked_tms_class.return_value = tms_instance
+
+    try:
+        pyramid = Pyramid.from_descriptor("file://tests/fixtures/TIFF_PBF_MVT.json")
+
+        data = pyramid.get_tile_data_vector("4", 5, 5)
+        assert data is None
+
+        data = pyramid.get_tile_data_vector("4", 8, 5)
+        assert type(data) is dict
+        assert "ecoregions_3857" in data
+    except Exception as exc:
+        assert False, f"Pyramid vector tile read raises an exception: {exc}"
 
 def test_b36_path_decode():
     assert b36_path_decode("3E/42/01.tif") == (4032, 18217,)

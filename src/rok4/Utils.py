@@ -8,8 +8,11 @@ from osgeo import ogr, osr
 ogr.UseExceptions()
 osr.UseExceptions()
 
+__SR_BOOK = dict()
 def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
     """Convert coordinates system as string to OSR spatial reference
+
+    Using a cache, to instanciate a Spatial Reference from a string only once.
 
     Args:
         srs (str): coordinates system PROJ4 compliant, with authority and code, like EPSG:3857 or IGNF:LAMB93
@@ -21,22 +24,28 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
         osgeo.osr.SpatialReference: Corresponding OSR spatial reference
     """
 
-    authority, code = srs.split(':', 1)
+    global __SR_BOOK
 
-    sr = osr.SpatialReference()
-    if authority.upper() == "EPSG":
-        sr.ImportFromEPSG(int(code))
-    else:
-        sr.ImportFromProj4(f"+init={srs.upper()} +wktext")
+    if srs.upper() not in __SR_BOOK:
 
-    return sr
+        authority, code = srs.split(':', 1)
 
-def bbox_to_geometry(bbox: Tuple[float, float, float, float], srs: str = None, densification: int = 0) -> 'osgeo.ogr.Geometry':  
+        sr = osr.SpatialReference()
+        if authority.upper() == "EPSG":
+            sr.ImportFromEPSG(int(code))
+        else:
+            sr.ImportFromProj4(f"+init={srs.upper()} +wktext")
+
+        __SR_BOOK[srs.upper()] = sr
+
+
+    return __SR_BOOK[srs.upper()]
+
+def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int = 0) -> 'osgeo.ogr.Geometry':  
     """Convert bbox coordinates to OGR geometry
 
     Args:
         bbox (Tuple[float, float, float, float]): bounding box (xmin, ymin, xmax, ymax)
-        srs (str, optional): coordinates system. Defaults to None.
         densification (int, optional): Number of point to add for each side of bounding box. Defaults to 0.
 
     Raises:
@@ -73,9 +82,6 @@ def bbox_to_geometry(bbox: Tuple[float, float, float, float], srs: str = None, d
     geom = ogr.Geometry(ogr.wkbPolygon)
     geom.AddGeometry(ring)
     geom.SetCoordinateDimension(2)
-
-    if srs is not None:
-        geom.AssignSpatialReference(srs_to_spatialreference(srs))
     
     return geom
 
@@ -96,12 +102,56 @@ def reproject_bbox(bbox: Tuple[float, float, float, float], srs_src: str, srs_ds
         Tuple[float, float, float, float]: bounding box (xmin, ymin, xmax, ymax) with destination coordinates system
     """
 
-    bbox_src = bbox_to_geometry(bbox, srs_src, densification)
-    sr_geo = srs_to_spatialreference(srs_dst)
+    sr_src = srs_to_spatialreference(srs_src)
+    sr_src_inv = (sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting())
+
+    sr_dst = srs_to_spatialreference(srs_dst)
+    sr_dst_inv = (sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting())
+
+    if sr_src.IsSame(sr_dst) and sr_src_inv == sr_dst_inv:
+        # Les système sont vraiment les même, avec le même ordre des axes
+        return bbox
+    elif sr_src.IsSame(sr_dst) and sr_src_inv != sr_dst_inv:
+        # Les système sont les même pour OSR, mais l'ordre des axes est différent
+        return (bbox[1], bbox[0], bbox[3], bbox[2])
+
+    # Systèmes différents
+
+    bbox_src = bbox_to_geometry(bbox, densification)
+    bbox_src.AssignSpatialReference(sr_src)
 
     bbox_dst = bbox_src.Clone()
     os.environ["OGR_ENABLE_PARTIAL_REPROJECTION"] = "YES"
-    bbox_dst.TransformTo(sr_geo)
+    bbox_dst.TransformTo(sr_dst)
 
     env = bbox_dst.GetEnvelope()
     return (env[0], env[2], env[1], env[3])
+
+
+def reproject_point(point: Tuple[float, float], sr_src: 'osgeo.osr.SpatialReference', sr_dst: 'osgeo.osr.SpatialReference') -> Tuple[float, float]:
+    """Reproject a point
+
+    Args:
+        point (Tuple[float, float]): source spatial reference point
+        sr_src (osgeo.osr.SpatialReference): source spatial reference
+        sr_dst (osgeo.osr.SpatialReference): destination spatial reference
+
+    Returns:
+        Tuple[float, float]: X/Y in destination spatial reference
+    """
+
+    sr_src_inv = (sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting())
+    sr_dst_inv = (sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting())
+
+    if sr_src.IsSame(sr_dst) and sr_src_inv == sr_dst_inv:
+        # Les système sont vraiment les même, avec le même ordre des axes
+        return (point[0], point[1])
+    elif sr_src.IsSame(sr_dst) and sr_src_inv != sr_dst_inv:
+        # Les système sont les même pour OSR, mais l'ordre des axes est différent
+        return (point[1], point[0])
+
+    # Systèmes différents
+    ct = osr.CreateCoordinateTransformation(sr_src, sr_dst)
+    x_dst, y_dst, z_dst = ct.TransformPoint(point[0], point[1])
+
+    return (x_dst, y_dst)

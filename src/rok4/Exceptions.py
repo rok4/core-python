@@ -37,3 +37,11 @@ class FormatError(Exception):
         self.content = content
         self.issue = issue
         super().__init__(f"Expected format {expected_format} to read '{content}' : {issue}")
+
+class NotImplementedError(Exception):
+    """
+    Exception raised when a feature could be provided but is not implemented yet
+    """
+
+    def __init__(self, issue):
+        super().__init__(issue)
