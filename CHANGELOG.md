@@ -11,6 +11,9 @@ Librairie de lecture d'une donnée raster.
     * Décodage d'une tuile vecteur avec `get_tile_data_vector` (le pendant vecteur de `get_tile_data_raster`) : le résultat est un "dictionnaire GeoJSON", et les coordonnées sont en relatif à la tuile (souvent entre 0 et 4096)
 * Utils
     * Ajout d'un cache pour la création de spatial reference (via la fonction `srs_to_spatialreference`)
+* Raster :
+  * Chargement des informations sur un fichier raster (chemin du fichier, chemin du fichier de masque si applicable, nombre de canaux, boundingbox de l'emprise géographique)
+  * Tests unitaires
 
 ### [Changed]
 
@@ -18,9 +21,8 @@ Librairie de lecture d'une donnée raster.
     * La lecture d'un fichier ou objet qui n'existe pas émet toujours une exception `FileNotFoundError`
 * Pyramid
     * Si la tuile que l'on veut lire est dans une dalle qui n'existe pas, on retourne `None`
-* Librairie "Raster" de lecture de données raster :
-  * Chargement des informations sur un fichier raster (chemin du fichier, chemin du fichier de masque si applicable, nombre de canaux, boundingbox de l'emprise géographique)
-  * Tests unitaires
+* README.md
+    * Modification du bloc code de compilation pour utiliser explicitement python3, et installer certaines dépendances.
 
 <!--
 ### [Added]

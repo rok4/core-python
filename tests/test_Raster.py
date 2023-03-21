@@ -1,6 +1,6 @@
 """Describes unit tests for the rok4.Raster module."""
 
-from rok4.Raster import Raster, _compute_bbox
+from rok4.Raster import ColorFormat, Raster, _compute_bbox, _compute_format
 from rok4.Storage import StorageType
 
 from osgeo import gdal
@@ -8,7 +8,7 @@ import random
 
 import pytest
 from unittest.mock import *
-from unittest import mock, TestCase, skip
+from unittest import mock, TestCase
 
 class TestConstructorCommon(TestCase):
     """Test class for the rok4.Raster.Raster(path) class constructor, for any storage type."""
@@ -54,11 +54,12 @@ class TestConstructorFile(TestCase):
         self.bbox = (-5.4, 41.3, 9.8, 51.3)
 
 
+    @mock.patch('rok4.Raster._compute_format', return_value=ColorFormat.UINT8)
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
     @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, False])
-    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path):
+    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_compute_format):
         """Test case : Constructor called nominally on an image without mask."""
 
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
@@ -75,15 +76,18 @@ class TestConstructorFile(TestCase):
 
         mocked_compute_bbox.assert_called_once()
         assert raster_object.bbox == self.bbox
-        assert raster_object.samples == 3
+        assert raster_object.bands == 3
+        mocked_compute_format.assert_called_once()
+        assert raster_object.format == ColorFormat.UINT8
 
 
+    @mock.patch('rok4.Raster._compute_format', return_value=ColorFormat.UINT8)
     @mock.patch('rok4.Raster.gdal.IdentifyDriver')
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
     @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, True])
-    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_identifydriver):
+    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_identifydriver, mocked_compute_format):
         """Test case : Constructor called nominally on an image with mask."""
 
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
@@ -103,7 +107,9 @@ class TestConstructorFile(TestCase):
 
         mocked_compute_bbox.assert_called_once()
         assert raster_object.bbox == self.bbox
-        assert raster_object.samples == 3
+        assert raster_object.bands == 3
+        mocked_compute_format.assert_called_once()
+        assert raster_object.format == ColorFormat.UINT8
 
 
     @mock.patch('rok4.Raster.get_infos_from_path')
@@ -173,13 +179,14 @@ class TestConstructorObject(TestCase):
         self.bbox = (-5.4, 41.3, 9.8, 51.3)
 
 
+    @mock.patch('rok4.Raster._compute_format', return_value=ColorFormat.UINT8)
     @mock.patch('rok4.Raster.copy')
     @mock.patch('rok4.Raster.tempfile.NamedTemporaryFile')
     @mock.patch('rok4.Raster.get_infos_from_path')
     @mock.patch('rok4.Raster.gdal.Open')
     @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, False])
-    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy):
+    def test_image(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_compute_format):
         """Test case : Constructor called nominally on an image without mask."""
         
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
@@ -201,9 +208,12 @@ class TestConstructorObject(TestCase):
 
         mocked_compute_bbox.assert_called_once()
         assert raster_object.bbox == self.bbox
-        assert raster_object.samples == 3
+        assert raster_object.bands == 3
+        mocked_compute_format.assert_called_once()
+        assert raster_object.format == ColorFormat.UINT8
 
 
+    @mock.patch('rok4.Raster._compute_format', return_value=ColorFormat.UINT8)
     @mock.patch('rok4.Raster.gdal.IdentifyDriver')
     @mock.patch('rok4.Raster.copy')
     @mock.patch('rok4.Raster.tempfile.NamedTemporaryFile')
@@ -211,7 +221,7 @@ class TestConstructorObject(TestCase):
     @mock.patch('rok4.Raster.gdal.Open')
     @mock.patch('rok4.Raster._compute_bbox')
     @mock.patch('rok4.Raster.exists', side_effect=[True, True])
-    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_identifydriver):
+    def test_image_and_mask(self, mocked_exists, mocked_compute_bbox, mocked_gdal_open, mocked_get_infos_from_path, mocked_create_temporary_file, mocked_copy, mocked_identifydriver, mocked_compute_format):
         """Test case : Constructor called nominally on an image with mask."""
         
         mocked_get_infos_from_path.return_value = self.get_infos_from_path
@@ -243,7 +253,9 @@ class TestConstructorObject(TestCase):
 
         mocked_compute_bbox.assert_called_once()
         assert raster_object.bbox == self.bbox
-        assert raster_object.samples == 3
+        assert raster_object.bands == 3
+        mocked_compute_format.assert_called_once()
+        assert raster_object.format == ColorFormat.UINT8
 
     
     @mock.patch('rok4.Raster.copy')
@@ -347,4 +359,134 @@ class TestComputeBbox(TestCase):
         assert expected == result
 
 
+class TestComputeFormat(TestCase):
+    """Test class for the rok4.Raster._compute_format function."""
 
+    def setUp(self) -> None:
+        self.bit_gdalinfo = """Driver: GTiff/GeoTIFF
+Size is 10000, 10000
+Image Structure Metadata:
+  COMPRESSION=PACKBITS
+  INTERLEAVE=BAND
+  MINISWHITE=YES
+"""
+        self.common_gdalinfo = """Driver: GTiff/GeoTIFF
+Size is 10000, 10000
+Metadata:
+  AREA_OR_POINT=Area
+Image Structure Metadata:
+  INTERLEAVE=BAND
+"""
+        return super().setUp()
+
+    @mock.patch('rok4.Raster.gdal.Info')
+    @mock.patch('rok4.Raster.gdal.GetColorInterpretationName', return_value="Palette")
+    @mock.patch('rok4.Raster.gdal.GetDataTypeSize', return_value=8)
+    @mock.patch('rok4.Raster.gdal.GetDataTypeName', return_value="Byte")
+    def test_bit(self, mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+        mocked_datasource = MagicMock(gdal.Dataset)
+
+        mocked_datasource.RasterCount = 1
+        mocked_Info.return_value = self.bit_gdalinfo
+
+        result = _compute_format(mocked_datasource)
+        assert result == ColorFormat.BIT
+        mocked_GetDataTypeName.assert_called()
+        mocked_GetDataTypeSize.assert_called()
+        mocked_GetColorInterpretationName.assert_called()
+        mocked_Info.assert_called()
+
+    @mock.patch('rok4.Raster.gdal.Info')
+    @mock.patch('rok4.Raster.gdal.GetColorInterpretationName')
+    @mock.patch('rok4.Raster.gdal.GetDataTypeSize', return_value=8)
+    @mock.patch('rok4.Raster.gdal.GetDataTypeName', return_value="Byte")
+    def test_uint8(self, mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+        mocked_datasource = MagicMock(gdal.Dataset)
+        
+        band_number = random.randint(1, 4)
+        mocked_datasource.RasterCount = band_number
+        band_name = None
+        if band_number == 1 or band_number == 2:
+            band_name = "Gray"
+        elif band_number == 3 or band_number == 4:
+            band_name = "Red"
+        mocked_GetColorInterpretationName.return_value = band_name
+        mocked_Info.return_value = self.common_gdalinfo
+
+        result = _compute_format(mocked_datasource)
+
+        assert result == ColorFormat.UINT8
+        mocked_GetDataTypeName.assert_called()
+        mocked_GetDataTypeSize.assert_called()
+        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_Info.assert_called()
+
+    @mock.patch('rok4.Raster.gdal.Info')
+    @mock.patch('rok4.Raster.gdal.GetColorInterpretationName')
+    @mock.patch('rok4.Raster.gdal.GetDataTypeSize', return_value=32)
+    @mock.patch('rok4.Raster.gdal.GetDataTypeName', return_value="Float32")
+    def test_float32(self, mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+        mocked_datasource = MagicMock(gdal.Dataset)
+        
+        band_number = random.randint(1, 4)
+        mocked_datasource.RasterCount = band_number
+        band_name = None
+        if band_number == 1 or band_number == 2:
+            band_name = "Gray"
+        elif band_number == 3 or band_number == 4:
+            band_name = "Red"
+        mocked_GetColorInterpretationName.return_value = band_name
+        mocked_Info.return_value = self.common_gdalinfo
+
+        result = _compute_format(mocked_datasource)
+
+        assert result == ColorFormat.FLOAT32
+        mocked_GetDataTypeName.assert_called()
+        mocked_GetDataTypeSize.assert_called()
+        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_Info.assert_called()
+
+    @mock.patch('rok4.Raster.gdal.Info')
+    @mock.patch('rok4.Raster.gdal.GetColorInterpretationName')
+    @mock.patch('rok4.Raster.gdal.GetDataTypeSize', return_value=16)
+    @mock.patch('rok4.Raster.gdal.GetDataTypeName', return_value="UInt16")
+    def test_unsupported(self, mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+        mocked_datasource = MagicMock(gdal.Dataset)
+
+        band_number = random.randint(1, 4)
+        mocked_datasource.RasterCount = band_number
+        band_name = None
+        if band_number == 1 or band_number == 2:
+            band_name = "Gray"
+        elif band_number == 3 or band_number == 4:
+            band_name = "Red"
+        mocked_GetColorInterpretationName.return_value = band_name
+        mocked_Info.return_value = self.common_gdalinfo
+
+        with pytest.raises(Exception):
+            _compute_format(mocked_datasource)
+        
+        mocked_GetDataTypeName.assert_called()
+        mocked_GetDataTypeSize.assert_called()
+        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_Info.assert_called()
+
+    @mock.patch('rok4.Raster.gdal.Info')
+    @mock.patch('rok4.Raster.gdal.GetColorInterpretationName')
+    @mock.patch('rok4.Raster.gdal.GetDataTypeSize', return_value=16)
+    @mock.patch('rok4.Raster.gdal.GetDataTypeName', return_value="UInt16")
+    def test_no_band(self, mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+        mocked_datasource = MagicMock(gdal.Dataset)
+
+        mocked_datasource.RasterCount = 0
+
+        with pytest.raises(Exception):
+            _compute_format(mocked_datasource)
+
+        mocked_GetDataTypeName.assert_not_called()
+        mocked_GetDataTypeSize.assert_not_called()
+        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_Info.assert_not_called()
+
+
+    

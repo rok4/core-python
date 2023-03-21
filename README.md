@@ -36,14 +36,14 @@ except Exception as exc:
 ## Compiler la librairie
 
 ```sh
-apt install python3-venv
+apt install python3-venv python3-rados python3-gdal # user input required for gdal dependencies, unless DEBIAN_FRONTEND=noninteractive
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade build bump2version
 bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4/__init__.py
 
 # Run unit tests
-pip install -e .[test]
+python3 -m pip install -e .[test]
 # To use system installed modules rados and osgeo
 echo "/usr/lib/python3/dist-packages/" >.venv/lib/python3.10/site-packages/system.pth
 python -c 'import sys; print (sys.path)'
@@ -54,7 +54,7 @@ coverage report -m
 coverage html -d dist/tests/
 
 # Build documentation
-pip install -e .[doc]
+python3 -m pip install -e .[doc]
 pdoc3 --html --output-dir dist/ rok4
 
 # Build artefacts
