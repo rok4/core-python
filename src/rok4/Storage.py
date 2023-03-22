@@ -35,9 +35,12 @@ import re
 import os
 import rados
 import hashlib
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 from enum import Enum
 from shutil import copyfile
+from osgeo import gdal
+
+gdal.UseExceptions()
 
 from rok4.Exceptions import *
 
@@ -48,7 +51,7 @@ class StorageType(Enum):
 
 __S3_CLIENTS = dict()
 __S3_DEFAULT_CLIENT = None
-def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
+def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union['boto3.client',str]], str, str]:
     """Get the S3 client
 
     Create it if not already done
@@ -61,7 +64,7 @@ def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
         StorageError: S3 client configuration issue
 
     Returns:
-        Tuple['boto3.client', str, str]: the S3 client, the cluster host and the simple bucket name
+        Tuple[Dict[str, Union['boto3.client',str]], str, str]: the S3 informations (client, host, key, secret) and the simple bucket name
     """    
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
 
@@ -79,15 +82,21 @@ def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
 
                 h = re.sub("https?://", "", urls[i])
 
-                if urls[i] in __S3_CLIENTS:
+                if h in __S3_CLIENTS:
                     raise StorageError("S3", "A S3 cluster is defined twice (based on URL)")
 
-                __S3_CLIENTS[h] = boto3.client(
-                    's3',
-                    aws_access_key_id = keys[i],
-                    aws_secret_access_key = secret_keys[i],
-                    endpoint_url = urls[i]
-                )
+                __S3_CLIENTS[h] = {
+                    "client": boto3.client(
+                        's3',
+                        aws_access_key_id = keys[i],
+                        aws_secret_access_key = secret_keys[i],
+                        endpoint_url = urls[i]
+                    ),
+                    "key": keys[i],
+                    "secret_key": secret_keys[i],
+                    "url": urls[i],
+                    "host": h
+                }
 
                 if i == 0:
                     # Le premier cluster est celui par défaut
@@ -109,7 +118,7 @@ def __get_s3_client(bucket_name: str) -> Tuple['boto3.client', str, str]:
     if host not in __S3_CLIENTS:
         raise StorageError("S3", f"Unknown S3 cluster, according to host '{host}'")
 
-    return __S3_CLIENTS[host], host, bucket_name
+    return __S3_CLIENTS[host], bucket_name
 
 def disconnect_s3_clients() -> None:
     """Clean S3 clients
@@ -268,19 +277,19 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
 
     if storage_type == StorageType.S3:
         
-        s3_client, host, tray_name = __get_s3_client(tray_name)
+        s3_client, bucket_name = __get_s3_client(tray_name)
 
         try:
             if range is None:
-                data = s3_client.get_object(
-                    Bucket='tray_name',
-                    Key='base_name',
+                data = s3_client["client"].get_object(
+                    Bucket=bucket_name,
+                    Key=base_name,
                 )['Body'].read()
             else:
-                data = s3_client.get_object(
-                    Bucket='tray_name',
-                    Key='base_name',
-                    Range=f"bytes=${range[0]}-${range[1] - range[0] - 1}"
+                data = s3_client["client"].get_object(
+                    Bucket=bucket_name,
+                    Key=base_name,
+                    Range=f"bytes={range[0]}-{range[0] + range[1] - 1}"
                 )['Body'].read()
 
         except botocore.exceptions.ClientError as e:
@@ -350,12 +359,12 @@ def put_data_str(data: str, path: str) -> None:
 
     if storage_type == StorageType.S3:
         
-        s3_client, host, tray_name = __get_s3_client(tray_name)
+        s3_client, bucket_name = __get_s3_client(tray_name)
 
         try:
-            s3_client.put_object(
+            s3_client["client"].put_object(
                 Body = data.encode('utf-8'),
-                Bucket = tray_name,
+                Bucket = bucket_name,
                 Key = base_name
             )
         except Exception as e:
@@ -401,10 +410,10 @@ def get_size(path: str) -> int:
 
     if storage_type == StorageType.S3:
 
-        s3_client, host, tray_name = __get_s3_client(tray_name)
+        s3_client, bucket_name = __get_s3_client(tray_name)
 
         try:
-            size = s3_client.head_object(Bucket=tray_name, Key=base_name)["ContentLength"].strip('"')
+            size = s3_client["client"].head_object(Bucket=bucket_name, Key=base_name)["ContentLength"].strip('"')
             return int(size)
         except Exception as e:
             raise StorageError("S3", e)
@@ -449,10 +458,10 @@ def exists(path: str) -> bool:
 
     if storage_type == StorageType.S3:
 
-        s3_client, host, tray_name = __get_s3_client(tray_name)
+        s3_client, bucket_name = __get_s3_client(tray_name)
 
         try:
-            s3_client.head_object(Bucket=tray_name, Key=base_name)
+            s3_client["client"].head_object(Bucket=bucket_name, Key=base_name)
             return True
         except botocore.exceptions.ClientError as e:
             if e.response['Error']['Code'] == "404":
@@ -493,11 +502,11 @@ def remove(path: str) -> None:
 
     if storage_type == StorageType.S3:
 
-        s3_client, host, tray_name = __get_s3_client(tray_name)
+        s3_client, bucket_name = __get_s3_client(tray_name)
 
         try:
-            s3_client.delete_object(
-                Bucket=tray_name,
+            s3_client["client"].delete_object(
+                Bucket=bucket_name,
                 Key=base_name
             )
         except Exception as e:
@@ -561,13 +570,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
     elif from_type == StorageType.S3 and to_type == StorageType.FILE :
         
-        s3_client, host, from_tray = __get_s3_client(from_tray)
+        s3_client, from_bucket = __get_s3_client(from_tray)
 
         try:
             if to_tray != "":
                 os.makedirs(to_tray, exist_ok=True)
             
-            s3_client.download_file(from_tray, from_base_name, to_path)
+            s3_client["client"].download_file(from_bucket, from_base_name, to_path)
 
             if from_md5 is not None :
                 to_md5 = hash_file(to_path)
@@ -579,13 +588,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
     elif from_type == StorageType.FILE and to_type == StorageType.S3 :
 
-        s3_client, host, to_tray = __get_s3_client(to_tray)
+        s3_client, to_bucket = __get_s3_client(to_tray)
         
         try:
-            s3_client.upload_file(from_path, to_tray, to_base_name)
+            s3_client["client"].upload_file(from_path, to_bucket, to_base_name)
 
             if from_md5 is not None :
-                to_md5 = s3_client.head_object(Bucket=to_tray, Key=to_base_name)["ETag"].strip('"')
+                to_md5 = s3_client["client"].head_object(Bucket=to_bucket, Key=to_base_name)["ETag"].strip('"')
                 if to_md5 != from_md5:
                     raise StorageError(f"FILE and S3", f"Invalid MD5 sum control for copy file {from_path} to S3 object {to_path} : {from_md5} != {to_md5}")
         except Exception as e:
@@ -593,25 +602,25 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
     elif from_type == StorageType.S3 and to_type == StorageType.S3 :
 
-        from_s3_client, from_host, from_tray = __get_s3_client(from_tray)
-        to_s3_client, to_host, to_tray = __get_s3_client(to_tray)
+        from_s3_client, from_bucket = __get_s3_client(from_tray)
+        to_s3_client, to_bucket = __get_s3_client(to_tray)
 
         try:
-            if to_host == from_host:
-                to_s3_client.copy(
+            if to_s3_client["host"] == from_s3_client["host"]:
+                to_s3_client["client"].copy(
                     {
-                        'Bucket': from_tray,
+                        'Bucket': from_bucket,
                         'Key': from_base_name
                     }, 
-                    to_tray, to_base_name
+                    to_bucket, to_base_name
                 )
             else:
                 with tempfile.NamedTemporaryFile("w+b") as f:
-                    from_s3_client.download_fileobj(from_tray, from_base_name, f)
-                    to_s3_client.upload_file(f.name, to_tray, to_base_name)
+                    from_s3_client["client"].download_fileobj(from_bucket, from_base_name, f)
+                    to_s3_client["client"].upload_file(f.name, to_bucket, to_base_name)
 
             if from_md5 is not None :
-                to_md5 = to_s3_client.head_object(Bucket=to_tray, Key=to_base_name)["ETag"].strip('"')
+                to_md5 = to_s3_client["client"].head_object(Bucket=to_bucket, Key=to_base_name)["ETag"].strip('"')
                 if to_md5 != from_md5:
                     raise StorageError(f"S3", f"Invalid MD5 sum control for copy S3 object {from_path} to {to_path} : {from_md5} != {to_md5}")
 
@@ -726,7 +735,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         from_ioctx = __get_ceph_ioctx(from_tray)
 
-        to_s3_client, to_host, to_tray = __get_s3_client(to_tray)
+        s3_client, to_bucket = __get_s3_client(to_tray)
 
         if from_md5 is not None:
             checker = hashlib.md5()
@@ -736,7 +745,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             size = 0
 
             with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
-                name_fich = f.name
+                name_tmp = f.name
                 while True:
                     chunk = from_ioctx.read(from_base_name, 65536, offset)
                     size = len(chunk)
@@ -749,17 +758,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                     if size < 65536:
                         break
 
-            to_s3_client.upload_file(name_fich, to_tray, to_base_name)
+            s3_client["client"].upload_file(name_tmp, to_bucket, to_base_name)
 
-            os.remove(name_fich)
+            os.remove(name_tmp)
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(f"CEPH and S3", f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {checker.hexdigest()}")
-
-            if from_md5 is not None :
-                to_md5 = to_s3_client.head_object(Bucket=to_tray, Key=to_base_name)["ETag"].strip('"')
-                if to_md5 != from_md5 and "-" not in to_md5:
-                    raise StorageError(f"CEPH and S3", f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {to_md5}")
 
         except Exception as e:
             raise StorageError(f"CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}")
@@ -794,16 +798,16 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
     # Réalisation du lien, selon les types de stockage
     if target_type == StorageType.S3:
 
-        target_s3_client, target_host, target_tray = __get_s3_client(target_tray)
-        link_s3_client, link_host, link_tray = __get_s3_client(link_tray)
+        target_s3_client, target_bucket = __get_s3_client(target_tray)
+        link_s3_client, link_bucket = __get_s3_client(link_tray)
 
-        if link_host != target_host:
+        if target_s3_client["host"] != link_s3_client["host"]:
             raise StorageError(f"S3", f"Cannot make link {link_path} -> {target_path} : link works only on the same S3 cluster")
 
         try:
-            target_s3_client.put_object(
-                Body = f"{__OBJECT_SYMLINK_SIGNATURE}{target_tray}/{target_base_name}".encode('utf-8'),
-                Bucket = link_tray,
+            target_s3_client["client"].put_object(
+                Body = f"{__OBJECT_SYMLINK_SIGNATURE}{target_bucket}/{target_base_name}".encode('utf-8'),
+                Bucket = link_bucket,
                 Key = link_base_name
             )
         except Exception as e:
@@ -832,6 +836,38 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
         raise StorageError("UNKNOWN", "Unhandled storage type to make link")
 
 def get_osgeo_path(path: str) -> str:
-    """Stud for a future function    
-    """
-    return None
+    """Return GDAL/OGR Open compliant path and configure storage access
+
+    For a S3 input path, endpoint, access and secret keys are set and path is built with "/vsis3" root.
+
+    For a FILE input path, only storage prefix is removed
+
+    Args:
+        path (str): Source path
+
+    Raises:
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: GDAL/OGR Open compliant path
+    """    
+
+    storage_type, unprefixed_path, tray_name, base_name  = get_infos_from_path(path)
+
+
+    if storage_type == StorageType.S3:
+
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        gdal.SetConfigOption('AWS_SECRET_ACCESS_KEY', s3_client["secret_key"])
+        gdal.SetConfigOption('AWS_ACCESS_KEY_ID', s3_client["key"])
+        gdal.SetConfigOption('AWS_S3_ENDPOINT', s3_client["host"])
+        gdal.SetConfigOption('AWS_VIRTUAL_HOSTING', 'FALSE')
+
+        return f"/vsis3/{bucket_name}/{base_name}"
+
+    elif storage_type == StorageType.FILE:
+        return unprefixed_path
+
+    else:
+        raise NotImplementedError(f"Cannot get a GDAL/OGR compliant path from {path}")
