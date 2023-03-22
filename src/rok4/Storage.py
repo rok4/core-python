@@ -830,3 +830,8 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to make link")
+
+def get_osgeo_path(path: str) -> str:
+    """Stud for a future function    
+    """
+    return None

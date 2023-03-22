@@ -19,6 +19,7 @@ Librairie de lecture d'une donnée raster.
 
 * Storage
     * La lecture d'un fichier ou objet qui n'existe pas émet toujours une exception `FileNotFoundError`
+    * Ajout d'un prototype vide de fonction 'get_osgeo_path', qui a terme, à partir d'un chemin complet vers une image, retournera le chemin système d'un fichier local de travail, créé si besoin.
 * Pyramid
     * Si la tuile que l'on veut lire est dans une dalle qui n'existe pas, on retourne `None`
 * README.md

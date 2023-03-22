@@ -12,7 +12,7 @@ from enum import Enum
 
 from osgeo import ogr, gdal
 
-from rok4.Storage import exists, get_infos_from_path, copy, StorageType
+from rok4.Storage import exists, get_infos_from_path, copy, StorageType, get_osgeo_path
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
@@ -32,34 +32,31 @@ class Raster():
         bands (int): number of color bands (or channels)
         format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
         mask (str): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
+        dimensions (Tuple[int, int]): image width and height expressed in pixels
     """
 
-    def __init__(self, path: str) -> None:
-        """Basic constructor method
+    @classmethod
+    def from_file(cls, path: str) -> 'Raster':
+        """Creates a Raster object from an image
 
         Args:
-            path (str): path to the file/object
+            path (str): path to the image file/object
 
         Raises:
             RuntimeError: raised by OGR/GDAL if anything goes wrong
             MissingEnvironmentError: Missing object storage informations
             StorageError: Storage read issue
+
+        Returns:
+            Raster: a Raster instance
         """
 
         if not exists(path):
             raise Exception(f"No file or object found at path '{path}'.")
 
-        image_info = get_infos_from_path(path)
+        self = cls()
 
-        tmp_image_file = None
-        work_image_path = None
-        if image_info[0] == StorageType.FILE:
-            work_image_path = image_info[1]
-        else:
-            tmp_image_file = tempfile.NamedTemporaryFile(mode='r', delete=False)
-            tmp_image_file.close()
-            work_image_path = tmp_image_file.name # utiliser Storage.get_osgeo_path(real_path) quand disponible
-            copy(path, f"file://{work_image_path}")
+        work_image_path = get_osgeo_path(path)
 
         image_datasource = gdal.Open(work_image_path)
         self.path = path
@@ -67,19 +64,8 @@ class Raster():
         path_pattern = re.compile('(/[^/]+?)[.][a-zA-Z0-9_-]+$')
         mask_path = path_pattern.sub('\\1.msk', path)
 
-        tmp_mask_file = None
-        work_mask_path = None
-        if exists(mask_path):
-            if image_info[0] == StorageType.FILE:
-                work_mask_path = path_pattern.sub('\\1.msk', image_info[1])
-            else:
-                tmp_mask_file = tempfile.NamedTemporaryFile(mode='r', delete=False)
-                tmp_mask_file.close()
-                work_mask_path = tmp_mask_file.name # utiliser Storage.get_osgeo_path(real_path) quand disponible
-
-                tmp_mask_file = None
-                copy(mask_path, f"file://{work_mask_path}") 
-            
+        if exists(mask_path):            
+            work_mask_path = get_osgeo_path(mask_path)
             mask_driver = gdal.IdentifyDriver(work_mask_path).ShortName
             if 'GTiff' != mask_driver:
                 raise Exception(f"Mask file '{mask_path}' is not a TIFF image. (GDAL driver : '{mask_driver}'")
@@ -91,20 +77,39 @@ class Raster():
         self.bbox = _compute_bbox(image_datasource)
         self.bands = image_datasource.RasterCount
         self.format = _compute_format(image_datasource, path)
+        self.dimensions = (image_datasource.RasterXSize, image_datasource.RasterYSize)
 
-        # Pour l'obtenir sur un canal, deux méthodes (l'index du canal est compris entre 1 et RasterCount) :
-        # - gdal.GetDataTypeName(image_datasource.GetRasterBand(index).DataType)
-        # - gdal.GetDataTypeSize(image_datasource.GetRasterBand(index).DataType)
-        # La première solution donne le nom, par exemple "Byte" pour un entier 8 bits.
-        # La deuxième donne la taille en bits, "8" pour un entier 8 bits.
-        # Se base sur l'enum GDALDataType
-        # Les noms qui nous intéressent semblent être "Byte" pour "uint8", et "Float32" pour "float32".
-        # Comment faire pour les images 1 bit ? Il me faudrait un exemple de fichier.
-        # Exemple BDParcellaire fourni par Théo. tiffinfo détecte bien 1 canal 1 bit, mais gdal voit 1 canal 8 bits "Byte" avec palette 1 bit
-        # gdal.GetColorInterpretationName(ds.GetRasterBand(1).GetRasterColorInterpretation()) = Palette
-        # utiliser GetRasterColorInterpretation() et la fonction pour obtenir la compression ? (Celle-ci est "PACKBITS")
+        return self
 
-        tmp_image_file = None
+    @classmethod
+    def from_parameters(cls, mask=None, **kwargs):
+        """Creates a Raster object from key/value parameters
+
+        Args:
+            **path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/path/to/image.tif)
+            **bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
+            **bands (int): number of color bands (or channels)
+            **format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
+            **mask (str, optionnal): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
+            **dimensions (Tuple[int, int]): image width and height expressed in pixels
+
+        Raises:
+            KeyError: a mandatory argument is missing
+
+        Returns:
+            Raster: a Raster instance
+        """
+
+        self = cls()
+            
+        self.path = kwargs["path"]
+        self.mask = mask
+        self.bbox = kwargs["bbox"]
+        self.bands = kwargs["bands"]
+        self.format = kwargs["format"]
+        self.dimensions = kwargs["dimensions"]
+
+        return self
 
 
 def _compute_bbox(source_dataset: gdal.Dataset) -> tuple:
@@ -151,6 +156,7 @@ def _compute_format(dataset: gdal.Dataset, path=None) -> ColorFormat:
 
     Args:
         dataset (gdal.Dataset): Dataset object created from the raster image
+        path (str): path to the original file/object (optionnal)
 
     Raises:
         AttributeError: source_dataset is not a gdal.Dataset instance.
