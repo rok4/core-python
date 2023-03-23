@@ -17,13 +17,11 @@ The `rok4` package is available on :
 
 ```python
 from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Vector import Vector
 
 try:
     tms = TileMatrixSet("file:///path/to/tms.json")
-    vector = Vector("file:///path/to/vector.shp")
-    vector_csv1 = Vector("file:///path/to/vector.csv", delimiter, column_x, column_y)
-    vector_csv1 = Vector("file:///path/to/vector.csv", delimiter, column_WKT)
 except Exception as exc:
     print(exc)
 ```
+
+More examples in the developer documentation

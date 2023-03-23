@@ -6,7 +6,7 @@ The module contains the following classes:
 - `Level` - Level of a pyramid
 """
 
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, Iterator
 import json
 from json.decoder import JSONDecodeError
 import os
@@ -23,12 +23,19 @@ from rok4.Storage import *
 from rok4.Utils import *
 
 class PyramidType(Enum):
+    """ Pyramid's data type """
     RASTER = "RASTER"
     VECTOR = "VECTOR"
 
+
 class SlabType(Enum):
-    DATA = "DATA"
-    MASK = "MASK"
+    """ Slab's type """
+    DATA = "DATA" # Slab of data, raster or vector
+    MASK = "MASK" # Slab of mask, only for raster pyramide, image with one band : 0 is nodata, other values are data
+
+
+ROK4_IMAGE_HEADER_SIZE = 2048
+"""Slab's header size, 2048 bytes"""
 
 def b36_number_encode(number: int) -> str:
     """Convert base-10 number to base-36
@@ -343,6 +350,21 @@ class Pyramid:
         __format (str): Data format
         __storage (Dict[str, Union[rok4.Storage.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
         __raster_specifications (Dict): If raster pyramid, raster specifications
+        __content (Dict): Loading status (loaded) and list content (cache). 
+
+            Example (S3 storage): 
+
+                {
+                    'cache': {
+                        (<SlabType.DATA: 'DATA'>, '18', 5424, 7526): {
+                            'link': False,
+                            'md5': None,
+                            'root': 'pyramids@localhost:9000/LIMADM',
+                            'slab': 'DATA_18_5424_7526'
+                        }
+                    },
+                    'loaded': True
+                }
     """
 
     @classmethod
@@ -358,6 +380,17 @@ class Pyramid:
             MissingAttributeError: Attribute is missing in the content
             StorageError: Storage read issue (pyramid descriptor or TMS)
             MissingEnvironmentError: Missing object storage informations or TMS root directory
+
+        Examples:
+
+            S3 stored descriptor
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor")
 
         Returns:
             Pyramid: a Pyramid instance
@@ -468,6 +501,11 @@ class Pyramid:
         self.__storage = dict()
         self.__levels = dict()
         self.__masks = None
+
+        self.__content = {
+            "loaded": False,
+            "cache": dict()
+        }
 
     def __str__(self) -> str:
         return f"{self.type.name} pyramid '{self.__name}' ({self.__storage['type'].name} storage)"
@@ -595,6 +633,19 @@ class Pyramid:
         return self.__format
 
     @property
+    def tile_extension(self) -> str: 
+        if self.__format in ["TIFF_RAW_UINT8", "TIFF_LZW_UINT8", "TIFF_ZIP_UINT8", "TIFF_PKB_UINT8", "TIFF_RAW_FLOAT32", "TIFF_LZW_FLOAT32", "TIFF_ZIP_FLOAT32", "TIFF_PKB_FLOAT32"]:
+            return "tif"
+        elif self.__format in ["TIFF_JPG_UINT8", "TIFF_JPG90_UINT8"]:
+            return "jpg"
+        elif self.__format == "TIFF_PNG_UINT8":
+            return "png"
+        elif self.__format == "TIFF_PBF_MVT":
+            return "pbf"
+        else:
+            raise Exception(f"Unknown pyramid's format ({self.__format}), cannot return the tile extension")
+
+    @property
     def bottom_level(self) -> 'Level': 
         """Get the best resolution level in the pyramid
 
@@ -624,6 +675,111 @@ class Pyramid:
         else:
             return PyramidType.RASTER
 
+    def load_list(self) -> None:
+        """Load list content and cache it
+
+        If list is already loaded, nothing done
+        """        
+        if self.__content["loaded"]:
+            return
+
+        for slab, infos in self.list_generator():
+            self.__content["cache"][slab] = infos
+
+        self.__content["loaded"] = True
+
+    def list_generator(self) -> Iterator[Tuple[Tuple[SlabType,str,int,int], Dict]]:    
+        """Get list content
+
+        List is copied as temporary file, roots are read and informations about each slab is returned. If list is already loaded, we yield the cached content
+
+        Examples:
+
+            S3 stored descriptor
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
+
+                    for (slab_type, level, column, row), infos in pyramid.list_generator():
+                        print(infos)
+
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and read the list")
+
+        Yields:
+            Iterator[Tuple[Tuple[SlabType,str,int,int], Dict]]: Slab indices and storage informations
+
+            Value example:
+
+                ( 
+                    (<SlabType.DATA: 'DATA'>, '18', 5424, 7526),
+                    {
+                        'link': False,
+                        'md5': None,
+                        'root': 'pyramids@localhost:9000/LIMADM',
+                        'slab': 'DATA_18_5424_7526'
+                    }
+                )
+
+        """        
+        if self.__content["loaded"]:
+            for slab, infos in self.__content["cache"].items():
+                yield slab, infos
+        else:
+
+            # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
+            list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
+            list_file = list_obj.name
+            copy(self.__list, f"file://{list_file}")
+            list_obj.close()
+
+            roots = dict()
+            s3_cluster = self.storage_s3_cluster
+
+            with open(list_file, "r") as listin:
+
+                # Lecture des racines
+                for line in listin:
+                    line = line.rstrip()
+                    
+                    if line == "#":
+                        break
+
+                    root_id, root_path = line.split("=", 1)
+
+                    if s3_cluster is None:
+                        roots[root_id] = root_path
+                    else:
+                        # On a un nom de cluster S3, on l'ajoute au nom du bucket dans les racines
+                        root_bucket, root_path = root_path.split("/", 1)
+                        roots[root_id] = f"{root_bucket}@{s3_cluster}/{root_path}"
+
+                # Lecture des dalles
+                for line in listin:
+                    line = line.rstrip()
+
+                    parts = line.split(" ", 1)
+                    slab_path = parts[0]
+                    slab_md5 = None
+                    if len(parts) == 2:
+                        slab_md5 = parts[1]
+
+                    root_id, slab_path = slab_path.split("/", 1)
+
+                    slab_type, level, column, row = self.get_infos_from_slab_path(slab_path)
+                    infos = {
+                        "root": roots[root_id],
+                        "link": root_id != '0',
+                        "slab": slab_path,
+                        "md5": slab_md5
+                    }
+
+                    yield ((slab_type,level,column,row), infos)
+
+            remove(f"file://{list_file}")
+
     def get_level(self, level_id: str) -> 'Level':
         """Get one level according to its identifier
 
@@ -638,7 +794,7 @@ class Pyramid:
 
 
     def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[Level]:
-        """Get sorted levels from bottom and top provided
+        """Get sorted levels from bottom to top provided
 
         Args:
             bottom_id (str): optionnal specific bottom level id. Defaults to None.
@@ -646,6 +802,30 @@ class Pyramid:
 
         Raises:
             Exception: Provided levels are not consistent (bottom > top or not in the pyramid)
+
+        Examples:
+
+            All levels
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
+                    levels = pyramid.get_levels()
+
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and get levels")
+
+            From pyramid's bottom to provided top (level 5)
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
+                    levels = pyramid.get_levels(None, "5")
+
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and get levels")
 
         Returns:
             List[Level]: asked sorted levels
@@ -700,6 +880,30 @@ class Pyramid:
 
         Args:
             path (str): Slab's storage path
+
+        Examples:
+
+            FILE stored pyramid
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("/path/to/descriptor.json")
+                    slab_type, level, column, row = self.get_infos_from_slab_path("DATA/12/00/4A/F7.tif")
+                    # (SlabType.DATA, "12", 159, 367)
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and convert a slab path")
+
+            S3 stored pyramid
+
+                from rok4.Pyramid import Pyramid
+                
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/pyramid.json")
+                    slab_type, level, column, row = self.get_infos_from_slab_path("s3://bucket_name/path/to/pyramid/MASK_15_9164_5846")
+                    # (SlabType.MASK, "15", 9164, 5846)
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and convert a slab path")
 
         Returns:
             Tuple[SlabType, str, int, int]: Slab's type (DATA or MASK), level identifier, slab's column and slab's row
@@ -777,6 +981,28 @@ class Pyramid:
         Limitations:
             Pyramids with one-tile slab are not handled
 
+        Examples:
+
+            FILE stored raster pyramid, to extract a tile containing a point and save it as independent image
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("/data/pyramids/SCAN1000.json")
+                    level, col, row, pcol, prow = pyramid.get_tile_indices(992904.46, 6733643.15, "9", srs = "IGNF:LAMB93")
+                    data = pyramid.get_tile_data_binary(level, col, row)
+
+                    if data is None:
+                        print("No data")
+                    else:
+                        tile_name = f"tile_{level}_{col}_{row}.{pyramid.tile_extension}"
+                        with open(tile_name, "wb") as image:
+                            image.write(data)
+                        print (f"Tile written in {tile_name}")
+
+                except Exception as e:
+                    print("Cannot save a pyramid's tile : {e}")
+
         Raises:
             Exception: Level not found in the pyramid
             NotImplementedError: Pyramid owns one-tile slabs
@@ -817,7 +1043,7 @@ class Pyramid:
         # puis sont stockés les offsets (chacun sur 4 octets)
         # puis les tailles (chacune sur 4 octets)
         try:
-            binary_index = get_data_binary(slab_path, (2048, 2 * 4 * level_object.slab_width * level_object.slab_height))
+            binary_index = get_data_binary(slab_path, (ROK4_IMAGE_HEADER_SIZE, 2 * 4 * level_object.slab_width * level_object.slab_height))
         except FileNotFoundError as e:
             # L'absence de la dalle est gérée comme simplement une absence de données
             return None
@@ -860,6 +1086,25 @@ class Pyramid:
             MissingEnvironmentError: Missing object storage informations
             StorageError: Storage read issue
             FormatError: Cannot decode tile
+
+        Examples:
+
+            FILE stored DTM (raster) pyramid, to get the altitude value at a point in the best level
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("/data/pyramids/RGEALTI.json")
+                    level, col, row, pcol, prow = pyramid.get_tile_indices(44, 5, srs = "EPSG:4326")
+                    data = pyramid.get_tile_data_raster(level, col, row)
+
+                    if data is None:
+                        print("No data")
+                    else:
+                        print(data[prow][pcol])
+
+                except Exception as e:
+                    print("Cannot get a pyramid's pixel value : {e}")
 
         Returns:
             str: data, as numpy array, None if no data
@@ -951,6 +1196,26 @@ class Pyramid:
             StorageError: Storage read issue
             FormatError: Cannot decode tile
 
+        Examples:
+
+            S3 stored vector pyramid, to print a tile as GeoJSON
+
+                from rok4.Pyramid import Pyramid
+                import json
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://pyramids/vectors/BDTOPO.json")
+                    level, col, row, pcol, prow = pyramid.get_tile_indices(40.325, 3.123, srs = "EPSG:4326")
+                    data = pyramid.get_tile_data_vector(level, col, row)
+
+                    if data is None:
+                        print("No data")
+                    else:
+                        print(json.dumps(data))
+
+                except Exception as e:
+                    print("Cannot print a vector pyramid's tile as GeoJSON : {e}")
+
         Returns:
             str: data, as GeoJSON dictionnary. None if no data
         """
@@ -989,6 +1254,25 @@ class Pyramid:
         Raises:
             Exception: Cannot find level to calculate indices
             RuntimeError: Provided SRS is invalid for OSR
+
+        Examples:
+
+            FILE stored DTM (raster) pyramid, to get the altitude value at a point in the best level
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("/data/pyramids/RGEALTI.json")
+                    level, col, row, pcol, prow = pyramid.get_tile_indices(44, 5, srs = "EPSG:4326")
+                    data = pyramid.get_tile_data_raster(level, col, row)
+
+                    if data is None:
+                        print("No data")
+                    else:
+                        print(data[prow][pcol])
+
+                except Exception as e:
+                    print("Cannot get a pyramid's pixel value : {e}")
 
         Returns:
             Tuple[str, int, int, int, int]: Level identifier, tile's column, tile's row, pixel's (in the tile) column, pixel's row

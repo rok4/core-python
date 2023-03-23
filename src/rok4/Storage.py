@@ -413,7 +413,7 @@ def get_size(path: str) -> int:
         s3_client, bucket_name = __get_s3_client(tray_name)
 
         try:
-            size = s3_client["client"].head_object(Bucket=bucket_name, Key=base_name)["ContentLength"].strip('"')
+            size = s3_client["client"].head_object(Bucket=bucket_name, Key=base_name)["ContentLength"]
             return int(size)
         except Exception as e:
             raise StorageError("S3", e)
