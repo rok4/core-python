@@ -1,34 +1,20 @@
 ## Summary
 
-Lecture par système de fichier virtuel avec GDAL
-Librairie de lecture d'une donnée raster.
+Lecture facilitée de la liste d'une pyramide.
 
 ## Changelog
 
 ### [Added]
 
-* Storage
-    * Fonction `get_osgeo_path` permettant de configurer le bon sytème de fichier virtuel en fonction du chemin fourni, et retourne celui à utiliser dans le Open de gdal ou ogr
-* Raster :
-  * Chargement des informations sur un fichier raster (chemin du fichier, chemin du fichier de masque si applicable, nombre de canaux, boundingbox de l'emprise géographique)
-  * Tests unitaires
-
-### [Changed]
-
-* Storage
-    * la récupération d'un client S3 (`__get_s3_client`) permet de récupérer le client, l'hôte, les clés d'accès et secrète, ainsi que le nom du bucket sans l'éventuel hôte du cluster
-* README.md
-    * Modification du bloc code de compilation pour utiliser explicitement python3, et installer certaines dépendances.
-
+* Pyramid
+    * Fonctions de gestion de la liste : chargement et lecture (via un generator)
+    * Taille du header d'une dalle stockée dans la variable `ROK4_IMAGE_HEADER_SIZE`
+    * La proriété `tile_extension` : retourne l'extension d'une tuile de la pyramide en fonction du format
+    * Des exemples d'utilisation des fonctions principales
 ### [Fixed]
 
 * Storage
-    * Lecture binaire S3 : mauvaise configuration du nom du bucket et de l'objet et mauvaise lecture partielle
-
-### [Removed]
-
-* Exceptions
-    * `NotImplementedError` est une exceptions native
+    * Lecture de la taille d'un objet S3 : pas besoin d'enlever des quotes dans le header `Content-Length`
 <!--
 ### [Added]
 
