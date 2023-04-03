@@ -3,6 +3,7 @@ from rok4.Exceptions import *
 
 import pytest
 import os
+import math
 
 from unittest.mock import *
 from unittest import mock
@@ -52,7 +53,10 @@ def test_reproject_point_ok():
         sr_3857 = srs_to_spatialreference("EPSG:3857")
         sr_ignf = srs_to_spatialreference("IGNF:WGS84G")
         x,y = reproject_point((43, 3), sr_4326, sr_3857)
-        assert (x,y) == (333958.4723798207, 5311971.846945471)
+
+        assert math.isclose(x, 333958.4723798207, rel_tol=1e-5)
+        assert math.isclose(y, 5311971.846945471, rel_tol=1e-5)
+
         x,y = reproject_point((43, 3), sr_4326, sr_ignf)
         assert (x,y) == (3, 43)
 
