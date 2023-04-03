@@ -7,17 +7,19 @@ The module contains the following class :
 """
 
 import re
-import tempfile
 from enum import Enum
 
 from osgeo import ogr, gdal
 
-from rok4.Storage import exists, get_infos_from_path, copy, StorageType, get_osgeo_path
+from rok4.Storage import exists, get_osgeo_path
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
 class ColorFormat(Enum):
+    """A color format enumeration.
+    Except from "BIT", the member's name matches a common variable format name. The member's value is the allocated bit size associated to this format.
+    """
     BIT = 1
     UINT8 = 8
     FLOAT32 = 32
@@ -35,6 +37,14 @@ class Raster():
         dimensions (Tuple[int, int]): image width and height expressed in pixels
     """
 
+    def __init__(self) -> None:
+        self.bands = None
+        self.bbox = (None, None, None, None)
+        self.dimensions = (None, None)
+        self.format = None
+        self.mask = None
+        self.path = None
+
     @classmethod
     def from_file(cls, path: str) -> 'Raster':
         """Creates a Raster object from an image
@@ -42,10 +52,21 @@ class Raster():
         Args:
             path (str): path to the image file/object
 
+        Examples:
+
+            Loading informations from a file stored raster TIFF image
+
+                from rok4.Raster import Raster
+
+                try:
+                    raster = Raster.from_file("file:///data/images/SC1000_TIFF_LAMB93_FXX/SC1000_0040_6150_L93.tif")
+
+                except Exception as e:
+                    print(f"Cannot load information from image : {e}")
+
         Raises:
             RuntimeError: raised by OGR/GDAL if anything goes wrong
-            MissingEnvironmentError: Missing object storage informations
-            StorageError: Storage read issue
+            NotImplementedError: Storage type not handled
 
         Returns:
             Raster: a Raster instance
@@ -92,6 +113,18 @@ class Raster():
             **format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
             **mask (str, optionnal): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
             **dimensions (Tuple[int, int]): image width and height expressed in pixels
+
+        Examples:
+
+            Loading informations from parameters, related to a TIFF main image coupled to a TIFF mask image
+
+                from rok4.Raster import Raster
+
+                try:
+                    raster = Raster.from_parameters(path="file:///data/images/SC1000_TIFF_LAMB93_FXX/SC1000_0040_6150_L93.tif", mask="file:///data/images/SC1000_TIFF_LAMB93_FXX/SC1000_0040_6150_L93.msk", bands=3, format=ColorFormat.UINT8, dimensions=(2000, 2000), bbox=(40000.000, 5950000.000, 240000.000, 6150000.000))
+
+                except Exception as e:
+                    print(f"Cannot load information from parameters : {e}")
 
         Raises:
             KeyError: a mandatory argument is missing
@@ -172,16 +205,22 @@ def _compute_format(dataset: gdal.Dataset, path=None) -> ColorFormat:
         raise Exception(f"Image {path} contains no color band.")
     
     band_1_datatype = dataset.GetRasterBand(1).DataType
-    band_1_color_interpretation = dataset.GetRasterBand(1).GetRasterColorInterpretation()
+    data_type_name = gdal.GetDataTypeName(band_1_datatype)
+    data_type_size = gdal.GetDataTypeSize(band_1_datatype)
+    color_interpretation = dataset.GetRasterBand(1).GetRasterColorInterpretation()
+    color_name = None
+    if color_interpretation is not None:
+        color_name = gdal.GetColorInterpretationName(color_interpretation)
     compression_regex_match = re.search(r'COMPRESSION\s*=\s*PACKBITS', gdal.Info(dataset))
 
-    if gdal.GetDataTypeName(band_1_datatype) == "Byte" and gdal.GetDataTypeSize(band_1_datatype) == 8 and compression_regex_match and band_1_color_interpretation is not None and gdal.GetColorInterpretationName(band_1_color_interpretation) == "Palette":
+
+    if data_type_name == "Byte" and data_type_size == 8 and color_name == "Palette" and compression_regex_match:
         format = ColorFormat.BIT
-    elif gdal.GetDataTypeName(band_1_datatype) == "Byte" and gdal.GetDataTypeSize(band_1_datatype) == 8:
+    elif data_type_name == "Byte" and data_type_size == 8:
         format = ColorFormat.UINT8
-    elif gdal.GetDataTypeName(band_1_datatype) == "Float32" and gdal.GetDataTypeSize(band_1_datatype) == 32:
+    elif data_type_name == "Float32" and data_type_size == 32:
         format = ColorFormat.FLOAT32
     else:
-        raise Exception(f"Unsupported color format for image {path} : '{gdal.GetDataTypeName(band_1_datatype)}' ({gdal.GetDataTypeSize(band_1_datatype)} bits)")
+        raise Exception(f"Unsupported color format for image {path} : '{data_type_name}' ({data_type_size} bits)")
 
     return format

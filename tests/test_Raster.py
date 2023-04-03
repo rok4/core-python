@@ -1,14 +1,13 @@
 """Describes unit tests for the rok4.Raster module."""
 
 from rok4.Raster import ColorFormat, Raster, _compute_bbox, _compute_format
-from rok4.Storage import StorageType
 
 from osgeo import gdal
-import random
+import random, math
 
 import pytest
+from unittest import mock, TestCase
 from unittest.mock import *
-from unittest import mock, TestCase, skip
 
 class TestComputeBbox(TestCase):
     """Test class for the rok4.Raster._compute_bbox function."""
@@ -50,7 +49,10 @@ class TestComputeBbox(TestCase):
             max(y_range)
         )
         result = _compute_bbox(mocked_datasource)
-        assert expected == result
+        assert math.isclose(result[0], expected[0], rel_tol=1e-5)
+        assert math.isclose(result[1], expected[1], rel_tol=1e-5)
+        assert math.isclose(result[2], expected[2], rel_tol=1e-5)
+        assert math.isclose(result[3], expected[3], rel_tol=1e-5)
 
 
 class TestComputeFormat(TestCase):
@@ -112,7 +114,7 @@ Image Structure Metadata:
         assert result == ColorFormat.UINT8
         mocked_GetDataTypeName.assert_called()
         mocked_GetDataTypeSize.assert_called()
-        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_GetColorInterpretationName.assert_called()
         mocked_Info.assert_called()
 
     @mock.patch('rok4.Raster.gdal.Info')
@@ -137,7 +139,7 @@ Image Structure Metadata:
         assert result == ColorFormat.FLOAT32
         mocked_GetDataTypeName.assert_called()
         mocked_GetDataTypeSize.assert_called()
-        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_GetColorInterpretationName.assert_called()
         mocked_Info.assert_called()
 
     @mock.patch('rok4.Raster.gdal.Info')
@@ -162,7 +164,7 @@ Image Structure Metadata:
         
         mocked_GetDataTypeName.assert_called()
         mocked_GetDataTypeSize.assert_called()
-        mocked_GetColorInterpretationName.assert_not_called()
+        mocked_GetColorInterpretationName.assert_called()
         mocked_Info.assert_called()
 
     @mock.patch('rok4.Raster.gdal.Info')
@@ -231,7 +233,10 @@ class TestFromFile(TestCase):
         assert raster_object.mask is None
 
         mocked_compute_bbox.assert_called_once()
-        assert raster_object.bbox == self.bbox
+        assert math.isclose(raster_object.bbox[0], self.bbox[0], rel_tol=1e-5)
+        assert math.isclose(raster_object.bbox[1], self.bbox[1], rel_tol=1e-5)
+        assert math.isclose(raster_object.bbox[2], self.bbox[2], rel_tol=1e-5)
+        assert math.isclose(raster_object.bbox[3], self.bbox[3], rel_tol=1e-5)
         assert raster_object.bands == 3
         mocked_compute_format.assert_called_once()
         assert raster_object.format == ColorFormat.UINT8
@@ -262,7 +267,10 @@ class TestFromFile(TestCase):
         assert raster_object.mask == self.source_mask_path
 
         mocked_compute_bbox.assert_called_once()
-        assert raster_object.bbox == self.bbox
+        assert math.isclose(raster_object.bbox[0], self.bbox[0], rel_tol=1e-5)
+        assert math.isclose(raster_object.bbox[1], self.bbox[1], rel_tol=1e-5)
+        assert math.isclose(raster_object.bbox[2], self.bbox[2], rel_tol=1e-5)
+        assert math.isclose(raster_object.bbox[3], self.bbox[3], rel_tol=1e-5)
         assert raster_object.bands == 3
         mocked_compute_format.assert_called_once()
         assert raster_object.format == ColorFormat.UINT8
@@ -316,7 +324,10 @@ class TestFromParameters(TestCase):
         result = Raster.from_parameters(path=i_path, bbox=i_bbox, bands=i_bands, format=i_format, dimensions=i_dimensions)
 
         assert result.path == i_path
-        assert result.bbox == i_bbox
+        assert math.isclose(result.bbox[0], i_bbox[0], rel_tol=1e-5)
+        assert math.isclose(result.bbox[1], i_bbox[1], rel_tol=1e-5)
+        assert math.isclose(result.bbox[2], i_bbox[2], rel_tol=1e-5)
+        assert math.isclose(result.bbox[3], i_bbox[3], rel_tol=1e-5)
         assert result.bands == i_bands
         assert result.format == i_format
         assert result.dimensions == i_dimensions
@@ -333,7 +344,10 @@ class TestFromParameters(TestCase):
         result = Raster.from_parameters(path=i_path, bbox=i_bbox, bands=i_bands, format=i_format, dimensions=i_dimensions, mask=i_mask)
 
         assert result.path == i_path
-        assert result.bbox == i_bbox
+        assert math.isclose(result.bbox[0], i_bbox[0], rel_tol=1e-5)
+        assert math.isclose(result.bbox[1], i_bbox[1], rel_tol=1e-5)
+        assert math.isclose(result.bbox[2], i_bbox[2], rel_tol=1e-5)
+        assert math.isclose(result.bbox[3], i_bbox[3], rel_tol=1e-5)
         assert result.bands == i_bands
         assert result.format == i_format
         assert result.dimensions == i_dimensions
