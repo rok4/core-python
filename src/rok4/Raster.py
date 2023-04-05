@@ -12,20 +12,13 @@ from enum import Enum
 from osgeo import ogr, gdal
 
 from rok4.Storage import exists, get_osgeo_path
+from rok4.Utils import ColorFormat, compute_bbox,compute_format
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
-class ColorFormat(Enum):
-    """A color format enumeration.
-    Except from "BIT", the member's name matches a common variable format name. The member's value is the allocated bit size associated to this format.
-    """
-    BIT = 1
-    UINT8 = 8
-    FLOAT32 = 32
 
-
-class Raster():
+class Raster:
     """A structure describing raster data
 
     Attributes :
@@ -95,23 +88,23 @@ class Raster():
         else:
             self.mask = None
 
-        self.bbox = _compute_bbox(image_datasource)
+        self.bbox = compute_bbox(image_datasource)
         self.bands = image_datasource.RasterCount
-        self.format = _compute_format(image_datasource, path)
+        self.format = compute_format(image_datasource, path)
         self.dimensions = (image_datasource.RasterXSize, image_datasource.RasterYSize)
 
         return self
 
     @classmethod
-    def from_parameters(cls, mask=None, **kwargs):
+    def from_parameters(cls, mask: str = None, **kwargs) -> 'Raster':
         """Creates a Raster object from key/value parameters
 
         Args:
+            **mask (str, optionnal): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
             **path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/path/to/image.tif)
             **bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
             **bands (int): number of color bands (or channels)
             **format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
-            **mask (str, optionnal): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
             **dimensions (Tuple[int, int]): image width and height expressed in pixels
 
         Examples:
@@ -143,84 +136,3 @@ class Raster():
         self.dimensions = kwargs["dimensions"]
 
         return self
-
-
-def _compute_bbox(source_dataset: gdal.Dataset) -> tuple:
-    """Image boundingbox computing method
-
-    Args:
-        source_dataset (gdal.Dataset): Dataset object created from the raster image
-
-    Raises:
-        AttributeError: source_dataset is not a gdal.Dataset instance.
-        Exception: The dataset does not contain transform data.
-    """
-
-    transform_vector = source_dataset.GetGeoTransform()
-
-    if transform_vector is None:
-        raise Exception(f"No transform vector found in the dataset created from the following file : {source_dataset.GetFileList()[0]}")
-
-    width = source_dataset.RasterXSize
-    height = source_dataset.RasterYSize
-
-    x_range = (
-        transform_vector[0],
-        transform_vector[0] + width * transform_vector[1] + height * transform_vector[2]
-    )
-
-    y_range = (
-        transform_vector[3],
-        transform_vector[3] + width * transform_vector[4] + height * transform_vector[5]
-    )
-
-    bbox = (
-            min(x_range),
-            min(y_range),
-            max(x_range),
-            max(y_range)
-    )
-
-    return bbox
-
-
-def _compute_format(dataset: gdal.Dataset, path=None) -> ColorFormat:
-    """Image color format computing method
-
-    Args:
-        dataset (gdal.Dataset): Dataset object created from the raster image
-        path (str): path to the original file/object (optionnal)
-
-    Raises:
-        AttributeError: source_dataset is not a gdal.Dataset instance.
-        Exception: Image has no color band or its color format is unsupported.
-    """
-
-    format = None
-
-    if path is None:
-        path = dataset.GetFileList()[0]
-
-    if dataset.RasterCount < 1:
-        raise Exception(f"Image {path} contains no color band.")
-    
-    band_1_datatype = dataset.GetRasterBand(1).DataType
-    data_type_name = gdal.GetDataTypeName(band_1_datatype)
-    data_type_size = gdal.GetDataTypeSize(band_1_datatype)
-    color_interpretation = dataset.GetRasterBand(1).GetRasterColorInterpretation()
-    color_name = None
-    if color_interpretation is not None:
-        color_name = gdal.GetColorInterpretationName(color_interpretation)
-    compression_regex_match = re.search(r'COMPRESSION\s*=\s*PACKBITS', gdal.Info(dataset))
-
-
-    if data_type_name == "Byte" and data_type_size == 8 and color_name == "Palette" and compression_regex_match:
-        format = ColorFormat.BIT
-    elif data_type_name == "Byte" and data_type_size == 8:
-        format = ColorFormat.UINT8
-    elif data_type_name == "Float32" and data_type_size == 32:
-        format = ColorFormat.FLOAT32
-    else:
-        raise Exception(f"Unsupported color format for image {path} : '{data_type_name}' ({data_type_size} bits)")
-
-    return format

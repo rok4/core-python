@@ -17,6 +17,9 @@ Lecture d'informations sur une donnée raster unique depuis un fichier ou une li
 
 * README.md
     * Modification du bloc code de compilation pour utiliser explicitement python3, et installer certaines dépendances.
+* Utils
+    * Fonction de calcul de la boundix box d'une donnée
+    * Fonction de détermination du format de variable des couleurs dans une donéne raster
 
 <!--
 ### [Added]
