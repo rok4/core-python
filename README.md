@@ -25,13 +25,14 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 ```python
 from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Vector import Vector
 
 try:
     tms = TileMatrixSet("file:///path/to/tms.json")
 except Exception as exc:
     print(exc)
 ```
+
+Plus d'exemple dans la documentation développeur.
 
 ## Compiler la librairie
 
