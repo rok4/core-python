@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Jan 18 12:04:07 2023
-
-@author: cpeutin
-"""
 from rok4.Vector import *
 from rok4.Exceptions import *
 from rok4.Storage import disconnect_ceph_clients
