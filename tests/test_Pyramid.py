@@ -116,9 +116,10 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
         assert clone.name == "titi"
         assert clone.storage_type == StorageType.FILE
         assert clone.storage_root == "/data/ign"
+        assert clone.tile_extension == "jpg"
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
-        assert clone.get_infos_from_slab_path("IMAGE/12/00/00/00.tif") == (SlabType.DATA, "12", 0, 0)
+        assert clone.get_infos_from_slab_path("/data/ign/titi/IMAGE/12/00/4A/F7.tif") == (SlabType.DATA, "12", 159, 367)
         assert clone.get_tile_indices(102458, 6548125, srs = "EPSG:3857") == ("0",0,0,128,157)
         assert clone.get_tile_indices(43, 2, srs = "EPSG:4326") == ("0",0,0,128,157)
 
@@ -146,6 +147,7 @@ def test_vector_ok(mocked_tms_class, mocked_get_data_str):
 
         clone = Pyramid.from_other(pyramid, "toto", {"type": "S3", "root": "bucket"})
         assert clone.name == "toto"
+        assert clone.tile_extension == "pbf"
         assert clone.storage_type == StorageType.S3
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
@@ -210,6 +212,38 @@ def test_tile_read_vector(mocked_tms_class):
         assert "ecoregions_3857" in data
     except Exception as exc:
         assert False, f"Pyramid vector tile read raises an exception: {exc}"
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+@mock.patch('rok4.Pyramid.TileMatrixSet')
+def test_list_read(mocked_tms_class):
+
+    tms_instance = MagicMock()
+    tms_instance.name = "PM"
+    tms_instance.srs = "EPSG:3857"
+    
+    tm_instance = MagicMock()
+    tm_instance.id = "4"
+    tm_instance.tile_size = (256,256)
+
+    tms_instance.get_level.return_value = tm_instance
+
+    mocked_tms_class.return_value = tms_instance
+
+    try:
+        pyramid = Pyramid.from_descriptor("file://tests/fixtures/TIFF_PBF_MVT.json")
+        pyramid.load_list()
+        pyramid.load_list() # on passe par la détection d'une liste déjà chrargée ainsi
+        for (slab_type, level, column, row), infos in pyramid.list_generator():
+            assert slab_type == SlabType.DATA
+            assert level == '4'
+            assert column == 2
+            assert row == 1
+            assert infos == {'link': False, 'md5': None, 'root': 'TIFF_PBF_MVT', 'slab': 'DATA/4/00/00/21.tif'}
+
+    except Exception as exc:
+        assert False, f"Pyramid vector list read raises an exception: {exc}"
+
 
 def test_b36_path_decode():
     assert b36_path_decode("3E/42/01.tif") == (4032, 18217,)

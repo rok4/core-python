@@ -567,7 +567,7 @@ def test_size_s3_ok(mocked_s3_client):
 
     disconnect_s3_clients()
     s3_instance = MagicMock()
-    s3_instance.head_object.return_value = {"ContentLength": '"12"'}
+    s3_instance.head_object.return_value = {"ContentLength": 12}
     mocked_s3_client.return_value = s3_instance
 
     try:
