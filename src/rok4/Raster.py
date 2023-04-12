@@ -10,6 +10,7 @@ import re
 from enum import Enum
 
 from osgeo import ogr, gdal
+from typing import Tuple
 
 from rok4.Storage import exists, get_osgeo_path
 from rok4.Utils import ColorFormat, compute_bbox,compute_format
@@ -96,16 +97,16 @@ class Raster:
         return self
 
     @classmethod
-    def from_parameters(cls, mask: str = None, **kwargs) -> 'Raster':
-        """Creates a Raster object from key/value parameters
+    def from_parameters(cls, path: str, bands: int, bbox: Tuple[float, float, float, float], dimensions: Tuple[int, int], format: ColorFormat, mask: str = None) -> 'Raster':
+        """Creates a Raster object from parameters
 
         Args:
-            **mask (str, optionnal): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
-            **path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/path/to/image.tif)
-            **bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
-            **bands (int): number of color bands (or channels)
-            **format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
-            **dimensions (Tuple[int, int]): image width and height expressed in pixels
+            path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/path/to/image.tif)
+            bands (int): number of color bands (or channels)
+            bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
+            dimensions (Tuple[int, int]): image width and height expressed in pixels
+            format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
+            mask (str, optionnal): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
 
         Examples:
 
@@ -128,11 +129,11 @@ class Raster:
 
         self = cls()
             
-        self.path = kwargs["path"]
+        self.path = path
+        self.bands = bands
+        self.bbox = bbox
+        self.dimensions = dimensions
+        self.format = format
         self.mask = mask
-        self.bbox = kwargs["bbox"]
-        self.bands = kwargs["bands"]
-        self.format = kwargs["format"]
-        self.dimensions = kwargs["dimensions"]
 
         return self
