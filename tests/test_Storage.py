@@ -141,6 +141,11 @@ def test_http_read_error(mock_http):
     mock_http.assert_called_with("http:///path/to/file.ext", stream=True)
 
 @mock.patch.dict(os.environ, {}, clear=True)
+def test_http_read_range_error():
+    with pytest.raises(NotImplementedError):
+        data = get_data_binary("http:///path/to/file.ext", (0,100))
+
+@mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("requests.get")
 def test_http_read_ok(mock_http):
     try :
@@ -581,7 +586,7 @@ def test_size_s3_ok(mocked_s3_client):
 def test_size_http_ok(mock_requests):
 
     http_instance = MagicMock()
-    http_instance.content.__sizeof__.return_value = 12
+    http_instance.headers = {"content-length":12}
     mock_requests.return_value = http_instance
 
     try:

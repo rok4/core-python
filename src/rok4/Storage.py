@@ -207,9 +207,9 @@ def get_infos_from_path(path: str) -> Tuple[StorageType, str, str, str]:
     elif path.startswith("file://"):
         return StorageType.FILE, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
     elif path.startswith("http://"):
-        return StorageType.HTTP, path, "NULL", "NULL"
+        return StorageType.HTTP, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
     elif path.startswith("https://"):
-        return StorageType.HTTPS, path, "NULL", "NULL"
+        return StorageType.HTTPS, path[8:], os.path.dirname(path[8:]), os.path.basename(path[8:])
     else:
         return StorageType.FILE, path, os.path.dirname(path), os.path.basename(path)
 
@@ -347,14 +347,16 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
-        try:
-            reponse = requests.get(path, stream=True)
-            data = reponse.content
-            print(reponse.content)
-            if reponse.status_code == 404 :
-                raise StorageError("HTTP", "Requested file does not exist")
-        except Exception as e:
-            raise StorageError("HTTP", e)
+        if range is None :
+            try:
+                reponse = requests.get(storage_type.value + path, stream=True)
+                data = reponse.content
+                if reponse.status_code == 404 :
+                    raise StorageError(storage_type.name, "Requested file does not exist")
+            except Exception as e:
+                raise StorageError(storage_type.name, e)
+        else :
+            raise NotImplementedError
 
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to read binary data")
@@ -459,10 +461,11 @@ def get_size(path: str) -> int:
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
         try:
-            reponse = requests.get(path, stream=True)
-            return reponse.content.__sizeof__()
+            # Le stream=True permet de ne télécharger que le header initialement
+            reponse = requests.get(storage_type.value + path, stream=True).headers["content-length"]
+            return reponse
         except Exception as e:
-            raise StorageError("HTTP", e)
+            raise StorageError(storage_type.name, e)
 
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to get size")
@@ -516,7 +519,7 @@ def exists(path: str) -> bool:
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
         try:
-            reponse = requests.get(path, stream=True)
+            reponse = requests.get(storage_type.value + path, stream=True)
             if reponse.status_code == 200 :
                 return True
             else :
@@ -810,7 +813,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
     elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.FILE :
 
         try:
-            reponse = requests.get(from_path, stream = True)
+            reponse = requests.get(from_type.value + from_path, stream = True)
             with open(to_path, "wb") as f:
                 for chunk in reponse.iter_content(chunk_size=65536) :
                     if chunk:
@@ -824,7 +827,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         to_ioctx = __get_ceph_ioctx(to_tray)
 
         try:
-            reponse = requests.get(from_path, stream = True)
+            reponse = requests.get(from_type.value + from_path, stream = True)
             offset = 0
             for chunk in reponse.iter_content(chunk_size=65536) :
                 if chunk:
@@ -840,7 +843,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         to_s3_client, to_bucket = __get_s3_client(to_tray)
 
         try:
-            reponse = requests.get(from_path, stream = True)
+            reponse = requests.get(from_type.value + from_path, stream = True)
             with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
                 name_fich = f.name
                 for chunk in reponse.iter_content(chunk_size=65536) :
