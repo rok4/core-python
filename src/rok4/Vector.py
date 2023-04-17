@@ -140,7 +140,6 @@ class Vector :
                         vrt_file += "</OGRVRTLayer>\n"
                         vrt_file += "</OGRVRTDataSource>"
                         tmp2.write(vrt_file)
-                    copy("file://"+tmp2.name, "/home/CPeutin/Workplace/test.vrt")
                     dataSourceVRT = ogr.Open(tmp2.name, 0)
                     os.remove(tmp2.name)
                     dataSource=ogr.GetDriverByName("ESRI Shapefile").CopyDataSource(dataSourceVRT, tmp_path + "shp")
