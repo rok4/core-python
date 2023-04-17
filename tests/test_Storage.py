@@ -136,14 +136,14 @@ def test_http_read_error(mock_http):
         requests_instance.content = "NULL"
         requests_instance.status_code = 404
         mock_http.return_value = requests_instance
-        data = get_data_str("http:///path/to/file.ext")
+        data = get_data_str("http://path/to/file.ext")
 
-    mock_http.assert_called_with("http:///path/to/file.ext", stream=True)
+    mock_http.assert_called_with("http://path/to/file.ext", stream=True)
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_http_read_range_error():
     with pytest.raises(NotImplementedError):
-        data = get_data_binary("http:///path/to/file.ext", (0,100))
+        data = get_data_binary("http://path/to/file.ext", (0,100))
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("requests.get")
@@ -153,8 +153,8 @@ def test_http_read_ok(mock_http):
         requests_instance.content = b'data'
         mock_http.return_value = requests_instance
 
-        data = get_data_str("http:///path/to/file.ext")
-        mock_http.assert_called_with("http:///path/to/file.ext", stream=True)
+        data = get_data_str("http://path/to/file.ext")
+        mock_http.assert_called_with("http://path/to/file.ext", stream=True)
         assert data == 'data'
     except Exception as exc:
         assert False, f"HTTP read raises an exception: {exc}"
@@ -408,8 +408,8 @@ def test_copy_http_file_ok(mock_open, mock_requests):
         http_instance.iter_content.return_value = ["data","data2"]
         mock_requests.return_value = http_instance
 
-        copy("http:///path/to/source.ext", "file:///path/to/destination.ext")
-        mock_requests.assert_called_once_with("http:///path/to/source.ext", stream=True)
+        copy("http://path/to/source.ext", "file:///path/to/destination.ext")
+        mock_requests.assert_called_once_with("http://path/to/source.ext", stream=True)
         mock_open.assert_called_once_with("/path/to/destination.ext", "wb")
     except Exception as exc:
         assert False, f"HTTP -> FILE copy raises an exception: {exc}"
@@ -432,8 +432,8 @@ def test_copy_http_ceph_ok(mock_requests, mocked_rados_client):
         ceph_instance.open_ioctx.return_value = ioctx_instance
         mocked_rados_client.return_value = ceph_instance
 
-        copy("http:///path/to/source.ext", "ceph://pool1/source.ext")
-        mock_requests.assert_called_once_with("http:///path/to/source.ext", stream=True)
+        copy("http://path/to/source.ext", "ceph://pool1/source.ext")
+        mock_requests.assert_called_once_with("http://path/to/source.ext", stream=True)
     except Exception as exc:
         assert False, f"HTTP -> CEPH copy raises an exception: {exc}"
 
@@ -455,8 +455,8 @@ def test_copy_http_s3_ok(mock_remove, mock_tempfile, mock_requests, mocked_s3_cl
         s3_instance.head_object.return_value = {"ETag": "8d777f385d3dfec8815d20f7496026dc"}
         mocked_s3_client.return_value = s3_instance
 
-        copy("http:///path/to/source.ext", "s3://bucket/destination.ext")
-        mock_requests.assert_called_once_with("http:///path/to/source.ext", stream=True)
+        copy("http://path/to/source.ext", "s3://bucket/destination.ext")
+        mock_requests.assert_called_once_with("http://path/to/source.ext", stream=True)
         mock_tempfile.assert_called_once_with("w+b",delete=False)
     except Exception as exc:
         assert False, f"HTTP -> CEPH copy raises an exception: {exc}"
@@ -590,7 +590,7 @@ def test_size_http_ok(mock_requests):
     mock_requests.return_value = http_instance
 
     try:
-        size = get_size("http:///path/to/file.ext")
+        size = get_size("http://path/to/file.ext")
         assert size == 12
     except Exception as exc:
         assert False, f"HTTP size raises an exception: {exc}"
@@ -664,7 +664,7 @@ def test_exists_http_ok(mock_requests):
     mock_requests.return_value = http_instance
 
     try:
-        assert exists("http:///path/to/file.ext")
+        assert exists("http://path/to/file.ext")
     except Exception as exc:
         assert False, f"HTTP exists raises an exception: {exc}"
 
@@ -672,7 +672,7 @@ def test_exists_http_ok(mock_requests):
     mock_requests.return_value = http_instance
 
     try:
-        assert not exists("http:///path/to/file.ext")
+        assert not exists("http://path/to/file.ext")
     except Exception as exc:
         assert False, f"HTTP exists raises an exception: {exc}"
 

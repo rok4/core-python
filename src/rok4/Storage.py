@@ -2,10 +2,10 @@
 
 Available storage types are :
 - S3 (path are preffixed with `s3://`)
-- CEPH (path are preffixed with `ceph://`)
-- FILE (path are preffixed with `file://`, but it is the default paths' interpretation)
-- HTTP (path are preffixed with `https://`)
-- HTTPS (path are preffixed with `https://`)
+- CEPH (path are prefixed with `ceph://`)
+- FILE (path are prefixed with `file://`, but it is the default paths' interpretation)
+- HTTP (path are prefixed with `http://`)
+- HTTPS (path are prefixed with `https://`)
 
 According to functions, all storage types are not necessarily available.
 
@@ -525,7 +525,7 @@ def exists(path: str) -> bool:
             else :
                 return False
         except Exception as e:
-            raise StorageError("HTTP", e)
+            raise StorageError(storage_type.name, e)
 
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to test if exists")
