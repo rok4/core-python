@@ -137,3 +137,89 @@ class Raster:
         self.mask = mask
 
         return self
+
+
+
+class RasterSet:
+    """A structure describing a set of raster data
+
+    Attributes :
+        raster_list (List[Raster]): List of Raster instances in the set
+        colors (List[Dict]): List of color properties for each raster instance. Contains only one element if the set is homogenous.
+            Element properties:
+                bands (int): number of color bands (or channels)
+                format (ColorFormat): numeric variable format for color values. Bit depth, as bits per channel, can be derived from it.
+        srs (str): Name of the set's spatial reference system 
+        bbox (Tuple[float, float, float, float]): bounding rectange in the data projection, enclosing the whole set
+    """
+
+    def __init__(self) -> None:
+        self.raster_list = []
+        self.colors = []
+        self.srs = None
+        self.bbox = (None, None, None, None)
+
+
+    @classmethod
+    def from_list(cls, path: str, srs: str) -> 'RasterSet':
+        """Creates a RasterSet object from an images list path and a srs name
+
+        Args:
+            path (str): path to the images list file or object (each line in this list contains the path to an image file or object in the set)
+
+        Examples:
+
+            Loading informations from a file stored list
+
+                from rok4.Raster import RasterSet
+
+                try:
+                    raster_set = RasterSet.from_list(path = "file:///data/images/SC1000_TIFF_LAMB93_FXX.list", srs = "EPSG:3857")
+
+                except Exception as e:
+                    print(f"Cannot load information from list file : {e}")
+
+        Raises:
+            RuntimeError: raised by OGR/GDAL if anything goes wrong
+            NotImplementedError: Storage type not handled
+
+        Returns:
+            RasterSet: a RasterSet instance
+        """
+
+        self = cls()
+
+        self.srs = srs
+
+        local_list_path = get_osgeo_path(path)
+        image_list = []
+        with open(file = local_list_path, mode = "r") as list_file:
+            for line in list_file:
+                image_path = line.strip(' \t\n\r') # unittest.mock.mock_open weirdly leaves newline character at each line end
+                image_list.append(image_path)
+
+        temp_bbox = [None, None, None, None]
+        for image_path in image_list:
+            raster = Raster.from_file(image_path)
+            self.raster_list.append(raster)
+            if temp_bbox == [None, None, None, None]:
+                for i in range(0, 4, 1):
+                    temp_bbox[i] = raster.bbox[i]
+            else:
+                if temp_bbox[0] > raster.bbox[0]:
+                    temp_bbox[0] = raster.bbox[0]
+                if temp_bbox[1] > raster.bbox[1]:
+                    temp_bbox[1] = raster.bbox[1]
+                if temp_bbox[2] < raster.bbox[2]:
+                    temp_bbox[2] = raster.bbox[2]
+                if temp_bbox[3] < raster.bbox[3]:
+                    temp_bbox[3] = raster.bbox[3]
+
+            color_dict = {'bands': raster.bands, 'format': raster.format}
+            if color_dict not in self.colors:
+                self.colors.append(color_dict)
+        
+        self.bbox = (temp_bbox[0], temp_bbox[1], temp_bbox[2], temp_bbox[3])
+
+        return self
+    

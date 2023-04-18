@@ -1,16 +1,19 @@
 """Describes unit tests for the rok4.Raster module."""
 
-from rok4.Raster import Raster
+from rok4.Raster import Raster, RasterSet
 from rok4.Utils import ColorFormat
 
 import math
+import random
 
 import pytest
 from unittest import mock, TestCase
 from unittest.mock import *
 
 
-class TestFromFile(TestCase):
+# rok4.Raster.Raster class tests
+
+class TestRasterFromFile(TestCase):
     """Test class for the rok4.Raster.Raster.from_file(path) class constructor."""
 
     def setUp(self):
@@ -136,10 +139,12 @@ class TestFromFile(TestCase):
         mocked_gdal_open.assert_called_once_with(self.osgeo_image_path)
 
 
-class TestFromParameters(TestCase):
+class TestRasterFromParameters(TestCase):
     """Test class for the rok4.Raster.Raster.from_parameters(**kwargs) class constructor."""
 
     def test_image(self):
+        """Test case: parameters describing an image without mask"""
+
         i_path = "file:///path/to/image.tif"
         i_bbox = (-5.4, 41.3, 9.8, 51.3)
         i_bands = 4
@@ -159,6 +164,8 @@ class TestFromParameters(TestCase):
         assert result.mask is None
 
     def test_image_and_mask(self):
+        """Test case: parameters describing an image with mask"""
+
         i_path = "file:///path/to/image.tif"
         i_mask = "file:///path/to/image.msk"
         i_bbox = (-5.4, 41.3, 9.8, 51.3)
@@ -178,3 +185,74 @@ class TestFromParameters(TestCase):
         assert result.dimensions == i_dimensions
         assert result.mask == i_mask
     
+
+# rok4.Raster.RasterSet class tests
+
+class TestRasterSetFromList(TestCase):
+    """Test class for the rok4.Raster.RasterSet.from_list(path, srs) class constructor."""
+
+    @mock.patch('rok4.Raster.get_osgeo_path')
+    @mock.patch('rok4.Raster.Raster.from_file')
+    def test_ok_at_least_3_files(self, mocked_from_file, mocked_get_osgeo_path):
+        """Test case: list of 3 or more valid image files"""
+
+        file_number = random.randint(3, 100)
+        file_list = []
+        for n in range(0, file_number, 1):
+            file_list.append(f"s3://test_bucket/image_{n+1}.tif")
+        file_list_string = '\n'.join(file_list)
+        mocked_open = mock_open(read_data = file_list_string)
+
+        list_path = "s3://test_bucket/raster_set.list"
+        list_local_path = "/tmp/raster_set.list"
+        
+        mocked_get_osgeo_path.return_value = list_local_path
+
+        raster_list = []
+        expected_colors = []
+        for n in range(0, file_number, 1):
+            raster = MagicMock(Raster)
+            raster.path = file_list[n]
+            raster.bbox = (-0.75 + math.floor(n/3), -1.33 + n - 3 * math.floor(n/3), 0.25 + math.floor(n/3), -0.33 +  n - 3 * math.floor(n/3))
+            raster.format = random.choice([ColorFormat.BIT, ColorFormat.UINT8, ColorFormat.FLOAT32])
+            if raster.format == ColorFormat.BIT:
+                raster.bands = 1
+            else:
+                raster.bands = random.randint(1, 4)
+            
+            color_dict = {'bands': raster.bands, 'format': raster.format}
+            if color_dict not in expected_colors:
+                expected_colors.append(color_dict)
+
+            raster_list.append(raster)
+
+        mocked_from_file.side_effect = raster_list
+
+        srs = "EPSG:4326"
+        with mock.patch('rok4.Raster.open', mocked_open):
+            result = RasterSet.from_list(list_path, srs)
+
+        assert result.srs == srs
+        mocked_get_osgeo_path.assert_called_once_with(list_path)
+        mocked_open.assert_called_once_with(file=list_local_path, mode='r')
+        assert result.raster_list == raster_list
+        assert math.isclose(result.bbox[0], -0.75, rel_tol=1e-5)
+        assert math.isclose(result.bbox[1], -1.33, rel_tol=1e-5)
+        assert math.isclose(result.bbox[2], 0.25 + math.floor((file_number-1)/3), rel_tol=1e-5)
+        assert math.isclose(result.bbox[3], 1.67, rel_tol=1e-5)
+        assert result.colors == expected_colors
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
