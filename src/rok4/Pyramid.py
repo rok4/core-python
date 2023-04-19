@@ -81,7 +81,7 @@ def b36_path_decode(path: str) -> Tuple[int, int]:
 
     Returns:
         Tuple[int, int]: slab's column and row
-    """    
+    """
 
     path = path.replace('/', '')
     path = re.sub(r'(\.TIFF?)', "", path.upper())
@@ -107,7 +107,7 @@ def b36_path_encode(column: int, row: int, slashs: int) -> str:
 
     Returns:
         str: base-36 based path
-    """    
+    """
 
     b36_column = b36_number_encode(column)
     b36_row = b36_number_encode(row)
@@ -156,7 +156,7 @@ class Level:
 
         Returns:
             Pyramid: a Level instance
-        """    
+        """
         level = cls()
 
         level.__pyramid = pyramid
@@ -171,9 +171,9 @@ class Level:
             if pyramid.storage_type.name != data["storage"]["type"]:
                 raise Exception(f"Pyramid {pyramid.descriptor} owns levels using different storage types ({ data['storage']['type'] }) than its one ({pyramid.storage_type.name})")
 
-            if pyramid.storage_type == StorageType.FILE:                    
-                pyramid.storage_depth = data["storage"]["path_depth"]   
-            
+            if pyramid.storage_type == StorageType.FILE:
+                pyramid.storage_depth = data["storage"]["path_depth"]
+
             if "mask_directory" in data["storage"] or "mask_prefix" in data["storage"]:
                 if not pyramid.own_masks:
                     raise Exception(f"Pyramid {pyramid.__descriptor} does not define a mask format but level {level.__id} define mask storage informations")
@@ -229,12 +229,12 @@ class Level:
 
 
     @property
-    def serializable(self) -> Dict: 
+    def serializable(self) -> Dict:
         """Get the dict version of the pyramid object, pyramid's descriptor compliant
 
         Returns:
             Dict: pyramid's descriptor structured object description
-        """   
+        """
         serialization = {
             "id": self.__id,
             "tiles_per_width": self.__slab_size[0],
@@ -275,16 +275,16 @@ class Level:
         return serialization
 
     @property
-    def id(self) -> str: 
+    def id(self) -> str:
         return self.__id
 
     @property
-    def bbox(self) -> Tuple[float, float, float, float]: 
+    def bbox(self) -> Tuple[float, float, float, float]:
         """Return level extent, based on tile limits
 
         Returns:
             Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
-        """        
+        """
         min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["min_col"], self.__tile_limits["max_row"])
         print(min_bbox)
         max_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["max_col"], self.__tile_limits["min_row"])
@@ -293,19 +293,19 @@ class Level:
         return (min_bbox[0], min_bbox[1], max_bbox[2], max_bbox[3])
 
     @property
-    def resolution(self) -> str: 
+    def resolution(self) -> str:
         return self.__pyramid.tms.get_level(self.__id).resolution
 
     @property
-    def tile_matrix(self) -> TileMatrix: 
+    def tile_matrix(self) -> TileMatrix:
         return self.__pyramid.tms.get_level(self.__id)
 
     @property
-    def slab_width(self) -> int: 
+    def slab_width(self) -> int:
         return self.__slab_size[0]
 
     @property
-    def slab_height(self) -> int: 
+    def slab_height(self) -> int:
         return self.__slab_size[1]
 
     def is_in_limits(self, column: int, row: int) -> bool:
@@ -327,7 +327,7 @@ class Level:
             bbox (Tuple[float, float, float, float]): terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
 
         """
-        
+
         col_min, row_min, col_max, row_max = self.__pyramid.tms.get_level(self.__id).bbox_to_tiles(bbox)
         self.__tile_limits = {
             "min_row": row_min,
@@ -350,9 +350,9 @@ class Pyramid:
         __format (str): Data format
         __storage (Dict[str, Union[rok4.Storage.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
         __raster_specifications (Dict): If raster pyramid, raster specifications
-        __content (Dict): Loading status (loaded) and list content (cache). 
+        __content (Dict): Loading status (loaded) and list content (cache).
 
-            Example (S3 storage): 
+            Example (S3 storage):
 
                 {
                     'cache': {
@@ -394,7 +394,7 @@ class Pyramid:
 
         Returns:
             Pyramid: a Pyramid instance
-        """        
+        """
         try:
             data = json.loads(get_data_str(descriptor))
 
@@ -469,7 +469,7 @@ class Pyramid:
             pyramid = cls()
 
             # Attributs communs
-            pyramid.__name = name 
+            pyramid.__name = name
             pyramid.__storage = storage
             pyramid.__masks = other.__masks
 
@@ -511,12 +511,12 @@ class Pyramid:
         return f"{self.type.name} pyramid '{self.__name}' ({self.__storage['type'].name} storage)"
 
     @property
-    def serializable(self) -> Dict: 
+    def serializable(self) -> Dict:
         """Get the dict version of the pyramid object, descriptor compliant
 
         Returns:
             Dict: descriptor structured object description
-        """        
+        """
         serialization = {
             "tile_matrix_set": self.__tms.name,
             "format": self.__format
@@ -551,7 +551,7 @@ class Pyramid:
     @property
     def tms(self) -> TileMatrixSet:
         return self.__tms
-        
+
     @property
     def raster_specifications(self) -> Dict:
         """Get raster specifications for a RASTER pyramid
@@ -563,34 +563,34 @@ class Pyramid:
                 "photometric": "rgb",
                 "interpolation": "bicubic"
             }
-        
+
         Returns:
             Dict: Raster specifications, None if VECTOR pyramid
-        """        
+        """
         return self.__raster_specifications
 
     @property
-    def storage_type(self) -> StorageType: 
+    def storage_type(self) -> StorageType:
         """Get the storage type
 
         Returns:
             StorageType: FILE, S3 or CEPH
-        """        
+        """
         return self.__storage["type"]
 
     @property
-    def storage_root(self) -> str: 
+    def storage_root(self) -> str:
         """Get the pyramid's storage root.
 
         If storage is S3, the used cluster is removed.
 
         Returns:
             str: Pyramid's storage root
-        """        
+        """
         return self.__storage["root"].split("@", 1)[0] # Suppression de l'éventuel hôte de spécification du cluster S3
 
     @property
-    def storage_depth(self) -> int: 
+    def storage_depth(self) -> int:
         return self.__storage.get("depth", None)
 
 
@@ -600,7 +600,7 @@ class Pyramid:
 
         Returns:
             str: the host if known, None if the default one have to be used or if storage is not S3
-        """        
+        """
         if self.__storage["type"] == StorageType.S3:
             try:
                 return self.__storage["root"].split("@")[1]
@@ -619,7 +619,7 @@ class Pyramid:
 
         Raises:
             Exception: the depth is not equal to the already known depth
-        """        
+        """
         if "depth" in self.__storage and self.__storage["depth"] != d:
             raise Exception(f"Pyramid {pyramid.__descriptor} owns levels with different path depths")
         self.__storage["depth"] = d
@@ -629,11 +629,11 @@ class Pyramid:
         return self.__masks
 
     @property
-    def format(self) -> str: 
+    def format(self) -> str:
         return self.__format
 
     @property
-    def tile_extension(self) -> str: 
+    def tile_extension(self) -> str:
         if self.__format in ["TIFF_RAW_UINT8", "TIFF_LZW_UINT8", "TIFF_ZIP_UINT8", "TIFF_PKB_UINT8", "TIFF_RAW_FLOAT32", "TIFF_LZW_FLOAT32", "TIFF_ZIP_FLOAT32", "TIFF_PKB_FLOAT32"]:
             return "tif"
         elif self.__format in ["TIFF_JPG_UINT8", "TIFF_JPG90_UINT8"]:
@@ -646,12 +646,12 @@ class Pyramid:
             raise Exception(f"Unknown pyramid's format ({self.__format}), cannot return the tile extension")
 
     @property
-    def bottom_level(self) -> 'Level': 
+    def bottom_level(self) -> 'Level':
         """Get the best resolution level in the pyramid
 
         Returns:
             Level: the bottom level
-        """   
+        """
         return sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
 
     @property
@@ -660,7 +660,7 @@ class Pyramid:
 
         Returns:
             Level: the top level
-        """        
+        """
         return sorted(self.__levels.values(), key=lambda l: l.resolution)[-1]
 
     @property
@@ -669,7 +669,7 @@ class Pyramid:
 
         Returns:
             PyramidType: RASTER or VECTOR
-        """        
+        """
         if self.__format == "TIFF_PBF_MVT":
             return PyramidType.VECTOR
         else:
@@ -679,7 +679,7 @@ class Pyramid:
         """Load list content and cache it
 
         If list is already loaded, nothing done
-        """        
+        """
         if self.__content["loaded"]:
             return
 
@@ -688,7 +688,7 @@ class Pyramid:
 
         self.__content["loaded"] = True
 
-    def list_generator(self) -> Iterator[Tuple[Tuple[SlabType,str,int,int], Dict]]:    
+    def list_generator(self) -> Iterator[Tuple[Tuple[SlabType,str,int,int], Dict]]:
         """Get list content
 
         List is copied as temporary file, roots are read and informations about each slab is returned. If list is already loaded, we yield the cached content
@@ -713,7 +713,7 @@ class Pyramid:
 
             Value example:
 
-                ( 
+                (
                     (<SlabType.DATA: 'DATA'>, '18', 5424, 7526),
                     {
                         'link': False,
@@ -723,7 +723,7 @@ class Pyramid:
                     }
                 )
 
-        """        
+        """
         if self.__content["loaded"]:
             for slab, infos in self.__content["cache"].items():
                 yield slab, infos
@@ -743,7 +743,7 @@ class Pyramid:
                 # Lecture des racines
                 for line in listin:
                     line = line.rstrip()
-                    
+
                     if line == "#":
                         break
 
@@ -789,7 +789,7 @@ class Pyramid:
         Returns:
             The corresponding pyramid's level, None if not present
         """
-      
+
         return self.__levels.get(level_id, None)
 
 
@@ -832,7 +832,7 @@ class Pyramid:
         """
 
         sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution)
-        
+
         levels = []
 
         begin = False
@@ -859,19 +859,19 @@ class Pyramid:
                     break
                 else:
                     continue
-        
+
         if top_id is None:
             # Pas de niveau du haut fourni, on a été jusqu'en haut et c'est normal
             end = True
 
         if not begin or not end:
             raise Exception(f"Provided levels ids are not consistent to extract levels from the pyramid {self.name}")
-      
+
         return levels
 
     def write_descriptor(self) -> None:
         """Write the pyramid's descriptor to the final location (in the pyramid's storage root)
-        """        
+        """
         content = json.dumps(self.serializable)
         put_data_str(content, self.__descriptor)
 
@@ -897,7 +897,7 @@ class Pyramid:
             S3 stored pyramid
 
                 from rok4.Pyramid import Pyramid
-                
+
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/pyramid.json")
                     slab_type, level, column, row = self.get_infos_from_slab_path("s3://bucket_name/path/to/pyramid/MASK_15_9164_5846")
@@ -907,7 +907,7 @@ class Pyramid:
 
         Returns:
             Tuple[SlabType, str, int, int]: Slab's type (DATA or MASK), level identifier, slab's column and slab's row
-        """        
+        """
         if self.__storage["type"] == StorageType.FILE:
             parts = path.split("/")
 
@@ -953,17 +953,17 @@ class Pyramid:
 
         Returns:
             str: Absolute or relative slab's storage path
-        """        
+        """
         if self.__storage["type"] == StorageType.FILE:
             slab_path = os.path.join(slab_type.value, level, b36_path_encode(column, row, self.__storage["depth"]))
         else:
             slab_path = f"{slab_type.value}_{level}_{column}_{row}"
-        
+
         if full:
             return get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name, slab_path )
         else:
             return slab_path
-        
+
 
     def get_tile_data_binary(self, level: str, column: int, row: int) -> str:
         """Get a pyramid's tile as binary string
@@ -1014,7 +1014,7 @@ class Pyramid:
         """
 
         level_object = self.get_level(level)
-        
+
         if level_object is None:
             raise Exception(f"No level {level} in the pyramid")
 
@@ -1039,7 +1039,7 @@ class Pyramid:
         slab_path = self.get_slab_path_from_infos(SlabType.DATA, level, slab_column, slab_row)
 
         # Récupération des offset et tailles des tuiles dans la dalle
-        # Une dalle ROK4 a une en-tête fixe de 2048 octets, 
+        # Une dalle ROK4 a une en-tête fixe de 2048 octets,
         # puis sont stockés les offsets (chacun sur 4 octets)
         # puis les tailles (chacune sur 4 octets)
         try:
@@ -1122,12 +1122,12 @@ class Pyramid:
 
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
-            
+
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
                 raise FormatError("JPEG", "binary tile", e)
-            
+
             data = numpy.asarray(img)
 
         elif self.__format == "TIFF_RAW_UINT8":
@@ -1135,14 +1135,14 @@ class Pyramid:
                 binary_tile,
                 dtype = numpy.dtype('uint8')
             )
-            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"])
 
         elif self.__format == "TIFF_PNG_UINT8":
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
                 raise FormatError("PNG", "binary tile", e)
-            
+
             data = numpy.asarray(img)
 
         elif self.__format == "TIFF_ZIP_UINT8":
@@ -1154,7 +1154,7 @@ class Pyramid:
             except Exception as e:
                 raise FormatError("ZIP", "binary tile", e)
 
-            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"])
 
         elif self.__format == "TIFF_ZIP_FLOAT32":
             try:
@@ -1165,14 +1165,14 @@ class Pyramid:
             except Exception as e:
                 raise FormatError("ZIP", "binary tile", e)
 
-            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"])
 
         elif self.__format == "TIFF_RAW_FLOAT32":
             data = numpy.frombuffer(
                 binary_tile,
                 dtype = numpy.dtype('float32')
             )
-            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"]) 
+            data.shape = (level_object.tile_matrix.tile_size[0], level_object.tile_matrix.tile_size[1], self.__raster_specifications["channels"])
 
         else:
             raise NotImplementedError(f"Cannot get tile as raster data for format {self.__format}")
@@ -1281,7 +1281,7 @@ class Pyramid:
         level_object = self.bottom_level
         if level is not None:
             level_object = self.get_level(level)
-        
+
         if level_object is None:
             raise Exception(f"Cannot found the level to calculate indices")
 
@@ -1290,3 +1290,29 @@ class Pyramid:
             x, y = reproject_point((x, y), sr, self.__tms.sr )
 
         return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
+
+    @property
+    def size(self) -> int:
+        """Get the size of the pyramid
+
+        Args:
+            bottom_id (str): optionnal specific bottom level id. Defaults to None.
+            top_id (str): optionnal specific top level id. Defaults to None.
+
+        Examples:
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
+                    levels = pyramid.size()
+
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and get his size")
+
+        Returns:
+            int: size of the pyramid
+        """
+        if not hasattr(self,"_Pyramid__size") :
+            self.__size = size_path(get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name))
+        return self.__size
