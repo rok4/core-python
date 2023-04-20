@@ -1295,17 +1295,13 @@ class Pyramid:
     def size(self) -> int:
         """Get the size of the pyramid
 
-        Args:
-            bottom_id (str): optionnal specific bottom level id. Defaults to None.
-            top_id (str): optionnal specific top level id. Defaults to None.
-
         Examples:
 
                 from rok4.Pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
-                    levels = pyramid.size()
+                    size = pyramid.size()
 
                 except Exception as e:
                     print("Cannot load the pyramid from its descriptor and get his size")
