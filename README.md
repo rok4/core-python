@@ -13,7 +13,7 @@ Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Ti
 
 Installations système requises :
 
-* debian : `apt install python3-rados python3-gdal`
+- debian : `apt install python3-rados python3-gdal`
 
 Depuis [PyPI](https://pypi.org/project/rok4/) : `pip install rok4`
 Depuis [GitHub](https://github.com/rok4/core-python/releases/) : `pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl`
@@ -32,6 +32,16 @@ try:
 except Exception as exc:
     print(exc)
 ```
+
+## Contribuer
+
+- Installer les dépendances de développement :
+
+    ```sh
+    python3 -m pip install -e[dev]
+    ```
+
+- Consulter les [directives de contribution](./CONTRIBUTING.md)
 
 ## Compiler la librairie
 
