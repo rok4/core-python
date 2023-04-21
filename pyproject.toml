@@ -37,13 +37,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-  "pytest >= 7.1.2",
-  "coverage >= 7.0.5"
+dev = [
+  "pre-commit>=3,<4"
 ]
 doc = [
   "pdoc3 >= 0.10.0"
 ]
+test = [
+  "pytest >= 7.1.2",
+  "coverage >= 7.0.5"
+]
+
 
 [project.urls]
 "Homepage" = "https://rok4.github.io/core-python"
