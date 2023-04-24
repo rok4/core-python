@@ -10,7 +10,7 @@ import re
 from enum import Enum
 
 from osgeo import ogr, gdal
-from typing import Tuple
+from typing import Tuple, Dict
 
 from rok4.Storage import exists, get_osgeo_path
 from rok4.Utils import ColorFormat, compute_bbox,compute_format
@@ -222,4 +222,36 @@ class RasterSet:
         self.bbox = (temp_bbox[0], temp_bbox[1], temp_bbox[2], temp_bbox[3])
 
         return self
+
+    @property
+    def serializable(self) -> Dict:
+        """Get the dict version of the raster set, descriptor compliant
+
+        Returns:
+            Dict: descriptor structured object description
+        """
+
+        serialization = {
+            'bbox': self.bbox,
+            'srs': self.srs,
+            'colors': self.colors,
+            'raster_list' : []
+        }
+
+        for raster in self.raster_list:
+            raster_dict = {
+                'path': raster.path,
+                'dimensions': raster.dimensions,
+                'bbox': raster.bbox,
+                'bands': raster.bands,
+                'format': raster.format
+            }
+            if raster.mask:
+                raster_dict['mask'] = raster.mask
+
+            serialization['raster_list'].append(raster_dict)
+
+        return serialization
+
+
     

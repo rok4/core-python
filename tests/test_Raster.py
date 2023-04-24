@@ -209,26 +209,46 @@ class TestRasterSetFromList(TestCase):
         mocked_get_osgeo_path.return_value = list_local_path
 
         raster_list = []
-        expected_colors = []
+        colors = []
+        serializable = {
+            'raster_list': []
+        }
         for n in range(0, file_number, 1):
             raster = MagicMock(Raster)
             raster.path = file_list[n]
             raster.bbox = (-0.75 + math.floor(n/3), -1.33 + n - 3 * math.floor(n/3), 0.25 + math.floor(n/3), -0.33 +  n - 3 * math.floor(n/3))
             raster.format = random.choice([ColorFormat.BIT, ColorFormat.UINT8, ColorFormat.FLOAT32])
+
             if raster.format == ColorFormat.BIT:
                 raster.bands = 1
             else:
                 raster.bands = random.randint(1, 4)
+
+            if random.randint(0, 1) == 1:
+                raster.mask = raster.path.replace('.tif', '.msk')
+            else:
+                raster.mask = None
             
             color_dict = {'bands': raster.bands, 'format': raster.format}
-            if color_dict not in expected_colors:
-                expected_colors.append(color_dict)
+            if color_dict not in colors:
+                colors.append(color_dict)
+            raster.dimensions = (5000, 5000)
 
             raster_list.append(raster)
+            raster_serializable = {'path': raster.path, 'bands': raster.bands, 'format': raster.format, 'bbox': raster.bbox, 'dimensions': raster.dimensions}
+            if raster.mask: 
+                raster_serializable['mask'] = raster.mask
+            serializable['raster_list'].append(raster_serializable)
 
         mocked_from_file.side_effect = raster_list
 
         srs = "EPSG:4326"
+        serializable['srs'] =  srs
+        serializable['colors'] =  colors
+        bbox = (-0.75, -1.33, 0.25 + math.floor((file_number-1)/3), 1.67)
+        serializable['bbox'] = bbox
+
+
         with mock.patch('rok4.Raster.open', mocked_open):
             result = RasterSet.from_list(list_path, srs)
 
@@ -236,23 +256,42 @@ class TestRasterSetFromList(TestCase):
         mocked_get_osgeo_path.assert_called_once_with(list_path)
         mocked_open.assert_called_once_with(file=list_local_path, mode='r')
         assert result.raster_list == raster_list
-        assert math.isclose(result.bbox[0], -0.75, rel_tol=1e-5)
-        assert math.isclose(result.bbox[1], -1.33, rel_tol=1e-5)
-        assert math.isclose(result.bbox[2], 0.25 + math.floor((file_number-1)/3), rel_tol=1e-5)
-        assert math.isclose(result.bbox[3], 1.67, rel_tol=1e-5)
-        assert result.colors == expected_colors
+        for i in range(0, 4):
+            assert math.isclose(result.bbox[i], bbox[i], rel_tol=1e-5)
+        assert len(result.colors) > 0
+        assert result.colors == colors
+
+        result_serializable = result.serializable
+        for i in range(0, 4):
+            assert math.isclose(result_serializable['bbox'][i], serializable['bbox'][i], rel_tol=1e-5)
+        for key in serializable.keys():
+            if key != 'bbox':
+                assert result_serializable[key] == serializable[key]
+
+
+class TestRasterSetFromDescriptor(TestCase):
+    """Test class for the rok4.Raster.RasterSet.from_descriptor(path) class constructor."""
+
+
+class TestRasterSetWriteDescriptor(TestCase):
+    """Test class for the rok4.Raster.RasterSet.write_descriptor(path) class method."""
+
+    def test_ok(self):
+
+        serializable = {
+            'srs' : 'EPSG:3957',
+            'bbox': (),
+            'colors': [],
+            'raster_list': []
+        }
+
+
+        assert False
+   
 
 
 
-
+class TestRasterSetWriteVRT(TestCase):
+    """Test class for the rok4.Raster.RasterSet.write_vrt(path) class constructor."""
 
         
-
-
-
-
-
-
-
-
-
