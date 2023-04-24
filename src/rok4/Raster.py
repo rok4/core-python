@@ -6,11 +6,13 @@ The module contains the following class :
 
 """
 
+import copy
+import json
 import re
 from enum import Enum
+from typing import Tuple, Dict
 
 from osgeo import ogr, gdal
-from typing import Tuple, Dict
 
 from rok4.Storage import exists, get_osgeo_path
 from rok4.Utils import ColorFormat, compute_bbox,compute_format
@@ -223,6 +225,60 @@ class RasterSet:
 
         return self
 
+
+    @classmethod
+    def from_descriptor(cls, path: str) -> 'RasterSet':
+        """Creates a RasterSet object from a descriptor file or object
+
+        Args:
+            path (str): path to the descriptor file or object
+
+        Examples:
+
+            Loading informations from a file stored descriptor
+
+                from rok4.Raster import RasterSet
+
+                try:
+                    raster_set = RasterSet.from_descriptor("file:///data/images/descriptor.json")
+
+                except Exception as e:
+                    print(f"Cannot load information from descriptor file : {e}")
+
+        Raises:
+            RuntimeError: raised by OGR/GDAL if anything goes wrong
+            NotImplementedError: Storage type not handled
+
+        Returns:
+            RasterSet: a RasterSet instance
+        """
+
+        self = cls()
+
+        descriptor_path = get_osgeo_path(path)
+        with open(file = descriptor_path, mode = 'r') as file_handle:
+            raw_content = file_handle.read()
+
+        serialization = json.loads(raw_content)
+
+        self.srs = serialization['srs']
+        self.raster_list = []
+        for raster_dict in serialization['raster_list']:
+            parameters = copy.deepcopy(raster_dict)
+            parameters['bbox'] = (raster_dict['bbox'][0], raster_dict['bbox'][1], raster_dict['bbox'][2], raster_dict['bbox'][3])
+            parameters['dimensions'] = (raster_dict['dimensions'][0], raster_dict['dimensions'][1])
+            parameters['format'] = ColorFormat[ raster_dict['format'] ]
+            self.raster_list.append(Raster.from_parameters(**parameters))
+        self.bbox = serialization['bbox']
+        self.colors = []
+        for color_dict in serialization['colors']:
+            color_item = copy.deepcopy(color_dict)
+            color_item['format'] = ColorFormat[ color_dict['format'] ]
+            self.colors.append(color_item)
+
+        return self
+
+
     @property
     def serializable(self) -> Dict:
         """Get the dict version of the raster set, descriptor compliant
@@ -234,9 +290,16 @@ class RasterSet:
         serialization = {
             'bbox': self.bbox,
             'srs': self.srs,
-            'colors': self.colors,
+            'colors': [],
             'raster_list' : []
         }
+
+        for color in self.colors:
+            color_serial = {
+                'bands': color['bands'],
+                'format': color['format'].name
+            }
+            serialization['colors'].append(color_serial)
 
         for raster in self.raster_list:
             raster_dict = {
@@ -244,7 +307,7 @@ class RasterSet:
                 'dimensions': raster.dimensions,
                 'bbox': raster.bbox,
                 'bands': raster.bands,
-                'format': raster.format
+                'format': raster.format.name
             }
             if raster.mask:
                 raster_dict['mask'] = raster.mask
