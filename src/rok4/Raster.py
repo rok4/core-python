@@ -14,7 +14,7 @@ from typing import Tuple, Dict
 
 from osgeo import ogr, gdal
 
-from rok4.Storage import exists, get_osgeo_path
+from rok4.Storage import exists, get_osgeo_path, put_data_str
 from rok4.Utils import ColorFormat, compute_bbox,compute_format
 
 # Enable GDAL/OGR exceptions
@@ -265,11 +265,11 @@ class RasterSet:
         self.raster_list = []
         for raster_dict in serialization['raster_list']:
             parameters = copy.deepcopy(raster_dict)
-            parameters['bbox'] = (raster_dict['bbox'][0], raster_dict['bbox'][1], raster_dict['bbox'][2], raster_dict['bbox'][3])
-            parameters['dimensions'] = (raster_dict['dimensions'][0], raster_dict['dimensions'][1])
+            parameters['bbox'] = tuple(raster_dict['bbox'])
+            parameters['dimensions'] = tuple(raster_dict['dimensions'])
             parameters['format'] = ColorFormat[ raster_dict['format'] ]
             self.raster_list.append(Raster.from_parameters(**parameters))
-        self.bbox = serialization['bbox']
+        self.bbox = tuple(serialization['bbox'])
         self.colors = []
         for color_dict in serialization['colors']:
             color_item = copy.deepcopy(color_dict)
@@ -288,7 +288,7 @@ class RasterSet:
         """
 
         serialization = {
-            'bbox': self.bbox,
+            'bbox': list(self.bbox),
             'srs': self.srs,
             'colors': [],
             'raster_list' : []
@@ -304,8 +304,8 @@ class RasterSet:
         for raster in self.raster_list:
             raster_dict = {
                 'path': raster.path,
-                'dimensions': raster.dimensions,
-                'bbox': raster.bbox,
+                'dimensions': list(raster.dimensions),
+                'bbox': list(raster.bbox),
                 'bands': raster.bands,
                 'format': raster.format.name
             }
@@ -315,6 +315,21 @@ class RasterSet:
             serialization['raster_list'].append(raster_dict)
 
         return serialization
+
+
+    def write_descriptor(self, path: str = None) -> None:
+        """Print raster set's descriptor as JSON
+
+        Args:
+            path (str, optional): Complete path (file or object) where to print the raster set's JSON. Defaults to None, JSON is printed to standard output.
+        """
+
+        content = json.dumps(self.serializable, sort_keys=True)
+        if path is None:
+            print(content)
+        else:
+            put_data_str(content, path)
+
 
 
     
