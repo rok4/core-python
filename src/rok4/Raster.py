@@ -17,7 +17,7 @@ from rok4.Utils import ColorFormat, compute_bbox,compute_format
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
-
+gdal.UseExceptions()
 
 class Raster:
     """A structure describing raster data
