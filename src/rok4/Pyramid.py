@@ -286,9 +286,7 @@ class Level:
             Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
         """        
         min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["min_col"], self.__tile_limits["max_row"])
-        print(min_bbox)
         max_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["max_col"], self.__tile_limits["min_row"])
-        print(max_bbox)
 
         return (min_bbox[0], min_bbox[1], max_bbox[2], max_bbox[3])
 

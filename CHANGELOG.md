@@ -1,6 +1,6 @@
 ## Summary
 
-Lecture d'informations sur une donnée raster unique depuis un fichier ou une liste de paramètres.
+Lecture facilitée de la liste d'une pyramide. Lecture d'informations sur une donnée raster unique depuis un fichier ou une liste de paramètres.
 
 ## Changelog
 
@@ -13,6 +13,12 @@ Lecture d'informations sur une donnée raster unique depuis un fichier ou une li
     * Tests unitaires
     * Documentation interne des fonctions et classes
 
+* Pyramid
+    * Fonctions de gestion de la liste : chargement et lecture (via un generator)
+    * Taille du header d'une dalle stockée dans la variable `ROK4_IMAGE_HEADER_SIZE`
+    * La proriété `tile_extension` : retourne l'extension d'une tuile de la pyramide en fonction du format
+    * Des exemples d'utilisation des fonctions principales
+
 ### [Changed]
 
 * README.md
@@ -20,6 +26,12 @@ Lecture d'informations sur une donnée raster unique depuis un fichier ou une li
 * Utils
     * Fonction de calcul de la boundix box d'une donnée
     * Fonction de détermination du format de variable des couleurs dans une donéne raster
+
+
+### [Fixed]
+
+* Storage
+    * Lecture de la taille d'un objet S3 : pas besoin d'enlever des quotes dans le header `Content-Length`
 
 <!--
 ### [Added]
