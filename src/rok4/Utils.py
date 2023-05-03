@@ -10,6 +10,7 @@ from enum import Enum
 
 ogr.UseExceptions()
 osr.UseExceptions()
+gdal.UseExceptions()
 
 
 class ColorFormat(Enum):
