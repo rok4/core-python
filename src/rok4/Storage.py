@@ -349,10 +349,10 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
 
         if range is None :
             try:
-                reponse = requests.get(storage_type.value + path, stream=True)
+                reponse = requests.get(f"{storage_type.value}{path}", stream=True)
                 data = reponse.content
                 if reponse.status_code == 404 :
-                    raise StorageError(storage_type.name, "Requested file does not exist")
+                    raise FileNotFoundError(f"{storage_type.value}{path}")
             except Exception as e:
                 raise StorageError(storage_type.name, e)
         else :
@@ -519,8 +519,8 @@ def exists(path: str) -> bool:
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
 
         try:
-            reponse = requests.get(storage_type.value + path, stream=True)
-            if reponse.status_code == 200 :
+            response = requests.get(storage_type.value + path, stream=True)
+            if response.status_code == 200 :
                 return True
             else :
                 return False
@@ -813,9 +813,9 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
     elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.FILE :
 
         try:
-            reponse = requests.get(from_type.value + from_path, stream = True)
+            response = requests.get(from_type.value + from_path, stream = True)
             with open(to_path, "wb") as f:
-                for chunk in reponse.iter_content(chunk_size=65536) :
+                for chunk in response.iter_content(chunk_size=65536) :
                     if chunk:
                         f.write(chunk)
 
@@ -827,9 +827,9 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         to_ioctx = __get_ceph_ioctx(to_tray)
 
         try:
-            reponse = requests.get(from_type.value + from_path, stream = True)
+            response = requests.get(from_type.value + from_path, stream = True)
             offset = 0
-            for chunk in reponse.iter_content(chunk_size=65536) :
+            for chunk in response.iter_content(chunk_size=65536) :
                 if chunk:
                     size = len(chunk)
                     to_ioctx.write(to_base_name, chunk, offset)
@@ -843,10 +843,10 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         to_s3_client, to_bucket = __get_s3_client(to_tray)
 
         try:
-            reponse = requests.get(from_type.value + from_path, stream = True)
+            response = requests.get(from_type.value + from_path, stream = True)
             with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
                 name_fich = f.name
-                for chunk in reponse.iter_content(chunk_size=65536) :
+                for chunk in response.iter_content(chunk_size=65536) :
                     if chunk:
                         f.write(chunk)
 
