@@ -88,7 +88,7 @@ class Raster:
         path_pattern = re.compile("(/[^/]+?)[.][a-zA-Z0-9_-]+$")
         mask_path = path_pattern.sub("\\1.msk", path)
 
-        if exists(mask_path):            
+        if exists(mask_path):
             work_mask_path = get_osgeo_path(mask_path)
             mask_driver = gdal.IdentifyDriver(work_mask_path).ShortName
             if 'GTiff' != mask_driver:
@@ -123,13 +123,13 @@ class Raster:
             format (ColorFormat): numeric format for color values.
               Bit depth, as bits per channel, can be derived from it.
             mask (str, optionnal): path to the associated mask, if any,
-              or None (same path as the image, but with a 
+              or None (same path as the image, but with a
               ".msk" extension and TIFF format. ex:
               file:///path/to/image.msk or s3://bucket/image.msk)
 
         Examples:
 
-            Loading informations from parameters, related to 
+            Loading informations from parameters, related to
               a TIFF main image coupled to a TIFF mask image
 
                 from rok4.Raster import Raster
@@ -179,16 +179,16 @@ class RasterSet:
                 format (ColorFormat): numeric variable format for
                   color values. Bit depth, as bits per channel,
                   can be derived from it.
-        srs (str): Name of the set's spatial reference system 
+        srs (str): Name of the set's spatial reference system
         bbox (Tuple[float, float, float, float]): bounding rectange
           in the data projection, enclosing the whole set
     """
 
     def __init__(self) -> None:
-        self.raster_list = []
-        self.colors = []
-        self.srs = None
         self.bbox = (None, None, None, None)
+        self.colors = []
+        self.raster_list = []
+        self.srs = None
 
     @classmethod
     def from_list(cls, path: str, srs: str) -> "RasterSet":

@@ -15,7 +15,9 @@ gdal.UseExceptions()
 
 class ColorFormat(Enum):
     """A color format enumeration.
-    Except from "BIT", the member's name matches a common variable format name. The member's value is the allocated bit size associated to this format.
+    Except from "BIT", the member's name matches
+      a common variable format name. The member's value is
+      the allocated bit size associated to this format.
     """
     BIT = 1
     UINT8 = 8
@@ -212,7 +214,7 @@ def compute_bbox(source_dataset: gdal.Dataset) -> Tuple:
             max(y_range),
             max(x_range)
         )
-    elif spatial_ref is None or spatial_ref.GetDataAxisToSRSAxisMapping() == [1, 2]:
+    else:
         # Coordonnées terrain de type (longitude, latitude) ou pas de SRS
         # => les coordonnées terrain sont dans le même ordre que celle de l'image
         bbox = (
