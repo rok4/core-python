@@ -31,7 +31,7 @@ class PyramidType(Enum):
 class SlabType(Enum):
     """ Slab's type """
     DATA = "DATA" # Slab of data, raster or vector
-    MASK = "MASK" # Slab of mask, only for raster pyramide, image with one band : 0 is nodata, other values are data
+    MASK = "MASK" # Slab of mask, only for raster pyramid, image with one band : 0 is nodata, other values are data
 
 
 ROK4_IMAGE_HEADER_SIZE = 2048
@@ -286,9 +286,7 @@ class Level:
             Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
         """        
         min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["min_col"], self.__tile_limits["max_row"])
-        print(min_bbox)
         max_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(self.__tile_limits["max_col"], self.__tile_limits["min_row"])
-        print(max_bbox)
 
         return (min_bbox[0], min_bbox[1], max_bbox[2], max_bbox[3])
 
@@ -794,11 +792,11 @@ class Pyramid:
 
 
     def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[Level]:
-        """Get sorted levels from bottom to top provided
+        """Get sorted levels in the provided range from bottom to top
 
         Args:
-            bottom_id (str): optionnal specific bottom level id. Defaults to None.
-            top_id (str): optionnal specific top level id. Defaults to None.
+            bottom_id (str, optionnal): specific bottom level id. Defaults to None.
+            top_id (str, optionnal): specific top level id. Defaults to None.
 
         Raises:
             Exception: Provided levels are not consistent (bottom > top or not in the pyramid)
@@ -969,7 +967,7 @@ class Pyramid:
         """Get a pyramid's tile as binary string
 
         To get a tile, 3 steps :
-            * calculate slab path from tile indice
+            * calculate slab path from tile index
             * read slab index to get offsets and sizes of slab's tiles
             * read the tile into the slab
 
@@ -1243,7 +1241,7 @@ class Pyramid:
     def get_tile_indices(self, x: float, y: float, level: str = None, **kwargs) -> Tuple[str, int, int, int, int]:
         """Get pyramid's tile and pixel indices from point's coordinates
 
-        Used coordinates system have to be the pyramide one. If EPSG:4326, x is latitude and y longitude.
+        Used coordinates system have to be the pyramid one. If EPSG:4326, x is latitude and y longitude.
 
         Args:
             x (float): point's x
