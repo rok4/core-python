@@ -1,6 +1,6 @@
 ## Summary
 
-Lecture facilitée de la liste d'une pyramide. Lecture d'informations sur une donnée raster unique depuis un fichier ou une liste de paramètres.
+Lecture facilitée de la liste d'une pyramide. Lecture d'informations sur une donnée raster unique depuis un fichier ou une liste de paramètres. Modification de la gestion des vecteurs.
 
 ## Changelog
 
@@ -21,12 +21,17 @@ Lecture facilitée de la liste d'une pyramide. Lecture d'informations sur une do
 
 ### [Changed]
 
+* Vector
+    * Utilisation de kwargs pour les paramètres du csv
+    * Gestion des CSV par OGR
+    * Passage par get_osgeo_path pour la lecture virtuelle
+    * 2 constructeurs pour les vecteurs : from_file et from_parameters
+
 * README.md
     * Modification du bloc code de compilation pour utiliser explicitement python3, et installer certaines dépendances.
 * Utils
     * Fonction de calcul de la boundix box d'une donnée
     * Fonction de détermination du format de variable des couleurs dans une donéne raster
-
 
 ### [Fixed]
 
