@@ -30,11 +30,11 @@ class Vector :
 
         Args:
             path (str): path to the file/object
-            **CSV (Dict[str : str]) : dictionnary of CSV parameters :
+            **csv (Dict[str : str]) : dictionnary of CSV parameters :
                 -srs (str) ("EPSG:2154" if not provided) : spatial reference system of the geometry
                 -column_x (str) ("x" if not provided) : field of the x coordinate
                 -column_y (str) ("y" if not provided) : field of the y coordinate
-                -column_WKT (str) (None if not provided) : field of the WKT of the geometry if WKT use to define coordinate
+                -column_wkt (str) (None if not provided) : field of the WKT of the geometry if WKT use to define coordinate
 
         Examples:
 
@@ -42,8 +42,8 @@ class Vector :
 
             try:
                 vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")
-                vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , CSV={"delimiter":";", "column_x":"x", "column_y":"y"})
-                vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , CSV={"delimiter":";", "column_WKT":"WKT"})
+                vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
+                vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
 
             except Exception as e:
                 print(f"Vector creation raises an exception: {exc}")
@@ -96,8 +96,8 @@ class Vector :
 
             elif path.endswith(".csv") :
                 # Récupération des informations optionnelles
-                if "CSV" in kwargs :
-                    csv = kwargs["CSV"]
+                if "csv" in kwargs :
+                    csv = kwargs["csv"]
                 else :
                     csv = {}
 
@@ -116,10 +116,10 @@ class Vector :
                 else :
                     column_y = "y"
 
-                if "column_WKT" in csv :
-                    column_WKT = csv["column_WKT"]
+                if "column_wkt" in csv :
+                    column_wkt = csv["column_wkt"]
                 else :
-                    column_WKT = None
+                    column_wkt = None
 
                 with tempfile.TemporaryDirectory() as tmp :
                     tmp_path = tmp + "/" + path_split[-1][:-4]
@@ -133,10 +133,10 @@ class Vector :
                         vrt_file += "<SrcDataSource>" + tmp_path + ".csv</SrcDataSource>\n"
                         vrt_file += "<SrcLayer>" + name_fich + "</SrcLayer>\n"
                         vrt_file += "<LayerSRS>" + srs + "</LayerSRS>\n"
-                        if column_WKT == None :
+                        if column_wkt == None :
                             vrt_file += '<GeometryField encoding="PointFromColumns" x="' + column_x + '" y="' + column_y + '"/>\n'
                         else :
-                            vrt_file += '<GeometryField encoding="WKT" field="' + column_WKT + '"/>\n'
+                            vrt_file += '<GeometryField encoding="WKT" field="' + column_wkt + '"/>\n'
                         vrt_file += "</OGRVRTLayer>\n"
                         vrt_file += "</OGRVRTDataSource>"
                         tmp2.write(vrt_file)
