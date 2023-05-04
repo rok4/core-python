@@ -41,14 +41,14 @@ def test_wrong_content_ceph(mocked_open, mocked_copy):
 
 def test_ok_csv1() :
     try :
-        vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , CSV={"delimiter":";", "column_x":"x", "column_y":"y"})
+        vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
         assert str(vector_csv1.layers) == "[('vector', 3, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
 def test_ok_csv2() :
     try :
-        vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , CSV={"delimiter":";", "column_WKT":"WKT"})
+        vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
         assert str(vector_csv2.layers) == "[('vector2', 1, [('id', 'String'), ('WKT', 'String')])]"
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
