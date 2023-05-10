@@ -33,6 +33,16 @@ except Exception as exc:
     print(exc)
 ```
 
+## Contribuer
+
+* Installer les dépendances de développement :
+
+    ```sh
+    python3 -m pip install -e[dev]
+    ```
+
+* Consulter les [directives de contribution](./CONTRIBUTING.md)
+
 ## Compiler la librairie
 
 ```sh
