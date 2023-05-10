@@ -57,7 +57,7 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
 
     return __SR_BOOK[srs.upper()]
 
-def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int = 0) -> 'osgeo.ogr.Geometry':  
+def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int = 0) -> 'osgeo.ogr.Geometry':
     """Convert bbox coordinates to OGR geometry
 
     Args:
@@ -66,10 +66,10 @@ def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int
 
     Raises:
         RuntimeError: Provided SRS is invalid for OSR
-        
+
     Returns:
         osgeo.ogr.Geometry: Corresponding OGR geometry, with spatial reference if provided
-    """    
+    """
 
     ring = ogr.Geometry(ogr.wkbLinearRing)
 
@@ -93,18 +93,18 @@ def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int
         ring.AddPoint(bbox[2], bbox[3])
         ring.AddPoint(bbox[0], bbox[3])
         ring.AddPoint(bbox[0], bbox[1])
-    
+
 
     geom = ogr.Geometry(ogr.wkbPolygon)
     geom.AddGeometry(ring)
     geom.SetCoordinateDimension(2)
-    
+
     return geom
 
 
 
 def reproject_bbox(bbox: Tuple[float, float, float, float], srs_src: str, srs_dst: str, densification: int = 5) -> Tuple[float, float, float, float]:
-    """Return bounding box in other coordinates system 
+    """Return bounding box in other coordinates system
 
     Points are added to be sure output bounding box contains input bounding box
 
@@ -179,7 +179,7 @@ def compute_bbox(source_dataset: gdal.Dataset) -> Tuple:
     Args:
         source_dataset (gdal.Dataset): Dataset instanciated
           from the raster image
-    
+
     Limitations:
         Image's axis must be parallel to SRS' axis
 
