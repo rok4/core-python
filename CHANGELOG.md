@@ -1,27 +1,43 @@
 ## Summary
 
-
+Lecture facilitée de la liste d'une pyramide. Lecture d'informations sur une donnée raster unique depuis un fichier ou une liste de paramètres. Modification de la gestion des vecteurs.
 
 ## Changelog
 
 ### [Added]
 
-* Level
-    * Fonction de test d'une tuile `is_in_limits` : ses indices sont ils dans les limites du niveau ?
+* Raster
+    * Chargement des informations sur un fichier raster (chemin du fichier, chemin du fichier de masque si applicable, nombre de canaux, boundingbox de l'emprise géographique)
+        * depuis le fichier raster
+        * depuis une liste de paramètres provenant d'une utilisation précédente
+    * Tests unitaires
+    * Documentation interne des fonctions et classes
+
 * Pyramid
-    * La lecture d'une tuile vérifie avant que les indices sont bien dans les limites du niveau
-    * Les exceptions levées lors du décodage de la tuile raster emettent une exception `FormatError`
-    * `get_tile_indices` accepte en entrée un système de coordonnées : c'est celui des coordonnées fournies et permet de faire une reprojection si celui ci n'est pas le même que celui des données dans la pyramide
-* Utils
-    * Meilleure gestion de reprojection par `reproject_bbox` : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul
-    * Ajout de la fonction de reprojection d'un point `reproject_point` : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul
-  
+    * Fonctions de gestion de la liste : chargement et lecture (via un generator)
+    * Taille du header d'une dalle stockée dans la variable `ROK4_IMAGE_HEADER_SIZE`
+    * La proriété `tile_extension` : retourne l'extension d'une tuile de la pyramide en fonction du format
+    * Des exemples d'utilisation des fonctions principales
+
 ### [Changed]
 
-* Utils :
-    * `bbox_to_geometry` : on ne fournit plus de système de coordonnées, la fonction se content de créer la géométrie OGR à partir de la bbox, avec éventuellement une densification en points des bords
-* Pyramid :
-    * Renommage de fonction : `update_limits` -> `set_limits_from_bbox`. Le but est d'être plus explicite sur le fonctionnement de la fonction (on écrase les limites, on ne les met pas juste à jour par union avec la bbox fournie)
+* Vector
+    * Utilisation de kwargs pour les paramètres du csv
+    * Gestion des CSV par OGR
+    * Passage par get_osgeo_path pour la lecture virtuelle
+    * 2 constructeurs pour les vecteurs : from_file et from_parameters
+
+* README.md
+    * Modification du bloc code de compilation pour utiliser explicitement python3, et installer certaines dépendances.
+* Utils
+    * Fonction de calcul de la boundix box d'une donnée
+    * Fonction de détermination du format de variable des couleurs dans une donéne raster
+
+### [Fixed]
+
+* Storage
+    * Lecture de la taille d'un objet S3 : pas besoin d'enlever des quotes dans le header `Content-Length`
+
 <!--
 ### [Added]
 
