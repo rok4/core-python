@@ -79,7 +79,7 @@ class Raster:
         path_pattern = re.compile('(/[^/]+?)[.][a-zA-Z0-9_-]+$')
         mask_path = path_pattern.sub('\\1.msk', path)
 
-        if exists(mask_path):            
+        if exists(mask_path):
             work_mask_path = get_osgeo_path(mask_path)
             mask_driver = gdal.IdentifyDriver(work_mask_path).ShortName
             if 'GTiff' != mask_driver:
@@ -128,7 +128,7 @@ class Raster:
         """
 
         self = cls()
-            
+
         self.path = path
         self.bands = bands
         self.bbox = bbox

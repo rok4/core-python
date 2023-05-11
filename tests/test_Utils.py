@@ -256,7 +256,7 @@ Image Structure Metadata:
 def test_compute_format_uint8_ok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
-        
+
         band_number = random.randint(1, 4)
         mocked_datasource.RasterCount = band_number
         band_name = None
@@ -291,7 +291,7 @@ Image Structure Metadata:
 def test_compute_format_float32_ok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
-        
+
         band_number = random.randint(1, 4)
         mocked_datasource.RasterCount = band_number
         band_name = None
@@ -345,7 +345,7 @@ Image Structure Metadata:
 
         with pytest.raises(Exception):
             compute_format(mocked_datasource)
-        
+
         mocked_GetDataTypeName.assert_called()
         mocked_GetDataTypeSize.assert_called()
         mocked_GetColorInterpretationName.assert_called()
@@ -373,4 +373,3 @@ def test_compute_format_no_band_nok(mocked_GetDataTypeName, mocked_GetDataTypeSi
         mocked_Info.assert_not_called()
     except Exception as exc:
         assert False, f"Color format computation raises an exception: {exc}"
-
