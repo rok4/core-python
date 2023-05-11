@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 from rok4.Vector import *
 from rok4.Exceptions import *
 from rok4.Storage import disconnect_ceph_clients

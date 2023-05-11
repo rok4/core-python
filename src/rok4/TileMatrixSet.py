@@ -76,7 +76,7 @@ class TileMatrix:
         """
         return int((self.origin[1] - y) / (self.resolution * self.tile_size[1]))
 
-    def tile_to_bbox(self, tile_col: int, tile_row: int) -> Tuple[float, float, float, float]:    
+    def tile_to_bbox(self, tile_col: int, tile_row: int) -> Tuple[float, float, float, float]:
         """Get tile terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
 
         TMS spatial reference is Lat / Lon case is handled.
@@ -103,7 +103,7 @@ class TileMatrix:
                 self.origin[1] - self.resolution * tile_row * self.tile_size[1]
             )
 
-    def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -> Tuple[int, int, int, int]:    
+    def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -> Tuple[int, int, int, int]:
         """Get extrems tile columns and rows corresponding to provided bounding box
 
         TMS spatial reference is Lat / Lon case is handled.
@@ -141,8 +141,8 @@ class TileMatrix:
 
         Returns:
             Tuple[int, int, int, int]: tile's column, tile's row, pixel's (in the tile) column, pixel's row
-        """        
-        
+        """
+
         if self.__latlon:
             absolute_pixel_column = int((y - self.origin[0]) / self.resolution)
             absolute_pixel_row = int((self.origin[1] - x) / self.resolution)
@@ -220,10 +220,9 @@ class TileMatrixSet:
         Returns:
             The corresponding tile matrix, None if not present
         """
-      
+
         return self.levels.get(level_id, None)
 
     @property
-    def sorted_levels(self) -> List[TileMatrix]: 
+    def sorted_levels(self) -> List[TileMatrix]:
         return sorted(self.levels.values(), key=lambda l: l.resolution)
-

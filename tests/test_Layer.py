@@ -126,7 +126,7 @@ def test_parameters_raster_ok(mocked_put_data_str, mocked_utils_reproject_bbox, 
         assert layer.geobbox == (0, 0, 100, 100)
         layer.write_descriptor("file:///home/ign/layers/")
         mocked_put_data_str.assert_called_once_with('{"title": "title", "abstract": "abstract", "keywords": ["RASTER", "layername"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 0, "west": 0, "north": 100, "east": 100}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "file:///home/ign/pyramids/RGEALTI.json"}], "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal"], "resampling": "nn"}', 'file:///home/ign/layers/layername.json')
-                                                     
+
 
     except Exception as exc:
         assert False, f"Layer creation from parameters raises an exception: {exc}"

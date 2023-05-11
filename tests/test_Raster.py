@@ -128,7 +128,7 @@ class TestFromFile(TestCase):
         mocked_identifydriver.return_value = type('', (object,), {'ShortName': 'JPG'})
 
         with pytest.raises(Exception):
-            Raster.from_file(self.source_image_path)      
+            Raster.from_file(self.source_image_path)
 
         mocked_exists.assert_has_calls([ call(self.source_image_path), call(self.source_mask_path) ])
         mocked_get_osgeo_path.assert_has_calls([ call(self.source_image_path), call(self.source_mask_path) ])
@@ -177,4 +177,3 @@ class TestFromParameters(TestCase):
         assert result.format == i_format
         assert result.dimensions == i_dimensions
         assert result.mask == i_mask
-    
