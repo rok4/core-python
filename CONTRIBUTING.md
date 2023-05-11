@@ -19,3 +19,32 @@ Le mainteneur qui validera la PR éditera alors ce fichier dans le même temps, 
 * la date de modification sera celle de la fusion de branches.
 * le contenu pourra tenir compte de toutes les modifications depuis la dernière release.
 
+Le formalisme du changelog est le suivant, en markdown :
+
+```md
+### [Added]
+
+Liste de nouvelles fonctionnalités.
+
+### [Changed]
+
+Liste de fonctionnalités existantes modifiées.
+
+### [Deprecated]
+
+Liste de fonctionnalités dépréciées.
+
+### [Removed]
+
+Liste de foncitonnalités retirées.
+
+### [Fixed]
+
+Liste de corrections fonctionnelles.
+
+### [Security]
+
+Liste de corrections de sécurité.
+```
+
+Les parties vides, sans élément à lister, peuvent être ignorées.
