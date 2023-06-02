@@ -151,6 +151,14 @@ class TileMatrix:
             absolute_pixel_row = int((self.origin[1] - y) / self.resolution)
 
         return absolute_pixel_column // self.tile_size[0], absolute_pixel_row // self.tile_size[1], absolute_pixel_column % self.tile_size[0], absolute_pixel_row % self.tile_size[1]
+    
+    @property
+    def tile_width(self) -> int:
+        return self.tile_size[0]
+    
+    @property
+    def tile_heigth(self) -> int:
+        return self.tile_size[1]
 
 class TileMatrixSet:
     """A tile matrix set is multi levels grid definition
