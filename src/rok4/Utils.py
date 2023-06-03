@@ -15,7 +15,9 @@ gdal.UseExceptions()
 
 class ColorFormat(Enum):
     """A color format enumeration.
-    Except from "BIT", the member's name matches a common variable format name. The member's value is the allocated bit size associated to this format.
+    Except from "BIT", the member's name matches
+      a common variable format name. The member's value is
+      the allocated bit size associated to this format.
     """
     BIT = 1
     UINT8 = 8
@@ -171,11 +173,12 @@ def reproject_point(point: Tuple[float, float], sr_src: 'osgeo.osr.SpatialRefere
     return (x_dst, y_dst)
 
 
-def compute_bbox(source_dataset: gdal.Dataset) -> tuple:
+def compute_bbox(source_dataset: gdal.Dataset) -> Tuple:
     """Image boundingbox computing method
 
     Args:
-        source_dataset (gdal.Dataset): Dataset object created from the raster image
+        source_dataset (gdal.Dataset): Dataset instanciated
+          from the raster image
 
     Limitations:
         Image's axis must be parallel to SRS' axis
@@ -184,64 +187,59 @@ def compute_bbox(source_dataset: gdal.Dataset) -> tuple:
         AttributeError: source_dataset is not a gdal.Dataset instance.
         Exception: The dataset does not contain transform data.
     """
-
     bbox = None
     transform_vector = source_dataset.GetGeoTransform()
-
     if transform_vector is None:
-        raise Exception(f"No transform vector found in the dataset created from the following file : {source_dataset.GetFileList()[0]}")
-
+        raise Exception(
+            f"No transform vector found in the dataset created from "
+            + f"the following file : {source_dataset.GetFileList()[0]}"
+        )
     width = source_dataset.RasterXSize
     height = source_dataset.RasterYSize
-
     x_range = (
         transform_vector[0],
         transform_vector[0] + width * transform_vector[1] + height * transform_vector[2]
     )
-
     y_range = (
         transform_vector[3],
         transform_vector[3] + width * transform_vector[4] + height * transform_vector[5]
     )
-
     spatial_ref = source_dataset.GetSpatialRef()
     if spatial_ref is not None and spatial_ref.GetDataAxisToSRSAxisMapping() == [2, 1]:
-        # Coordonnées terrain de type (latitude, longitude) => on permute les coordonnées terrain par rapport à l'image
+        # Coordonnées terrain de type (latitude, longitude)
+        # => on permute les coordonnées terrain par rapport à l'image
         bbox = (
             min(y_range),
             min(x_range),
             max(y_range),
             max(x_range)
         )
-    elif spatial_ref is None or spatial_ref.GetDataAxisToSRSAxisMapping() == [1, 2]:
-        # Coordonnées terrain de type (longitude, latitude) ou pas de SRS => les coordonnées terrain sont dans le même ordre que celle de l'image
+    else:
+        # Coordonnées terrain de type (longitude, latitude) ou pas de SRS
+        # => les coordonnées terrain sont dans le même ordre que celle de l'image
         bbox = (
             min(x_range),
             min(y_range),
             max(x_range),
             max(y_range)
         )
-
     return bbox
 
 
-def compute_format(dataset: gdal.Dataset, path: str = None) -> 'ColorFormat':
+def compute_format(dataset: gdal.Dataset, path: str = None) -> ColorFormat:
     """Image color format computing method
 
     Args:
-        dataset (gdal.Dataset): Dataset object created from the raster image
+        dataset (gdal.Dataset): Dataset instanciated from the image
         path (str, optionnal): path to the original file/object
 
     Raises:
         AttributeError: source_dataset is not a gdal.Dataset instance.
-        Exception: Image has no color band or its color format is unsupported.
+        Exception: No color band found or unsupported color format.
     """
-
-    format = None
-
+    color_format = None
     if path is None:
         path = dataset.GetFileList()[0]
-
     if dataset.RasterCount < 1:
         raise Exception(f"Image {path} contains no color band.")
 
@@ -252,16 +250,17 @@ def compute_format(dataset: gdal.Dataset, path: str = None) -> 'ColorFormat':
     color_name = None
     if color_interpretation is not None:
         color_name = gdal.GetColorInterpretationName(color_interpretation)
-    compression_regex_match = re.search(r'COMPRESSION\s*=\s*PACKBITS', gdal.Info(dataset))
+    compression_regex_match = re.search(r"COMPRESSION\s*=\s*PACKBITS", gdal.Info(dataset))
 
-
-    if data_type_name == "Byte" and data_type_size == 8 and color_name == "Palette" and compression_regex_match:
-        format = ColorFormat.BIT
+    if (data_type_name == "Byte" and data_type_size == 8
+        and color_name == "Palette" and compression_regex_match):
+        # Compris par libTIFF comme du noir et blanc sur 1 bit
+        color_format = ColorFormat.BIT
     elif data_type_name == "Byte" and data_type_size == 8:
-        format = ColorFormat.UINT8
+        color_format = ColorFormat.UINT8
     elif data_type_name == "Float32" and data_type_size == 32:
-        format = ColorFormat.FLOAT32
+        color_format = ColorFormat.FLOAT32
     else:
-        raise Exception(f"Unsupported color format for image {path} : '{data_type_name}' ({data_type_size} bits)")
-
-    return format
+        raise Exception(f"Unsupported color format for image {path} : "
+                        + f"'{data_type_name}' ({data_type_size} bits)")
+    return color_format
