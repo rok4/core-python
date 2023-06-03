@@ -58,7 +58,7 @@ def test_raster_missing_raster_specifications(mocked_tms_class, mocked_get_data_
 @mock.patch('rok4.Pyramid.get_data_str', return_value='{"raster_specifications":{"channels":3,"nodata":"255,0,0","photometric":"rgb","interpolation":"bicubic"}, "format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"unknown"}], "tile_matrix_set": "PM"}')
 @mock.patch('rok4.Pyramid.TileMatrixSet')
 def test_wrong_level(mocked_tms_class, mocked_get_data_str):
-    
+
     tms_instance = MagicMock()
     tms_instance.get_level.return_value = None
     tms_instance.name = "PM"
@@ -66,7 +66,7 @@ def test_wrong_level(mocked_tms_class, mocked_get_data_str):
 
     with pytest.raises(Exception) as exc:
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
-    
+
     mocked_tms_class.assert_called_once_with('PM')
     mocked_get_data_str.assert_called_once_with('file:///pyramid.json')
     tms_instance.get_level.assert_called_once_with('unknown')
@@ -165,7 +165,7 @@ def test_tile_read_raster(mocked_tms_class):
     tms_instance = MagicMock()
     tms_instance.name = "UTM20W84MART_1M_MNT"
     tms_instance.srs = "IGNF:UTM20W84MART"
-    
+
     tm_instance = MagicMock()
     tm_instance.id = "8"
     tm_instance.tile_size = (256,256)
@@ -192,7 +192,7 @@ def test_tile_read_vector(mocked_tms_class):
     tms_instance = MagicMock()
     tms_instance.name = "PM"
     tms_instance.srs = "EPSG:3857"
-    
+
     tm_instance = MagicMock()
     tm_instance.id = "4"
     tm_instance.tile_size = (256,256)
@@ -221,7 +221,7 @@ def test_list_read(mocked_tms_class):
     tms_instance = MagicMock()
     tms_instance.name = "PM"
     tms_instance.srs = "EPSG:3857"
-    
+
     tm_instance = MagicMock()
     tm_instance.id = "4"
     tm_instance.tile_size = (256,256)

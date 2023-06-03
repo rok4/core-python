@@ -190,6 +190,7 @@ class TestRasterFromParameters(TestCase):
         assert raster.mask is None
 
     def test_image_and_mask(self):
+
         """Parameters describing an image with mask"""
         parameters = {
             "bands": 4,
@@ -515,5 +516,4 @@ class TestRasterSetWriteDescriptor(TestCase):
             assert False, f"Writing RasterSet's descriptor raises an exception: {exc}"
 
         m_print.assert_called_once_with(content)
-
 

@@ -157,6 +157,7 @@ class Raster:
             Raster: a Raster instance
         """
         self = cls()
+
         self.path = path
         self.bands = bands
         self.bbox = bbox

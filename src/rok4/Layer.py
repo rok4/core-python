@@ -48,7 +48,7 @@ class Layer:
 
         Returns:
             Layer: a Layer instance
-        """        
+        """
         try:
             data = json.loads(get_data_str(descriptor))
 
@@ -72,7 +72,7 @@ class Layer:
                     layer.__keywords.append(k)
 
 
-            if layer.type == PyramidType.RASTER: 
+            if layer.type == PyramidType.RASTER:
                 if "resampling" in data:
                     layer.__resampling = data["resampling"]
 
@@ -145,7 +145,7 @@ class Layer:
         else:
             layer.__abstract = name
 
-        if layer.type == PyramidType.RASTER: 
+        if layer.type == PyramidType.RASTER:
             if "styles" in kwargs and kwargs["styles"] is not None and len(kwargs["styles"]) > 0:
                 layer.__styles = kwargs["styles"]
             else:
@@ -161,7 +161,7 @@ class Layer:
         self.__format = None
         self.__tms = None
         self.__best_level = None
-        self.__levels = dict()
+        self.__levels = {}
         self.__keywords = []
         self.__pyramids = []
 
@@ -176,7 +176,7 @@ class Layer:
             Exception: Pyramids' do not all own the same TMS
             Exception: Pyramids' do not all own the same channels number
             Exception: Overlapping in usage pyramids' levels
-        """        
+        """
 
         ## Toutes les pyramides doivent avoir les même caractéristiques
         channels = None
@@ -227,12 +227,12 @@ class Layer:
         return f"{self.type.name} layer '{self.__name}'"
 
     @property
-    def serializable(self) -> Dict: 
+    def serializable(self) -> Dict:
         """Get the dict version of the layer object, descriptor compliant
 
         Returns:
             Dict: descriptor structured object description
-        """        
+        """
         serialization = {
             "title": self.__title,
             "abstract": self.__abstract,
@@ -273,7 +273,7 @@ class Layer:
 
             if self.__tms.srs.upper() not in serialization["wms"]["crs"]:
                 serialization["wms"]["crs"].append(self.__tms.srs.upper())
-            
+
             serialization["styles"] = self.__styles
             serialization["resampling"] = self.__resampling
 
@@ -284,7 +284,7 @@ class Layer:
 
         Args:
             directory (str, optional): Directory (file or object) where to print the layer's descriptor, called <layer's name>.json. Defaults to None, JSON is printed to standard output.
-        """        
+        """
         content = json.dumps(self.serializable)
 
         if directory is None:
@@ -306,4 +306,3 @@ class Layer:
     @property
     def geobbox(self) -> Tuple[float, float, float, float]:
         return self.__geobbox
-

@@ -24,7 +24,7 @@ class ColorFormat(Enum):
     FLOAT32 = 32
 
 
-__SR_BOOK = dict()
+__SR_BOOK = {}
 def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
     """Convert coordinates system as string to OSR spatial reference
 
@@ -242,6 +242,7 @@ def compute_format(dataset: gdal.Dataset, path: str = None) -> ColorFormat:
         path = dataset.GetFileList()[0]
     if dataset.RasterCount < 1:
         raise Exception(f"Image {path} contains no color band.")
+
     band_1_datatype = dataset.GetRasterBand(1).DataType
     data_type_name = gdal.GetDataTypeName(band_1_datatype)
     data_type_size = gdal.GetDataTypeSize(band_1_datatype)
