@@ -56,5 +56,9 @@ doc = [
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
 [tool.setuptools.packages.find]
 where = ["src"]
