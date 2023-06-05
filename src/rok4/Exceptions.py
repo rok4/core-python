@@ -8,6 +8,7 @@ class MissingAttributeError(Exception):
         self.missing = missing
         super().__init__(f"Missing attribute {missing} in '{path}'")
 
+
 class MissingEnvironmentError(Exception):
     """
     Exception raised when a needed environment variable is not defined
@@ -16,6 +17,7 @@ class MissingEnvironmentError(Exception):
     def __init__(self, missing):
         self.missing = missing
         super().__init__(f"Missing environment variable {missing}")
+
 
 class StorageError(Exception):
     """
@@ -26,6 +28,7 @@ class StorageError(Exception):
         self.type = type
         self.issue = issue
         super().__init__(f"Issue occured using a {type} storage : {issue}")
+
 
 class FormatError(Exception):
     """

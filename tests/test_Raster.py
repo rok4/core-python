@@ -28,10 +28,16 @@ class TestRasterInit(TestCase):
         raster = Raster()
 
         assert raster.bands is None
-        assert (isinstance(raster.bbox, tuple) and len(raster.bbox) == 4
-                and all(coordinate is None for coordinate in raster.bbox))
-        assert (isinstance(raster.dimensions, tuple) and len(raster.dimensions) == 2
-                and all(dimension is None for dimension in raster.dimensions))
+        assert (
+            isinstance(raster.bbox, tuple)
+            and len(raster.bbox) == 4
+            and all(coordinate is None for coordinate in raster.bbox)
+        )
+        assert (
+            isinstance(raster.dimensions, tuple)
+            and len(raster.dimensions) == 2
+            and all(dimension is None for dimension in raster.dimensions)
+        )
         assert raster.format is None
         assert raster.mask is None
         assert raster.path is None
@@ -66,12 +72,14 @@ class TestRasterFromFile(TestCase):
     @mock.patch("rok4.Raster.gdal.Open")
     @mock.patch("rok4.Raster.compute_bbox")
     @mock.patch("rok4.Raster.exists", side_effect=[True, False])
-    def test_image(self, m_exists, m_compute_bbox, m_gdal_open, m_compute_format,
-                   m_get_osgeo_path):
+    def test_image(self, m_exists, m_compute_bbox, m_gdal_open, m_compute_format, m_get_osgeo_path):
         """Constructor called nominally on an image without mask."""
         m_compute_bbox.return_value = self.bbox
-        m_dataset_properties = {"RasterCount": 3, "RasterXSize": self.image_size[0],
-                                "RasterYSize": self.image_size[1]}
+        m_dataset_properties = {
+            "RasterCount": 3,
+            "RasterXSize": self.image_size[0],
+            "RasterYSize": self.image_size[1],
+        }
         m_gdal_open.return_value = type("", (object,), m_dataset_properties)
         m_get_osgeo_path.return_value = self.osgeo_image_path
 
@@ -83,11 +91,14 @@ class TestRasterFromFile(TestCase):
         assert raster.path == self.source_image_path
         assert raster.mask is None
         m_compute_bbox.assert_called_once()
-        assert (isinstance(raster.bbox, tuple) and len(raster.bbox) == 4
-                and math.isclose(raster.bbox[0], self.bbox[0], rel_tol=1e-5)
-                and math.isclose(raster.bbox[1], self.bbox[1], rel_tol=1e-5)
-                and math.isclose(raster.bbox[2], self.bbox[2], rel_tol=1e-5)
-                and math.isclose(raster.bbox[3], self.bbox[3], rel_tol=1e-5))
+        assert (
+            isinstance(raster.bbox, tuple)
+            and len(raster.bbox) == 4
+            and math.isclose(raster.bbox[0], self.bbox[0], rel_tol=1e-5)
+            and math.isclose(raster.bbox[1], self.bbox[1], rel_tol=1e-5)
+            and math.isclose(raster.bbox[2], self.bbox[2], rel_tol=1e-5)
+            and math.isclose(raster.bbox[3], self.bbox[3], rel_tol=1e-5)
+        )
         assert raster.bands == 3
         m_compute_format.assert_called_once()
         assert raster.format == ColorFormat.UINT8
@@ -99,31 +110,45 @@ class TestRasterFromFile(TestCase):
     @mock.patch("rok4.Raster.gdal.Open")
     @mock.patch("rok4.Raster.compute_bbox")
     @mock.patch("rok4.Raster.exists", side_effect=[True, True])
-    def test_image_and_mask(self, m_exists, m_compute_bbox, m_gdal_open, m_identifydriver,
-                            m_compute_format, m_get_osgeo_path):
+    def test_image_and_mask(
+        self,
+        m_exists,
+        m_compute_bbox,
+        m_gdal_open,
+        m_identifydriver,
+        m_compute_format,
+        m_get_osgeo_path,
+    ):
         """Constructor called nominally on an image with mask."""
         m_compute_bbox.return_value = self.bbox
-        m_dataset_properties = {"RasterCount": 3, "RasterXSize": self.image_size[0],
-                                "RasterYSize": self.image_size[1]}
+        m_dataset_properties = {
+            "RasterCount": 3,
+            "RasterXSize": self.image_size[0],
+            "RasterYSize": self.image_size[1],
+        }
         m_gdal_open.return_value = type("", (object,), m_dataset_properties)
-        m_get_osgeo_path.side_effect=[self.osgeo_image_path, self.osgeo_mask_path]
+        m_get_osgeo_path.side_effect = [self.osgeo_image_path, self.osgeo_mask_path]
         m_identifydriver.return_value = type("", (object,), {"ShortName": "GTiff"})
 
         raster = Raster.from_file(self.source_image_path)
 
         m_exists.assert_has_calls([call(self.source_image_path), call(self.source_mask_path)])
-        m_get_osgeo_path.assert_has_calls([call(self.source_image_path),
-                                                call(self.source_mask_path)])
+        m_get_osgeo_path.assert_has_calls(
+            [call(self.source_image_path), call(self.source_mask_path)]
+        )
         m_identifydriver.assert_called_once_with(self.osgeo_mask_path)
         m_gdal_open.assert_called_once_with(self.osgeo_image_path)
         assert raster.path == self.source_image_path
         assert raster.mask == self.source_mask_path
         m_compute_bbox.assert_called_once()
-        assert (isinstance(raster.bbox, tuple) and len(raster.bbox) == 4
-                and math.isclose(raster.bbox[0], self.bbox[0], rel_tol=1e-5)
-                and math.isclose(raster.bbox[1], self.bbox[1], rel_tol=1e-5)
-                and math.isclose(raster.bbox[2], self.bbox[2], rel_tol=1e-5)
-                and math.isclose(raster.bbox[3], self.bbox[3], rel_tol=1e-5))
+        assert (
+            isinstance(raster.bbox, tuple)
+            and len(raster.bbox) == 4
+            and math.isclose(raster.bbox[0], self.bbox[0], rel_tol=1e-5)
+            and math.isclose(raster.bbox[1], self.bbox[1], rel_tol=1e-5)
+            and math.isclose(raster.bbox[2], self.bbox[2], rel_tol=1e-5)
+            and math.isclose(raster.bbox[3], self.bbox[3], rel_tol=1e-5)
+        )
         assert raster.bands == 3
         m_compute_format.assert_called_once()
         assert raster.format == ColorFormat.UINT8
@@ -147,18 +172,20 @@ class TestRasterFromFile(TestCase):
     @mock.patch("rok4.Raster.gdal.IdentifyDriver")
     @mock.patch("rok4.Raster.gdal.Open", side_effect=None)
     @mock.patch("rok4.Raster.exists", side_effect=[True, True])
-    def test_unsupported_mask_format(self, m_exists, m_gdal_open, m_identifydriver,
-                                     m_get_osgeo_path):
+    def test_unsupported_mask_format(
+        self, m_exists, m_gdal_open, m_identifydriver, m_get_osgeo_path
+    ):
         """Test case : Constructor called on an unsupported mask file or object."""
-        m_get_osgeo_path.side_effect=[self.osgeo_image_path, self.osgeo_mask_path]
+        m_get_osgeo_path.side_effect = [self.osgeo_image_path, self.osgeo_mask_path]
         m_identifydriver.return_value = type("", (object,), {"ShortName": "JPG"})
 
         with pytest.raises(Exception):
             Raster.from_file(self.source_image_path)
 
         m_exists.assert_has_calls([call(self.source_image_path), call(self.source_mask_path)])
-        m_get_osgeo_path.assert_has_calls([call(self.source_image_path),
-                                                call(self.source_mask_path)])
+        m_get_osgeo_path.assert_has_calls(
+            [call(self.source_image_path), call(self.source_mask_path)]
+        )
         m_identifydriver.assert_called_once_with(self.osgeo_mask_path)
         m_gdal_open.assert_called_once_with(self.osgeo_image_path)
 
@@ -173,24 +200,26 @@ class TestRasterFromParameters(TestCase):
             "bbox": (-5.4, 41.3, 9.8, 51.3),
             "dimensions": (1920, 1080),
             "format": ColorFormat.UINT8,
-            "path": "file:///path/to/image.tif"
+            "path": "file:///path/to/image.tif",
         }
 
         raster = Raster.from_parameters(**parameters)
 
         assert raster.path == parameters["path"]
-        assert (isinstance(raster.bbox, tuple) and len(raster.bbox) == 4
-                and math.isclose(raster.bbox[0], parameters["bbox"][0], rel_tol=1e-5)
-                and math.isclose(raster.bbox[1], parameters["bbox"][1], rel_tol=1e-5)
-                and math.isclose(raster.bbox[2], parameters["bbox"][2], rel_tol=1e-5)
-                and math.isclose(raster.bbox[3], parameters["bbox"][3], rel_tol=1e-5))
+        assert (
+            isinstance(raster.bbox, tuple)
+            and len(raster.bbox) == 4
+            and math.isclose(raster.bbox[0], parameters["bbox"][0], rel_tol=1e-5)
+            and math.isclose(raster.bbox[1], parameters["bbox"][1], rel_tol=1e-5)
+            and math.isclose(raster.bbox[2], parameters["bbox"][2], rel_tol=1e-5)
+            and math.isclose(raster.bbox[3], parameters["bbox"][3], rel_tol=1e-5)
+        )
         assert raster.bands == parameters["bands"]
         assert raster.format == parameters["format"]
         assert raster.dimensions == parameters["dimensions"]
         assert raster.mask is None
 
     def test_image_and_mask(self):
-
         """Parameters describing an image with mask"""
         parameters = {
             "bands": 4,
@@ -198,17 +227,20 @@ class TestRasterFromParameters(TestCase):
             "dimensions": (1920, 1080),
             "format": ColorFormat.UINT8,
             "mask": "file:///path/to/image.msk",
-            "path": "file:///path/to/image.tif"
+            "path": "file:///path/to/image.tif",
         }
 
         raster = Raster.from_parameters(**parameters)
 
         assert raster.path == parameters["path"]
-        assert (isinstance(raster.bbox, tuple) and len(raster.bbox) == 4
-                and math.isclose(raster.bbox[0], parameters["bbox"][0], rel_tol=1e-5)
-                and math.isclose(raster.bbox[1], parameters["bbox"][1], rel_tol=1e-5)
-                and math.isclose(raster.bbox[2], parameters["bbox"][2], rel_tol=1e-5)
-                and math.isclose(raster.bbox[3], parameters["bbox"][3], rel_tol=1e-5))
+        assert (
+            isinstance(raster.bbox, tuple)
+            and len(raster.bbox) == 4
+            and math.isclose(raster.bbox[0], parameters["bbox"][0], rel_tol=1e-5)
+            and math.isclose(raster.bbox[1], parameters["bbox"][1], rel_tol=1e-5)
+            and math.isclose(raster.bbox[2], parameters["bbox"][2], rel_tol=1e-5)
+            and math.isclose(raster.bbox[3], parameters["bbox"][3], rel_tol=1e-5)
+        )
         assert raster.bands == parameters["bands"]
         assert raster.format == parameters["format"]
         assert raster.dimensions == parameters["dimensions"]
@@ -225,10 +257,13 @@ class TestRasterSetInit(TestCase):
         """Default property values."""
         rasterset = RasterSet()
 
-        assert (isinstance(rasterset.bbox, tuple) and len(rasterset.bbox) == 4
-                and all(coordinate is None for coordinate in rasterset.bbox))
-        assert (isinstance(rasterset.colors, list) and not rasterset.colors)
-        assert (isinstance(rasterset.raster_list, list) and not rasterset.raster_list)
+        assert (
+            isinstance(rasterset.bbox, tuple)
+            and len(rasterset.bbox) == 4
+            and all(coordinate is None for coordinate in rasterset.bbox)
+        )
+        assert isinstance(rasterset.colors, list) and not rasterset.colors
+        assert isinstance(rasterset.raster_list, list) and not rasterset.raster_list
         assert rasterset.srs is None
 
 
@@ -244,27 +279,23 @@ class TestRasterSetFromList(TestCase):
         for n in range(0, file_number, 1):
             file_list.append(f"s3://test_bucket/image_{n+1}.tif")
         file_list_string = "\n".join(file_list)
-        m_open = mock_open(read_data = file_list_string)
+        m_open = mock_open(read_data=file_list_string)
         list_path = "s3://test_bucket/raster_set.list"
         list_local_path = "/tmp/raster_set.list"
         m_get_osgeo_path.return_value = list_local_path
         raster_list = []
         colors = []
-        serial_in = {
-            "raster_list": [],
-            "colors": []
-        }
+        serial_in = {"raster_list": [], "colors": []}
         for n in range(0, file_number, 1):
             raster = MagicMock(Raster)
             raster.path = file_list[n]
             raster.bbox = (
-                -0.75 + math.floor(n/3),
-                -1.33 + n - 3 * math.floor(n/3),
-                0.25 + math.floor(n/3),
-                -0.33 +  n - 3 * math.floor(n/3)
+                -0.75 + math.floor(n / 3),
+                -1.33 + n - 3 * math.floor(n / 3),
+                0.25 + math.floor(n / 3),
+                -0.33 + n - 3 * math.floor(n / 3),
             )
-            raster.format = random.choice([ColorFormat.BIT, ColorFormat.UINT8,
-                                          ColorFormat.FLOAT32])
+            raster.format = random.choice([ColorFormat.BIT, ColorFormat.UINT8, ColorFormat.FLOAT32])
             if raster.format == ColorFormat.BIT:
                 raster.bands = 1
             else:
@@ -276,25 +307,23 @@ class TestRasterSetFromList(TestCase):
             color_dict = {"bands": raster.bands, "format": raster.format}
             if color_dict not in colors:
                 colors.append(color_dict)
-                serial_in["colors"].append({"bands": raster.bands,
-                                               "format": raster.format.name})
+                serial_in["colors"].append({"bands": raster.bands, "format": raster.format.name})
             raster.dimensions = (5000, 5000)
             raster_list.append(raster)
-            raster_serial = {"path": raster.path, "bands": raster.bands,
-                                   "format": raster.format.name, "bbox": list(raster.bbox),
-                                   "dimensions": list(raster.dimensions)}
+            raster_serial = {
+                "path": raster.path,
+                "bands": raster.bands,
+                "format": raster.format.name,
+                "bbox": list(raster.bbox),
+                "dimensions": list(raster.dimensions),
+            }
             if raster.mask:
                 raster_serial["mask"] = raster.mask
             serial_in["raster_list"].append(raster_serial)
         m_from_file.side_effect = raster_list
         srs = "EPSG:4326"
         serial_in["srs"] = srs
-        bbox = (
-            -0.75,
-            -1.33,
-            0.25 + math.floor((file_number-1)/3),
-            1.67
-        )
+        bbox = (-0.75, -1.33, 0.25 + math.floor((file_number - 1) / 3), 1.67)
         serial_in["bbox"] = list(bbox)
 
         with mock.patch("rok4.Raster.open", m_open):
@@ -333,7 +362,7 @@ class TestRasterSetFromDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "file:///path/to/images/550000_6220000.msk",
-                    "path": "file:///path/to/images/550000_6220000.tif"
+                    "path": "file:///path/to/images/550000_6220000.tif",
                 },
                 {
                     "bands": 3,
@@ -341,7 +370,7 @@ class TestRasterSetFromDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "file:///path/to/images/560000_6220000.msk",
-                    "path": "file:///path/to/images/560000_6220000.tif"
+                    "path": "file:///path/to/images/560000_6220000.tif",
                 },
                 {
                     "bands": 3,
@@ -349,10 +378,10 @@ class TestRasterSetFromDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "file:///path/to/images/550000_6230000.msk",
-                    "path": "file:///path/to/images/550000_6230000.tif"
-                }
+                    "path": "file:///path/to/images/550000_6230000.tif",
+                },
             ],
-            "srs": "IGNF:LAMB93"
+            "srs": "IGNF:LAMB93",
         }
         desc_path = "file:///path/to/descriptor.json"
         local_path = "/path/to/descriptor.json"
@@ -370,7 +399,7 @@ class TestRasterSetFromDescriptor(TestCase):
             raster_args_list.append(raster_properties)
         m_from_parameters.side_effect = raster_list
         m_get_osgeo_path.return_value = local_path
-        m_open = mock_open(read_data = desc_content)
+        m_open = mock_open(read_data=desc_content)
 
         with mock.patch("rok4.Raster.open", m_open):
             rasterset = RasterSet.from_descriptor(desc_path)
@@ -383,15 +412,14 @@ class TestRasterSetFromDescriptor(TestCase):
         for i in range(0, len(raster_args_list), 1):
             assert m_from_parameters.call_args_list[i] == call(**raster_args_list[i])
         assert rasterset.raster_list == raster_list
-        assert (isinstance(rasterset.bbox, tuple) and len(rasterset.bbox) == 4)
+        assert isinstance(rasterset.bbox, tuple) and len(rasterset.bbox) == 4
         assert isinstance(rasterset.colors, list) and rasterset.colors
         for i in range(0, len(serial_in["colors"]), 1):
             expected_color = copy.deepcopy(serial_in["colors"][i])
             expected_color["format"] = ColorFormat[serial_in["colors"][i]["format"]]
             assert rasterset.colors[i] == expected_color
         serial_out = rasterset.serializable
-        assert (isinstance(serial_out["bbox"], list)
-                and len(serial_out["bbox"]) == 4)
+        assert isinstance(serial_out["bbox"], list) and len(serial_out["bbox"]) == 4
         for i in range(0, 4, 1):
             assert math.isclose(rasterset.bbox[i], serial_in["bbox"][i], rel_tol=1e-5)
             assert math.isclose(serial_out["bbox"][i], serial_in["bbox"][i], rel_tol=1e-5)
@@ -415,7 +443,7 @@ class TestRasterSetWriteDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "s3://rok4bucket/images/550000_6220000.msk",
-                    "path": "s3://rok4bucket/images/550000_6220000.tif"
+                    "path": "s3://rok4bucket/images/550000_6220000.tif",
                 },
                 {
                     "bands": 3,
@@ -423,7 +451,7 @@ class TestRasterSetWriteDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "s3://rok4bucket/images/560000_6220000.msk",
-                    "path": "s3://rok4bucket/images/560000_6220000.tif"
+                    "path": "s3://rok4bucket/images/560000_6220000.tif",
                 },
                 {
                     "bands": 3,
@@ -431,10 +459,10 @@ class TestRasterSetWriteDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "s3://rok4bucket/images/550000_6230000.msk",
-                    "path": "s3://rok4bucket/images/550000_6230000.tif"
-                }
+                    "path": "s3://rok4bucket/images/550000_6230000.tif",
+                },
             ],
-            "srs": "IGNF:LAMB93"
+            "srs": "IGNF:LAMB93",
         }
         content = json.dumps(serial_in, sort_keys=True)
         path = "s3://rok4bucket/dst_descriptor.json"
@@ -443,8 +471,9 @@ class TestRasterSetWriteDescriptor(TestCase):
         rasterset.srs = serial_in["srs"]
         rasterset.colors = []
         for color_dict in serial_in["colors"]:
-            rasterset.colors.append({"bands": color_dict["bands"],
-                                     "format": ColorFormat[color_dict["format"]]})
+            rasterset.colors.append(
+                {"bands": color_dict["bands"], "format": ColorFormat[color_dict["format"]]}
+            )
         rasterset.raster_list = []
         for raster_dict in serial_in["raster_list"]:
             raster_args = copy.deepcopy(raster_dict)
@@ -460,7 +489,6 @@ class TestRasterSetWriteDescriptor(TestCase):
 
         m_put_data_str.assert_called_once_with(content, path)
 
-
     @mock.patch("rok4.Raster.print")
     def test_ok_no_output_path(self, m_print):
         serial_in = {
@@ -473,7 +501,7 @@ class TestRasterSetWriteDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "s3://rok4bucket/images/550000_6220000.msk",
-                    "path": "s3://rok4bucket/images/550000_6220000.tif"
+                    "path": "s3://rok4bucket/images/550000_6220000.tif",
                 },
                 {
                     "bands": 3,
@@ -481,7 +509,7 @@ class TestRasterSetWriteDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "s3://rok4bucket/images/560000_6220000.msk",
-                    "path": "s3://rok4bucket/images/560000_6220000.tif"
+                    "path": "s3://rok4bucket/images/560000_6220000.tif",
                 },
                 {
                     "bands": 3,
@@ -489,10 +517,10 @@ class TestRasterSetWriteDescriptor(TestCase):
                     "dimensions": [5000, 5000],
                     "format": "UINT8",
                     "mask": "s3://rok4bucket/images/550000_6230000.msk",
-                    "path": "s3://rok4bucket/images/550000_6230000.tif"
-                }
+                    "path": "s3://rok4bucket/images/550000_6230000.tif",
+                },
             ],
-            "srs": "IGNF:LAMB93"
+            "srs": "IGNF:LAMB93",
         }
         content = json.dumps(serial_in, sort_keys=True)
         rasterset = RasterSet()
@@ -500,8 +528,9 @@ class TestRasterSetWriteDescriptor(TestCase):
         rasterset.srs = serial_in["srs"]
         rasterset.colors = []
         for color_dict in serial_in["colors"]:
-            rasterset.colors.append({"bands": color_dict["bands"],
-                                     "format": ColorFormat[color_dict["format"]]})
+            rasterset.colors.append(
+                {"bands": color_dict["bands"], "format": ColorFormat[color_dict["format"]]}
+            )
         rasterset.raster_list = []
         for raster_dict in serial_in["raster_list"]:
             raster_args = copy.deepcopy(raster_dict)
@@ -516,4 +545,3 @@ class TestRasterSetWriteDescriptor(TestCase):
             assert False, f"Writing RasterSet's descriptor raises an exception: {exc}"
 
         m_print.assert_called_once_with(content)
-

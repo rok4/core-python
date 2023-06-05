@@ -15,11 +15,12 @@ from typing import Tuple, Dict
 from osgeo import ogr, gdal
 
 from rok4.Storage import exists, get_osgeo_path, put_data_str
-from rok4.Utils import ColorFormat, compute_bbox,compute_format
+from rok4.Utils import ColorFormat, compute_bbox, compute_format
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 gdal.UseExceptions()
+
 
 class Raster:
     """A structure describing raster data
@@ -91,9 +92,11 @@ class Raster:
         if exists(mask_path):
             work_mask_path = get_osgeo_path(mask_path)
             mask_driver = gdal.IdentifyDriver(work_mask_path).ShortName
-            if 'GTiff' != mask_driver:
-                message = (f"Mask file '{mask_path}' is not a TIFF image."
-                           + f" (GDAL driver : '{mask_driver}'")
+            if "GTiff" != mask_driver:
+                message = (
+                    f"Mask file '{mask_path}' is not a TIFF image."
+                    + f" (GDAL driver : '{mask_driver}'"
+                )
                 raise Exception(message)
             self.mask = mask_path
         else:
@@ -108,8 +111,14 @@ class Raster:
 
     @classmethod
     def from_parameters(
-            cls, path: str, bands: int, bbox: Tuple[float, float, float, float],
-            dimensions: Tuple[int, int], format: ColorFormat, mask: str = None) -> "Raster":
+        cls,
+        path: str,
+        bands: int,
+        bbox: Tuple[float, float, float, float],
+        dimensions: Tuple[int, int],
+        format: ColorFormat,
+        mask: str = None,
+    ) -> "Raster":
         """Creates a Raster object from parameters
 
         Args:
@@ -297,13 +306,13 @@ class RasterSet:
             parameters = copy.deepcopy(raster_dict)
             parameters["bbox"] = tuple(raster_dict["bbox"])
             parameters["dimensions"] = tuple(raster_dict["dimensions"])
-            parameters["format"] = ColorFormat[ raster_dict["format"] ]
+            parameters["format"] = ColorFormat[raster_dict["format"]]
             self.raster_list.append(Raster.from_parameters(**parameters))
         self.bbox = tuple(serialization["bbox"])
         self.colors = []
         for color_dict in serialization["colors"]:
             color_item = copy.deepcopy(color_dict)
-            color_item["format"] = ColorFormat[ color_dict["format"] ]
+            color_item["format"] = ColorFormat[color_dict["format"]]
             self.colors.append(color_item)
         return self
 
@@ -314,17 +323,9 @@ class RasterSet:
         Returns:
             Dict: descriptor structured object description
         """
-        serialization = {
-            "bbox": list(self.bbox),
-            "srs": self.srs,
-            "colors": [],
-            "raster_list" : []
-        }
+        serialization = {"bbox": list(self.bbox), "srs": self.srs, "colors": [], "raster_list": []}
         for color in self.colors:
-            color_serial = {
-                "bands": color["bands"],
-                "format": color["format"].name
-            }
+            color_serial = {"bands": color["bands"], "format": color["format"].name}
             serialization["colors"].append(color_serial)
         for raster in self.raster_list:
             raster_dict = {
@@ -332,7 +333,7 @@ class RasterSet:
                 "dimensions": list(raster.dimensions),
                 "bbox": list(raster.bbox),
                 "bands": raster.bands,
-                "format": raster.format.name
+                "format": raster.format.name,
             }
             if raster.mask is not None:
                 raster_dict["mask"] = raster.mask
@@ -352,4 +353,3 @@ class RasterSet:
             print(content)
         else:
             put_data_str(content, path)
-
