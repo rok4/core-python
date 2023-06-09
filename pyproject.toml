@@ -38,12 +38,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+doc = [
+  "pdoc3 >= 0.10.0"
+]
+
+dev = [
+  "black",
+  "pre-commit >3,<4"
+]
+
 test = [
   "pytest >= 7.1.2",
   "coverage >= 7.0.5"
-]
-doc = [
-  "pdoc3 >= 0.10.0"
 ]
 
 [project.urls]
