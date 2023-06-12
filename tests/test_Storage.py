@@ -643,40 +643,10 @@ def test_size_file_nok():
         size = size_path("file://tests/fixtures/TIFF_PBF_M")
 
 @mock.patch.dict(os.environ, {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"}, clear=True)
-@mock.patch('rok4.Storage.rados.Rados')
-def test_size_path_ceph_ok(mocked_rados_client):
+def test_size_path_ceph_nok():
 
-    disconnect_ceph_clients()
-    ioctx_instance = MagicMock()
-    ioctx_instance.read.return_value = b"0=TIFF_PBF_MVT\n#\n0/21.tif\n0/22.tif"
-    ioctx_instance.stat.return_value = (100,5)
-    ceph_instance = MagicMock()
-    ceph_instance.open_ioctx.return_value = ioctx_instance
-    mocked_rados_client.return_value = ceph_instance
-
-    try:
+    with pytest.raises(NotImplementedError):
         size = size_path("ceph://pool/path")
-        assert size == 200
-    except Exception as exc:
-        assert False, f"CEPH size of the path raises an exception: {exc}"
-
-@mock.patch.dict(os.environ, {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"}, clear=True)
-@mock.patch('rok4.Storage.rados.Rados')
-def test_size_path_ceph_ok2(mocked_rados_client):
-
-    disconnect_ceph_clients()
-    ioctx_instance = MagicMock()
-    ioctx_instance.read.return_value = b"0/21.tif\n0/22.tif"
-    ioctx_instance.stat.return_value = (100,5)
-    ceph_instance = MagicMock()
-    ceph_instance.open_ioctx.return_value = ioctx_instance
-    mocked_rados_client.return_value = ceph_instance
-
-    try:
-        size = size_path("ceph://pool/path")
-        assert size == 200
-    except Exception as exc:
-        assert False, f"CEPH size of the path raises an exception: {exc}"
 
 @mock.patch.dict(os.environ, {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True)
 @mock.patch('rok4.Storage.boto3.client')

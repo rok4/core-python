@@ -922,32 +922,7 @@ def size_path(path: str) -> int :
 
 
     elif storage_type == StorageType.CEPH:
-        ioctx = __get_ceph_ioctx(tray_name)
-
-        try :
-            list_obj = tempfile.NamedTemporaryFile(mode='r', delete=False)
-            list_file = list_obj.name
-            copy(path+".list", f"file://{list_file}")
-
-            with open(list_file,"r") as f :
-                objets = f.readlines()
-
-            os.remove(list_file)
-
-            total = 0
-            if "=" in objets[0] :
-                pool = objets[0].split("=")[1].split("\n")[0]
-                ioctx = __get_ceph_ioctx(pool)
-
-                for i in range (2, len(objets)) :
-                    total += ioctx.stat(objets[i].split("/")[1].split("\n")[0])[0]
-
-            else :
-                for i in range (len(objets)) :
-                    total += ioctx.stat(objets[i].split("/")[1].split("\n")[0])[0]
-
-        except Exception as e:
-            raise StorageError("CEPH", e)
+        raise NotImplementedError
     else:
         raise StorageError("UNKNOWN", "Unhandled storage type to calculate size")
 
