@@ -302,6 +302,7 @@ class Level:
         Returns:
             Tuple[float, float, float, float]: level terrain extent (xmin, ymin, xmax, ymax)
         """
+
         min_bbox = self.__pyramid.tms.get_level(self.__id).tile_to_bbox(
             self.__tile_limits["min_col"], self.__tile_limits["max_row"]
         )
@@ -548,7 +549,11 @@ class Pyramid:
         Returns:
             Dict: descriptor structured object description
         """
-        serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
+        
+        serialization = {
+            "tile_matrix_set": self.__tms.name,
+            "format": self.__format
+        }
 
         serialization["levels"] = []
         sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
@@ -615,6 +620,7 @@ class Pyramid:
         Returns:
             str: Pyramid's storage root
         """
+        
         return self.__storage["root"].split("@", 1)[
             0
         ]  # Suppression de l'éventuel hôte de spécification du cluster S3
@@ -664,6 +670,7 @@ class Pyramid:
 
     @property
     def tile_extension(self) -> str:
+
         if self.__format in [
             "TIFF_RAW_UINT8",
             "TIFF_LZW_UINT8",
@@ -828,7 +835,7 @@ class Pyramid:
         Returns:
             The corresponding pyramid's level, None if not present
         """
-
+        
         return self.__levels.get(level_id, None)
 
     def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[Level]:
@@ -913,6 +920,7 @@ class Pyramid:
 
     def write_descriptor(self) -> None:
         """Write the pyramid's descriptor to the final location (in the pyramid's storage root)"""
+
         content = json.dumps(self.serializable)
         put_data_str(content, self.__descriptor)
 
@@ -1010,6 +1018,7 @@ class Pyramid:
             )
         else:
             return slab_path
+
 
     def get_tile_data_binary(self, level: str, column: int, row: int) -> str:
         """Get a pyramid's tile as binary string
@@ -1173,6 +1182,7 @@ class Pyramid:
         level_object = self.get_level(level)
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
+
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
@@ -1350,3 +1360,25 @@ class Pyramid:
             x, y = reproject_point((x, y), sr, self.__tms.sr)
 
         return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
+
+    @property
+    def size(self) -> int:
+        """Get the size of the pyramid
+
+        Examples:
+
+                from rok4.Pyramid import Pyramid
+
+                try:
+                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
+                    size = pyramid.size()
+
+                except Exception as e:
+                    print("Cannot load the pyramid from its descriptor and get his size")
+
+        Returns:
+            int: size of the pyramid
+        """
+        if not hasattr(self,"_Pyramid__size") :
+            self.__size = size_path(get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name))
+        return self.__size

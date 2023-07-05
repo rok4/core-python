@@ -128,6 +128,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
 
 def disconnect_s3_clients() -> None:
     """Clean S3 clients"""
+  
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
     __S3_CLIENTS = {}
     __S3_DEFAULT_CLIENT = None
@@ -180,6 +181,7 @@ def __get_ceph_ioctx(pool: str) -> "rados.Ioctx":
 
 def disconnect_ceph_clients() -> None:
     """Clean CEPH clients"""
+
     global __CEPH_CLIENT, __CEPH_IOCTXS
     __CEPH_CLIENT = None
     __CEPH_IOCTXS = {}
@@ -907,3 +909,59 @@ def get_osgeo_path(path: str) -> str:
 
     else:
         raise NotImplementedError(f"Cannot get a GDAL/OGR compliant path from {path}")
+
+def size_path(path: str) -> int :
+    """Return the size of the path given (or, for the CEPH, the sum of the size of each object of the .list)
+
+    Args:
+        path (str): Source path
+
+    Raises:
+        StorageError: Unhandled link or link issue
+        MissingEnvironmentError: Missing object storage informations
+
+    Returns:
+        int: size of the path
+    """
+    storage_type, unprefixed_path, tray_name, base_name  = get_infos_from_path(path)
+
+    if storage_type == StorageType.FILE:
+        try :
+            total = 0
+            with os.scandir(unprefixed_path) as it:
+                for entry in it:
+                    if entry.is_file():
+                        total += entry.stat().st_size
+                    elif entry.is_dir():
+                        total += size_path(entry.path)
+
+        except Exception as e:
+            raise StorageError("FILE", e)
+
+    elif storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try :
+            paginator = s3_client["client"].get_paginator('list_objects_v2')
+            pages = paginator.paginate(
+                Bucket=bucket_name,
+                Prefix=base_name+"/",
+                PaginationConfig={
+                    'PageSize': 10000,
+                }
+            )
+            total = 0
+            for page in pages:
+                for key in page['Contents']:
+                    total += key['Size']
+
+        except Exception as e:
+            raise StorageError("S3", e)
+
+
+    elif storage_type == StorageType.CEPH:
+        raise NotImplementedError
+    else:
+        raise StorageError("UNKNOWN", "Unhandled storage type to calculate size")
+
+    return total

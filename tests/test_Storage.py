@@ -21,7 +21,6 @@ def test_hash_file_ok(mock_file):
     except Exception as exc:
         assert False, f"FILE md5 sum raises an exception: {exc}"
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_get_infos_from_path():
     assert (StorageType.S3, "toto/titi", "toto", "titi") == get_infos_from_path("s3://toto/titi")
@@ -104,7 +103,6 @@ def test_file_read_ok(mock_file):
     except Exception as exc:
         assert False, f"FILE read raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -118,7 +116,6 @@ def test_s3_read_nok(mocked_s3_client):
     mocked_s3_client.return_value = s3_instance
     with pytest.raises(StorageError):
         data = get_data_str("s3://bucket/path/to/object")
-
 
 @mock.patch.dict(
     os.environ,
@@ -164,7 +161,6 @@ def test_ceph_read_ok(mocked_rados_client):
 
 
 ############ put_data_str
-
 
 @mock.patch.dict(
     os.environ,
@@ -377,7 +373,6 @@ def test_copy_ceph_file_ok(mock_file, mock_makedirs, mocked_rados_client):
     except Exception as exc:
         assert False, f"CEPH -> FILE copy raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"},
@@ -401,7 +396,6 @@ def test_copy_file_ceph_ok(mock_file, mocked_rados_client):
         )
     except Exception as exc:
         assert False, f"FILE -> CEPH copy raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -480,7 +474,6 @@ def test_link_hard_nok():
     with pytest.raises(StorageError):
         link("ceph://pool1/source.ext", "ceph://pool2/destination.ext", True)
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.symlink", return_value=None)
 def test_link_file_ok(mock_link):
@@ -499,7 +492,6 @@ def test_hlink_file_ok(mock_link):
         mock_link.assert_called_once_with("/path/to/target.ext", "/path/to/link.ext")
     except Exception as exc:
         assert False, f"FILE hard link raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -556,7 +548,6 @@ def test_link_s3_nok(mocked_s3_client):
 
 
 ############ get_size
-
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.stat")
@@ -697,7 +688,6 @@ def test_remove_file_ok(mock_remove):
     except Exception as exc:
         assert False, f"FILE deletion (not found) raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"},
@@ -753,7 +743,6 @@ def test_get_osgeo_path_file_ok():
     except Exception as exc:
         assert False, f"FILE osgeo path raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -773,3 +762,41 @@ def test_get_osgeo_path_s3_ok():
 def test_get_osgeo_path_nok():
     with pytest.raises(NotImplementedError):
         get_osgeo_path("ceph://pool/data.ext")
+
+
+############ size_path
+def test_size_path_file_ok():
+    try:
+        size = size_path("file://tests/fixtures/TIFF_PBF_MVT")
+        assert size == 124838
+    except Exception as exc:
+        assert False, f"FILE size of the path raises an exception: {exc}"
+
+def test_size_file_nok():
+    with pytest.raises(StorageError) :
+        size = size_path("file://tests/fixtures/TIFF_PBF_M")
+
+@mock.patch.dict(os.environ, {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"}, clear=True)
+def test_size_path_ceph_nok():
+
+    with pytest.raises(NotImplementedError):
+        size = size_path("ceph://pool/path")
+
+@mock.patch.dict(os.environ, {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True)
+@mock.patch('rok4.Storage.boto3.client')
+def test_size_path_s3_ok(mocked_s3_client):
+
+    disconnect_s3_clients()
+    pages = [{"Contents" : [{"Size" : 10},{"Size" : 20}]}, {"Contents" : [{"Size" : 50}]}]
+    paginator = MagicMock()
+    paginator.paginate.return_value = pages
+    client = MagicMock()
+    client.get_paginator.return_value = paginator
+    mocked_s3_client.return_value = client
+
+    try:
+        size = size_path("s3://bucket/path")
+        assert size == 80
+    except Exception as exc:
+        assert False, f"S3 size of the path raises an exception: {exc}"
+
