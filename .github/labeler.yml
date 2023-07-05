@@ -1,0 +1,21 @@
+ci-cd:
+  - .github/**/*
+
+dependencies:
+  - requirements.txt
+  - requirements/*.txt
+
+documentation:
+  - docs/**/*
+
+enhancement:
+  - src/**/*
+
+quality:
+  - tests/**/*
+
+tooling:
+  - .gitignore
+  - .pre-commit-config.yaml
+  - setup.cfg
+  - pyproject.toml

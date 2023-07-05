@@ -34,20 +34,30 @@ except Exception as exc:
 
 Plus d'exemple dans la documentation développeur.
 
+## Contribuer
+
+* Installer les dépendances de développement :
+
+    ```sh
+    python3 -m pip install -e[dev]
+    ```
+
+* Consulter les [directives de contribution](./CONTRIBUTING.md)
+
 ## Compiler la librairie
 
 ```sh
-apt install python3-venv
+apt install python3-venv python3-rados python3-gdal
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade build bump2version
 bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4/__init__.py
 
 # Run unit tests
-pip install -e .[test]
+python3 -m pip install -e .[test]
 # To use system installed modules rados and osgeo
 echo "/usr/lib/python3/dist-packages/" >.venv/lib/python3.10/site-packages/system.pth
-python -c 'import sys; print (sys.path)'
+python3 -c 'import sys; print (sys.path)'
 # Run tests
 coverage run -m pytest
 # Get tests report and generate site
@@ -55,12 +65,15 @@ coverage report -m
 coverage html -d dist/tests/
 
 # Build documentation
-pip install -e .[doc]
+python3 -m pip install -e .[doc]
 pdoc3 --html --output-dir dist/ rok4
 
 # Build artefacts
 python3 -m build
 ```
+
+Remarque :
+Lors de l'installation du paquet apt `python3-gdal`, une dépendance, peut demander des interactions de configuration. Pour installer dans un environnement non-interactif, définir la variable shell `DEBIAN_FRONTEND=noninteractive` permet d'adopter une configuration par défaut.
 
 ## Publier la librairie sur Pypi
 

@@ -7,7 +7,7 @@ The module contains the following class :
 """
 
 from osgeo import ogr
-from rok4.Storage import get_data_str, copy
+from rok4.Storage import get_osgeo_path, copy
 from rok4.Exceptions import *
 import os
 import tempfile
@@ -15,7 +15,8 @@ import tempfile
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
-class Vector :
+
+class Vector:
     """A data vector
 
     Attributes:
@@ -24,15 +25,29 @@ class Vector :
         layers (List[Tuple[str, int, List[Tuple[str, str]]]]) : Vector layers with their name, their number of objects and their attributes
     """
 
-    def __init__(self, path: str, delimiter: str = ";", column_x : str = "x" , column_y : str = "y", column_WKT : str = None) -> None :
-        """Constructor method for Shapefile, Geopackage, CSV and GeoJSON
+    @classmethod
+    def from_file(cls, path: str, **kwargs) -> "Vector":
+        """Constructor method of a Vector from a file (Shapefile, Geopackage, CSV and GeoJSON)
 
         Args:
-            path: path to the file/object
-            delimiter (only for CSV) : delimiter between fields
-            column_x (only for CSV) : field of the x coordinate
-            column_y (only for CSV) : field of the y coordinate
-            column_WKT (only for CSV if geometry in WKT) : field of the WKT of the geometry
+            path (str): path to the file/object
+            **csv (Dict[str : str]) : dictionnary of CSV parameters :
+                -srs (str) ("EPSG:2154" if not provided) : spatial reference system of the geometry
+                -column_x (str) ("x" if not provided) : field of the x coordinate
+                -column_y (str) ("y" if not provided) : field of the y coordinate
+                -column_wkt (str) (None if not provided) : field of the WKT of the geometry if WKT use to define coordinate
+
+        Examples:
+
+            from rok4.Vector import Vector
+
+            try:
+                vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")
+                vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
+                vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
+
+            except Exception as e:
+                print(f"Vector creation raises an exception: {exc}")
 
         Raises:
             MissingEnvironmentError: Missing object storage informations
@@ -44,58 +59,15 @@ class Vector :
 
         """
 
+        self = cls()
+
         self.path = path
 
         path_split = path.split("/")
 
-        if path.endswith(".csv") :
-
-            data = get_data_str(path)
-            data = data.split("\n")
-            for i in range (len(data)) :
-                data[i] = data[i].split(delimiter)
-
-            attributes = []
-            for i in range (len(data[0])) :
-                attributes += [(data[0][i] , "String")]
-            layers = [(path_split[-1][:-4], len(data)-1, attributes)]
-            self.layers = layers
-
-            geomcol = ogr.Geometry(ogr.wkbGeometryCollection)
-            if column_WKT == None :
-                try :
-                    data_x = data[0].index(column_x)
-                except :
-                    raise Exception(f"{column_x} is not a column of the CSV")
-
-                try :
-                    data_y = data[0].index(column_y)
-                except :
-                    raise Exception(f"{column_y} is not a column of the CSV")
-
-                for i in range (1, len(data)) :
-                    point = ogr.Geometry(ogr.wkbPoint)
-                    try :
-                        point.AddPoint(float(data[i][data_x]), float(data[i][data_y]))
-                    except :
-                        raise Exception(f"{column_x} or {column_y} contains data which are not coordinates")
-                    geomcol.AddGeometry(point)
-
-            else :
-                data_WKT = data[0].index(column_WKT)
-                for i in range (1, len(data)) :
-                    try :
-                        geom = ogr.CreateGeometryFromWkt(data[i][data_WKT])
-                    except :
-                        raise Exception(f"{column_WKT} contains data which are not WKT")
-                    geomcol.AddGeometry(geom)
-
-            self.bbox = geomcol.GetEnvelope()
-
-        else :
-
-            if path.endswith(".shp") :
-                with tempfile.TemporaryDirectory() as tmp :
+        if path_split[0] == "ceph:" or path.endswith(".csv"):
+            if path.endswith(".shp"):
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-4]
 
                     copy(path, "file://" + tmp_path + ".shp")
@@ -106,48 +78,142 @@ class Vector :
 
                     dataSource = ogr.Open(tmp_path + ".shp", 0)
 
-            elif path.endswith(".gpkg") :
-                with tempfile.TemporaryDirectory() as tmp :
+            elif path.endswith(".gpkg"):
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-5]
 
                     copy(path, "file://" + tmp_path + ".gpkg")
 
                     dataSource = ogr.Open(tmp_path + ".gpkg", 0)
 
-            elif path.endswith(".geojson") :
-                with tempfile.TemporaryDirectory() as tmp :
+            elif path.endswith(".geojson"):
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-8]
 
                     copy(path, "file://" + tmp_path + ".geojson")
 
                     dataSource = ogr.Open(tmp_path + ".geojson", 0)
 
-            else :
+            elif path.endswith(".csv"):
+                # Récupération des informations optionnelles
+                if "csv" in kwargs:
+                    csv = kwargs["csv"]
+                else:
+                    csv = {}
+
+                if "srs" in csv and csv["srs"] is not None:
+                    srs = csv["srs"]
+                else:
+                    srs = "EPSG:2154"
+
+                if "column_x" in csv and csv["column_x"] is not None:
+                    column_x = csv["column_x"]
+                else:
+                    column_x = "x"
+
+                if "column_y" in csv and csv["column_y"] is not None:
+                    column_y = csv["column_y"]
+                else:
+                    column_y = "y"
+
+                if "column_wkt" in csv:
+                    column_wkt = csv["column_wkt"]
+                else:
+                    column_wkt = None
+
+                with tempfile.TemporaryDirectory() as tmp:
+                    tmp_path = tmp + "/" + path_split[-1][:-4]
+                    name_fich = path_split[-1][:-4]
+
+                    copy(path, "file://" + tmp_path + ".csv")
+
+                    with tempfile.NamedTemporaryFile(
+                        mode="w", suffix=".vrt", dir=tmp, delete=False
+                    ) as tmp2:
+                        vrt_file = "<OGRVRTDataSource>\n"
+                        vrt_file += '<OGRVRTLayer name="' + name_fich + '">\n'
+                        vrt_file += "<SrcDataSource>" + tmp_path + ".csv</SrcDataSource>\n"
+                        vrt_file += "<SrcLayer>" + name_fich + "</SrcLayer>\n"
+                        vrt_file += "<LayerSRS>" + srs + "</LayerSRS>\n"
+                        if column_wkt == None:
+                            vrt_file += (
+                                '<GeometryField encoding="PointFromColumns" x="'
+                                + column_x
+                                + '" y="'
+                                + column_y
+                                + '"/>\n'
+                            )
+                        else:
+                            vrt_file += (
+                                '<GeometryField encoding="WKT" field="' + column_wkt + '"/>\n'
+                            )
+                        vrt_file += "</OGRVRTLayer>\n"
+                        vrt_file += "</OGRVRTDataSource>"
+                        tmp2.write(vrt_file)
+                    dataSourceVRT = ogr.Open(tmp2.name, 0)
+                    os.remove(tmp2.name)
+                    dataSource = ogr.GetDriverByName("ESRI Shapefile").CopyDataSource(
+                        dataSourceVRT, tmp_path + "shp"
+                    )
+
+            else:
                 raise Exception("This format of file cannot be loaded")
 
-            multipolygon = ogr.Geometry(ogr.wkbGeometryCollection)
+        else:
+            dataSource = ogr.Open(get_osgeo_path(path), 0)
+
+        multipolygon = ogr.Geometry(ogr.wkbGeometryCollection)
+        try:
+            layer = dataSource.GetLayer()
+        except AttributeError:
+            raise Exception(f"The content of {self.path} cannot be read")
+
+        layers = []
+        for i in range(dataSource.GetLayerCount()):
+            layer = dataSource.GetLayer(i)
+            name = layer.GetName()
+            count = layer.GetFeatureCount()
+            layerDefinition = layer.GetLayerDefn()
+            attributes = []
+            for j in range(layerDefinition.GetFieldCount()):
+                fieldName = layerDefinition.GetFieldDefn(j).GetName()
+                fieldTypeCode = layerDefinition.GetFieldDefn(j).GetType()
+                fieldType = layerDefinition.GetFieldDefn(j).GetFieldTypeName(fieldTypeCode)
+                attributes += [(fieldName, fieldType)]
+            for feature in layer:
+                geom = feature.GetGeometryRef()
+                if geom != None:
+                    multipolygon.AddGeometry(geom)
+            layers += [(name, count, attributes)]
+
+        self.layers = layers
+        self.bbox = multipolygon.GetEnvelope()
+
+        return self
+
+    @classmethod
+    def from_parameters(cls, path: str, bbox: tuple, layers: list) -> "Vector":
+        """Constructor method of a Vector from a parameters
+
+        Args:
+            path (str): path to the file/object
+            bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
+            layers (List[Tuple[str, int, List[Tuple[str, str]]]]) : Vector layers with their name, their number of objects and their attributes
+
+        Examples:
+
             try :
-                layer = dataSource.GetLayer()
-            except AttributeError :
-                raise Exception(f"The content of {self.path} cannot be read")
+                vector = Vector.from_parameters("file://tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
 
-            layers = []
-            for i in range (dataSource.GetLayerCount()) :
-                layer = dataSource.GetLayer(i)
-                name = layer.GetName()
-                count = layer.GetFeatureCount()
-                layerDefinition = layer.GetLayerDefn()
-                attributes = []
-                for i in range(layerDefinition.GetFieldCount()):
-                    fieldName =  layerDefinition.GetFieldDefn(i).GetName()
-                    fieldTypeCode = layerDefinition.GetFieldDefn(i).GetType()
-                    fieldType = layerDefinition.GetFieldDefn(i).GetFieldTypeName(fieldTypeCode)
-                    attributes += [(fieldName, fieldType)]
-                for feature in layer :
-                    geom = feature.GetGeometryRef()
-                    if geom != None :
-                        multipolygon.AddGeometry(geom)
-                layers += [(name, count, attributes)]
+            except Exception as e:
+                print(f"Vector creation raises an exception: {exc}")
 
-            self.layers = layers
-            self.bbox = multipolygon.GetEnvelope()
+        """
+
+        self = cls()
+
+        self.path = path
+        self.bbox = bbox
+        self.layers = layers
+
+        return self

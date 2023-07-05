@@ -18,6 +18,7 @@ from json.decoder import JSONDecodeError
 import json
 import os
 
+
 class TileMatrix:
     """A tile matrix is a tile matrix set's level.
 
@@ -30,7 +31,7 @@ class TileMatrix:
         matrix_size (Tuple[int, int]): Number of tile in the level, widthwise and heightwise.
     """
 
-    def __init__(self, level: Dict, tms: 'TileMatrixSet') -> None:
+    def __init__(self, level: Dict, tms: "TileMatrixSet") -> None:
         """Constructor method
 
         Args:
@@ -45,12 +46,25 @@ class TileMatrix:
         try:
             self.id = level["id"]
             if self.id.find("_") != -1:
-                raise Exception(f"TMS {tms.path} owns a level whom id contains an underscore ({self.id})")
+                raise Exception(
+                    f"TMS {tms.path} owns a level whom id contains an underscore ({self.id})"
+                )
             self.resolution = level["cellSize"]
-            self.origin = (level["pointOfOrigin"][0], level["pointOfOrigin"][1],)
-            self.tile_size = (level["tileWidth"], level["tileHeight"],)
-            self.matrix_size = (level["matrixWidth"], level["matrixHeight"],)
-            self.__latlon = (self.tms.sr.EPSGTreatsAsLatLong() or self.tms.sr.EPSGTreatsAsNorthingEasting())
+            self.origin = (
+                level["pointOfOrigin"][0],
+                level["pointOfOrigin"][1],
+            )
+            self.tile_size = (
+                level["tileWidth"],
+                level["tileHeight"],
+            )
+            self.matrix_size = (
+                level["matrixWidth"],
+                level["matrixHeight"],
+            )
+            self.__latlon = (
+                self.tms.sr.EPSGTreatsAsLatLong() or self.tms.sr.EPSGTreatsAsNorthingEasting()
+            )
         except KeyError as e:
             raise MissingAttributeError(tms.path, f"tileMatrices[].{e}")
 
@@ -76,7 +90,7 @@ class TileMatrix:
         """
         return int((self.origin[1] - y) / (self.resolution * self.tile_size[1]))
 
-    def tile_to_bbox(self, tile_col: int, tile_row: int) -> Tuple[float, float, float, float]:    
+    def tile_to_bbox(self, tile_col: int, tile_row: int) -> Tuple[float, float, float, float]:
         """Get tile terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
 
         TMS spatial reference is Lat / Lon case is handled.
@@ -93,17 +107,17 @@ class TileMatrix:
                 self.origin[1] - self.resolution * (tile_row + 1) * self.tile_size[1],
                 self.origin[0] + self.resolution * tile_col * self.tile_size[0],
                 self.origin[1] - self.resolution * tile_row * self.tile_size[1],
-                self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0]
+                self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0],
             )
         else:
             return (
                 self.origin[0] + self.resolution * tile_col * self.tile_size[0],
                 self.origin[1] - self.resolution * (tile_row + 1) * self.tile_size[1],
                 self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0],
-                self.origin[1] - self.resolution * tile_row * self.tile_size[1]
+                self.origin[1] - self.resolution * tile_row * self.tile_size[1],
             )
 
-    def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -> Tuple[int, int, int, int]:    
+    def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -> Tuple[int, int, int, int]:
         """Get extrems tile columns and rows corresponding to provided bounding box
 
         TMS spatial reference is Lat / Lon case is handled.
@@ -120,14 +134,14 @@ class TileMatrix:
                 self.x_to_column(bbox[1]),
                 self.y_to_row(bbox[2]),
                 self.x_to_column(bbox[3]),
-                self.y_to_row(bbox[0])
+                self.y_to_row(bbox[0]),
             )
         else:
             return (
                 self.x_to_column(bbox[0]),
                 self.y_to_row(bbox[3]),
                 self.x_to_column(bbox[2]),
-                self.y_to_row(bbox[1])
+                self.y_to_row(bbox[1]),
             )
 
     def point_to_indices(self, x: float, y: float) -> Tuple[int, int, int, int]:
@@ -141,8 +155,8 @@ class TileMatrix:
 
         Returns:
             Tuple[int, int, int, int]: tile's column, tile's row, pixel's (in the tile) column, pixel's row
-        """        
-        
+        """
+
         if self.__latlon:
             absolute_pixel_column = int((y - self.origin[0]) / self.resolution)
             absolute_pixel_row = int((self.origin[1] - x) / self.resolution)
@@ -150,7 +164,13 @@ class TileMatrix:
             absolute_pixel_column = int((x - self.origin[0]) / self.resolution)
             absolute_pixel_row = int((self.origin[1] - y) / self.resolution)
 
-        return absolute_pixel_column // self.tile_size[0], absolute_pixel_row // self.tile_size[1], absolute_pixel_column % self.tile_size[0], absolute_pixel_row % self.tile_size[1]
+        return (
+            absolute_pixel_column // self.tile_size[0],
+            absolute_pixel_row // self.tile_size[1],
+            absolute_pixel_column % self.tile_size[0],
+            absolute_pixel_row % self.tile_size[1],
+        )
+
 
 class TileMatrixSet:
     """A tile matrix set is multi levels grid definition
@@ -181,7 +201,7 @@ class TileMatrixSet:
         self.name = name
 
         try:
-            self.path = os.path.join(os.environ["ROK4_TMS_DIRECTORY"], f"{self.name}.json");
+            self.path = os.path.join(os.environ["ROK4_TMS_DIRECTORY"], f"{self.name}.json")
         except KeyError as e:
             raise MissingEnvironmentError(e)
 
@@ -200,7 +220,9 @@ class TileMatrixSet:
                 raise Exception(f"TMS '{self.path}' has no level")
 
             if data["orderedAxes"] != ["X", "Y"] and data["orderedAxes"] != ["Lon", "Lat"]:
-                raise Exception(f"TMS '{self.path}' own invalid axes order : only X/Y or Lon/Lat are handled")
+                raise Exception(
+                    f"TMS '{self.path}' own invalid axes order : only X/Y or Lon/Lat are handled"
+                )
 
         except JSONDecodeError as e:
             raise FormatError("JSON", self.path, e)
@@ -209,9 +231,11 @@ class TileMatrixSet:
             raise MissingAttributeError(self.path, e)
 
         except RuntimeError as e:
-            raise Exception(f"Wrong attribute 'crs' ('{self.srs}') in '{self.path}', not recognize by OSR")
+            raise Exception(
+                f"Wrong attribute 'crs' ('{self.srs}') in '{self.path}', not recognize by OSR"
+            )
 
-    def get_level(self, level_id: str) -> 'TileMatrix':
+    def get_level(self, level_id: str) -> "TileMatrix":
         """Get one level according to its identifier
 
         Args:
@@ -220,10 +244,9 @@ class TileMatrixSet:
         Returns:
             The corresponding tile matrix, None if not present
         """
-      
+
         return self.levels.get(level_id, None)
 
     @property
-    def sorted_levels(self) -> List[TileMatrix]: 
+    def sorted_levels(self) -> List[TileMatrix]:
         return sorted(self.levels.values(), key=lambda l: l.resolution)
-
