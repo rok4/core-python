@@ -1,8 +1,6 @@
 # Directives de contribution
 
-Tout d'abord, merci d'envisager de contribuer à ce projet !
-
-Il s'agit principalement de lignes directrices, et non de règles. Faites preuve de discernement, et n'hésitez pas à proposer des modifications à ce document dans une pull request.
+Merci d'envisager de contribuer à ce projet !
 
 ## Git hooks
 
@@ -10,11 +8,13 @@ Nous utilisons les git hooks via [pre-commit](https://pre-commit.com/) pour appl
 
 Voir le fichier de configuration correspondant : `.pre-commit-config.yaml`.
 
-## CHANGELOG
+## Changelog
 
 Pour éviter les conflits d'édition du changelog en cas de multiples contributions parallèles, n'éditez pas directement le fichier `CHANGELOG.md` sur votre branche de travail.
+
 A la place, indiquez en description ou commentaire de votre pull request, bien en évidence, le changelog qui concerne spécifiquement cette PR, avec le même formalisme que le fichier `CHANGELOG.md`.
-Le mainteneur qui validera la PR éditera alors ce fichier dans le même temps, avec deux objectifs :
+
+Lors de la release de la prochaine version, le mainteneur ajoutera vos notes de modifications dans le fichier `CHANGELOG.md` ce fichier dans le même temps, avec deux objectifs :
 
 * la date de modification sera celle de la fusion de branches.
 * le contenu pourra tenir compte de toutes les modifications depuis la dernière release.
@@ -22,6 +22,8 @@ Le mainteneur qui validera la PR éditera alors ce fichier dans le même temps, 
 Le formalisme du changelog est le suivant, en markdown :
 
 ```md
+Résumé des objectifs des modifications apportées
+
 ### [Added]
 
 Liste de nouvelles fonctionnalités.
