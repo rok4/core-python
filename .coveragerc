@@ -1,5 +1,5 @@
 [run]
-include = 
+include =
     */src/*
 omit =
     */__init__.py

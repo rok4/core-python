@@ -18,6 +18,7 @@ def test_srs_to_spatialreference_ignf_ok():
     except Exception as exc:
         assert False, f"SpatialReference creation raises an exception: {exc}"
 
+
 def test_srs_to_spatialreference_epsg_ok():
     try:
         sr = srs_to_spatialreference("EPSG:3857")
@@ -25,20 +26,24 @@ def test_srs_to_spatialreference_epsg_ok():
     except Exception as exc:
         assert False, f"SpatialReference creation raises an exception: {exc}"
 
+
 def test_srs_to_spatialreference_ignf_nok():
     with pytest.raises(Exception):
         sr = srs_to_spatialreference("IGNF:TOTO")
+
 
 def test_srs_to_spatialreference_epsg_nok():
     with pytest.raises(Exception):
         sr = srs_to_spatialreference("EPSG:123456")
 
+
 def test_bbox_to_geometry_ok():
     try:
-        geom = bbox_to_geometry((0,0,5,10))
+        geom = bbox_to_geometry((0, 0, 5, 10))
         assert geom.Area() == 50
     except Exception as exc:
         assert False, f"Geometry creation from bbox raises an exception: {exc}"
+
 
 def test_reproject_bbox_ok():
     try:
@@ -49,18 +54,19 @@ def test_reproject_bbox_ok():
     except Exception as exc:
         assert False, f"Bbox reprojection raises an exception: {exc}"
 
+
 def test_reproject_point_ok():
     try:
         sr_4326 = srs_to_spatialreference("EPSG:4326")
         sr_3857 = srs_to_spatialreference("EPSG:3857")
         sr_ignf = srs_to_spatialreference("IGNF:WGS84G")
-        x,y = reproject_point((43, 3), sr_4326, sr_3857)
+        x, y = reproject_point((43, 3), sr_4326, sr_3857)
 
         assert math.isclose(x, 333958.4723798207, rel_tol=1e-5)
         assert math.isclose(y, 5311971.846945471, rel_tol=1e-5)
 
-        x,y = reproject_point((43, 3), sr_4326, sr_ignf)
-        assert (x,y) == (3, 43)
+        x, y = reproject_point((43, 3), sr_4326, sr_ignf)
+        assert (x, y) == (3, 43)
 
         bbox = reproject_bbox((43, 3, 44, 4), "EPSG:4326", "IGNF:WGS84G")
         assert bbox[0] == 3
@@ -70,15 +76,13 @@ def test_reproject_point_ok():
 
 # Tests for the rok4.Utils.compute_bbox function.
 
+
 def test_compute_bbox_epsg_3857_ok():
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
         random.seed()
 
-        image_size = (
-            random.randint(1, 1000),
-            random.randint(1, 1000)
-        )
+        image_size = (random.randint(1, 1000), random.randint(1, 1000))
         mocked_datasource.RasterXSize = image_size[0]
         mocked_datasource.RasterYSize = image_size[1]
 
@@ -88,28 +92,27 @@ def test_compute_bbox_epsg_3857_ok():
             random.uniform(-10000, 10000),
             random.uniform(-10000000.0, 10000000.0),
             random.uniform(-10000, 10000),
-            random.uniform(-10000, 10000)
+            random.uniform(-10000, 10000),
         )
-        mocked_datasource.GetGeoTransform = Mock(return_value = transform_tuple)
+        mocked_datasource.GetGeoTransform = Mock(return_value=transform_tuple)
         mocked_spatial_ref = MagicMock(osr.SpatialReference)
-        mocked_spatial_ref.GetDataAxisToSRSAxisMapping = Mock(return_value = [1,2])
-        mocked_datasource.GetSpatialRef = Mock(return_value = mocked_spatial_ref)
+        mocked_spatial_ref.GetDataAxisToSRSAxisMapping = Mock(return_value=[1, 2])
+        mocked_datasource.GetSpatialRef = Mock(return_value=mocked_spatial_ref)
 
         x_range = (
             transform_tuple[0],
-            transform_tuple[0] + image_size[0] * transform_tuple[1] + image_size[1] * transform_tuple[2]
+            transform_tuple[0]
+            + image_size[0] * transform_tuple[1]
+            + image_size[1] * transform_tuple[2],
         )
         y_range = (
             transform_tuple[3],
-            transform_tuple[3] + image_size[0] * transform_tuple[4] + image_size[1] * transform_tuple[5]
+            transform_tuple[3]
+            + image_size[0] * transform_tuple[4]
+            + image_size[1] * transform_tuple[5],
         )
 
-        expected = (
-            min(x_range),
-            min(y_range),
-            max(x_range),
-            max(y_range)
-        )
+        expected = (min(x_range), min(y_range), max(x_range), max(y_range))
         result = compute_bbox(mocked_datasource)
         assert math.isclose(result[0], expected[0], rel_tol=1e-5)
         assert math.isclose(result[1], expected[1], rel_tol=1e-5)
@@ -126,10 +129,7 @@ def test_compute_bbox_epsg_4326_ok():
         mocked_datasource = MagicMock(gdal.Dataset)
         random.seed()
 
-        image_size = (
-            random.randint(1, 1000),
-            random.randint(1, 1000)
-        )
+        image_size = (random.randint(1, 1000), random.randint(1, 1000))
         mocked_datasource.RasterXSize = image_size[0]
         mocked_datasource.RasterYSize = image_size[1]
 
@@ -139,28 +139,27 @@ def test_compute_bbox_epsg_4326_ok():
             random.uniform(-10000, 10000),
             random.uniform(-10000000.0, 10000000.0),
             random.uniform(-10000, 10000),
-            random.uniform(-10000, 10000)
+            random.uniform(-10000, 10000),
         )
-        mocked_datasource.GetGeoTransform = Mock(return_value = transform_tuple)
+        mocked_datasource.GetGeoTransform = Mock(return_value=transform_tuple)
         mocked_spatial_ref = MagicMock(osr.SpatialReference)
-        mocked_spatial_ref.GetDataAxisToSRSAxisMapping = Mock(return_value = [2,1])
-        mocked_datasource.GetSpatialRef = Mock(return_value = mocked_spatial_ref)
+        mocked_spatial_ref.GetDataAxisToSRSAxisMapping = Mock(return_value=[2, 1])
+        mocked_datasource.GetSpatialRef = Mock(return_value=mocked_spatial_ref)
 
         x_range = (
             transform_tuple[0],
-            transform_tuple[0] + image_size[0] * transform_tuple[1] + image_size[1] * transform_tuple[2]
+            transform_tuple[0]
+            + image_size[0] * transform_tuple[1]
+            + image_size[1] * transform_tuple[2],
         )
         y_range = (
             transform_tuple[3],
-            transform_tuple[3] + image_size[0] * transform_tuple[4] + image_size[1] * transform_tuple[5]
+            transform_tuple[3]
+            + image_size[0] * transform_tuple[4]
+            + image_size[1] * transform_tuple[5],
         )
 
-        expected = (
-            min(y_range),
-            min(x_range),
-            max(y_range),
-            max(x_range)
-        )
+        expected = (min(y_range), min(x_range), max(y_range), max(x_range))
         result = compute_bbox(mocked_datasource)
         assert math.isclose(result[0], expected[0], rel_tol=1e-5)
         assert math.isclose(result[1], expected[1], rel_tol=1e-5)
@@ -177,10 +176,7 @@ def test_compute_bbox_no_srs_ok():
         mocked_datasource = MagicMock(gdal.Dataset)
         random.seed()
 
-        image_size = (
-            random.randint(1, 1000),
-            random.randint(1, 1000)
-        )
+        image_size = (random.randint(1, 1000), random.randint(1, 1000))
         mocked_datasource.RasterXSize = image_size[0]
         mocked_datasource.RasterYSize = image_size[1]
 
@@ -190,26 +186,25 @@ def test_compute_bbox_no_srs_ok():
             random.uniform(-10000, 10000),
             random.uniform(-10000000.0, 10000000.0),
             random.uniform(-10000, 10000),
-            random.uniform(-10000, 10000)
+            random.uniform(-10000, 10000),
         )
-        mocked_datasource.GetGeoTransform = Mock(return_value = transform_tuple)
-        mocked_datasource.GetSpatialRef = Mock(return_value = None)
+        mocked_datasource.GetGeoTransform = Mock(return_value=transform_tuple)
+        mocked_datasource.GetSpatialRef = Mock(return_value=None)
 
         x_range = (
             transform_tuple[0],
-            transform_tuple[0] + image_size[0] * transform_tuple[1] + image_size[1] * transform_tuple[2]
+            transform_tuple[0]
+            + image_size[0] * transform_tuple[1]
+            + image_size[1] * transform_tuple[2],
         )
         y_range = (
             transform_tuple[3],
-            transform_tuple[3] + image_size[0] * transform_tuple[4] + image_size[1] * transform_tuple[5]
+            transform_tuple[3]
+            + image_size[0] * transform_tuple[4]
+            + image_size[1] * transform_tuple[5],
         )
 
-        expected = (
-            min(x_range),
-            min(y_range),
-            max(x_range),
-            max(y_range)
-        )
+        expected = (min(x_range), min(y_range), max(x_range), max(y_range))
         result = compute_bbox(mocked_datasource)
         assert math.isclose(result[0], expected[0], rel_tol=1e-5)
         assert math.isclose(result[1], expected[1], rel_tol=1e-5)
@@ -222,11 +217,14 @@ def test_compute_bbox_no_srs_ok():
 
 # Tests for the rok4.Utils.compute_format function.
 
-@mock.patch('rok4.Utils.gdal.Info')
-@mock.patch('rok4.Utils.gdal.GetColorInterpretationName', return_value="Palette")
-@mock.patch('rok4.Utils.gdal.GetDataTypeSize', return_value=8)
-@mock.patch('rok4.Utils.gdal.GetDataTypeName', return_value="Byte")
-def test_compute_format_bit_ok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+
+@mock.patch("rok4.Utils.gdal.Info")
+@mock.patch("rok4.Utils.gdal.GetColorInterpretationName", return_value="Palette")
+@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=8)
+@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="Byte")
+def test_compute_format_bit_ok(
+    mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
+):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
 
@@ -249,14 +247,16 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch('rok4.Utils.gdal.Info')
-@mock.patch('rok4.Utils.gdal.GetColorInterpretationName')
-@mock.patch('rok4.Utils.gdal.GetDataTypeSize', return_value=8)
-@mock.patch('rok4.Utils.gdal.GetDataTypeName', return_value="Byte")
-def test_compute_format_uint8_ok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+@mock.patch("rok4.Utils.gdal.Info")
+@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=8)
+@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="Byte")
+def test_compute_format_uint8_ok(
+    mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
+):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
-        
+
         band_number = random.randint(1, 4)
         mocked_datasource.RasterCount = band_number
         band_name = None
@@ -284,14 +284,16 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch('rok4.Utils.gdal.Info')
-@mock.patch('rok4.Utils.gdal.GetColorInterpretationName')
-@mock.patch('rok4.Utils.gdal.GetDataTypeSize', return_value=32)
-@mock.patch('rok4.Utils.gdal.GetDataTypeName', return_value="Float32")
-def test_compute_format_float32_ok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+@mock.patch("rok4.Utils.gdal.Info")
+@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=32)
+@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="Float32")
+def test_compute_format_float32_ok(
+    mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
+):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
-        
+
         band_number = random.randint(1, 4)
         mocked_datasource.RasterCount = band_number
         band_name = None
@@ -319,11 +321,13 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch('rok4.Utils.gdal.Info')
-@mock.patch('rok4.Utils.gdal.GetColorInterpretationName')
-@mock.patch('rok4.Utils.gdal.GetDataTypeSize', return_value=16)
-@mock.patch('rok4.Utils.gdal.GetDataTypeName', return_value="UInt16")
-def test_compute_format_unsupported_nok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+@mock.patch("rok4.Utils.gdal.Info")
+@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=16)
+@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="UInt16")
+def test_compute_format_unsupported_nok(
+    mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
+):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
 
@@ -345,7 +349,7 @@ Image Structure Metadata:
 
         with pytest.raises(Exception):
             compute_format(mocked_datasource)
-        
+
         mocked_GetDataTypeName.assert_called()
         mocked_GetDataTypeSize.assert_called()
         mocked_GetColorInterpretationName.assert_called()
@@ -354,11 +358,13 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch('rok4.Utils.gdal.Info')
-@mock.patch('rok4.Utils.gdal.GetColorInterpretationName')
-@mock.patch('rok4.Utils.gdal.GetDataTypeSize', return_value=16)
-@mock.patch('rok4.Utils.gdal.GetDataTypeName', return_value="UInt16")
-def test_compute_format_no_band_nok(mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info):
+@mock.patch("rok4.Utils.gdal.Info")
+@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=16)
+@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="UInt16")
+def test_compute_format_no_band_nok(
+    mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
+):
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
 
@@ -373,4 +379,3 @@ def test_compute_format_no_band_nok(mocked_GetDataTypeName, mocked_GetDataTypeSi
         mocked_Info.assert_not_called()
     except Exception as exc:
         assert False, f"Color format computation raises an exception: {exc}"
-

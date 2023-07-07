@@ -23,8 +23,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }} 
-          release_name: Release ${{ github.ref_name }} 
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
@@ -135,7 +135,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Add tarball package to release
-        id: upload-release-targz 
+        id: upload-release-targz
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,7 +159,7 @@ jobs:
   commit_documentation:
     name: Add documentation and unit tests results into gh-pages branch
     needs: build_and_test
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')" 
+    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
     runs-on: ubuntu-latest
 
     steps:
@@ -208,7 +208,7 @@ jobs:
   delete_version:
     name: Remove release and tag if error occured
     needs: build_and_test
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status!='success')" 
+    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status!='success')"
     runs-on: ubuntu-latest
 
     steps:
@@ -219,4 +219,3 @@ jobs:
           delete_release: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
