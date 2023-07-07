@@ -15,15 +15,20 @@ gdal.UseExceptions()
 
 class ColorFormat(Enum):
     """A color format enumeration.
-    Except from "BIT", the member's name matches a common variable format name. The member's value is the allocated bit size associated to this format.
+    Except from "BIT", the member's name matches
+      a common variable format name. The member's value is
+      the allocated bit size associated to this format.
     """
+
     BIT = 1
     UINT8 = 8
     FLOAT32 = 32
 
 
 __SR_BOOK = {}
-def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
+
+
+def srs_to_spatialreference(srs: str) -> "osgeo.osr.SpatialReference":
     """Convert coordinates system as string to OSR spatial reference
 
     Using a cache, to instanciate a Spatial Reference from a string only once.
@@ -41,8 +46,7 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
     global __SR_BOOK
 
     if srs.upper() not in __SR_BOOK:
-
-        authority, code = srs.split(':', 1)
+        authority, code = srs.split(":", 1)
 
         sr = osr.SpatialReference()
         if authority.upper() == "EPSG":
@@ -52,10 +56,12 @@ def srs_to_spatialreference(srs: str) -> 'osgeo.osr.SpatialReference':
 
         __SR_BOOK[srs.upper()] = sr
 
-
     return __SR_BOOK[srs.upper()]
 
-def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int = 0) -> 'osgeo.ogr.Geometry':
+
+def bbox_to_geometry(
+    bbox: Tuple[float, float, float, float], densification: int = 0
+) -> "osgeo.ogr.Geometry":
     """Convert bbox coordinates to OGR geometry
 
     Args:
@@ -92,7 +98,6 @@ def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int
         ring.AddPoint(bbox[0], bbox[3])
         ring.AddPoint(bbox[0], bbox[1])
 
-
     geom = ogr.Geometry(ogr.wkbPolygon)
     geom.AddGeometry(ring)
     geom.SetCoordinateDimension(2)
@@ -100,8 +105,9 @@ def bbox_to_geometry(bbox: Tuple[float, float, float, float], densification: int
     return geom
 
 
-
-def reproject_bbox(bbox: Tuple[float, float, float, float], srs_src: str, srs_dst: str, densification: int = 5) -> Tuple[float, float, float, float]:
+def reproject_bbox(
+    bbox: Tuple[float, float, float, float], srs_src: str, srs_dst: str, densification: int = 5
+) -> Tuple[float, float, float, float]:
     """Return bounding box in other coordinates system
 
     Points are added to be sure output bounding box contains input bounding box
@@ -117,10 +123,10 @@ def reproject_bbox(bbox: Tuple[float, float, float, float], srs_src: str, srs_ds
     """
 
     sr_src = srs_to_spatialreference(srs_src)
-    sr_src_inv = (sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting())
+    sr_src_inv = sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting()
 
     sr_dst = srs_to_spatialreference(srs_dst)
-    sr_dst_inv = (sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting())
+    sr_dst_inv = sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting()
 
     if sr_src.IsSame(sr_dst) and sr_src_inv == sr_dst_inv:
         # Les système sont vraiment les même, avec le même ordre des axes
@@ -142,7 +148,11 @@ def reproject_bbox(bbox: Tuple[float, float, float, float], srs_src: str, srs_ds
     return (env[0], env[2], env[1], env[3])
 
 
-def reproject_point(point: Tuple[float, float], sr_src: 'osgeo.osr.SpatialReference', sr_dst: 'osgeo.osr.SpatialReference') -> Tuple[float, float]:
+def reproject_point(
+    point: Tuple[float, float],
+    sr_src: "osgeo.osr.SpatialReference",
+    sr_dst: "osgeo.osr.SpatialReference",
+) -> Tuple[float, float]:
     """Reproject a point
 
     Args:
@@ -154,8 +164,8 @@ def reproject_point(point: Tuple[float, float], sr_src: 'osgeo.osr.SpatialRefere
         Tuple[float, float]: X/Y in destination spatial reference
     """
 
-    sr_src_inv = (sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting())
-    sr_dst_inv = (sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting())
+    sr_src_inv = sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting()
+    sr_dst_inv = sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting()
 
     if sr_src.IsSame(sr_dst) and sr_src_inv == sr_dst_inv:
         # Les système sont vraiment les même, avec le même ordre des axes
@@ -171,11 +181,12 @@ def reproject_point(point: Tuple[float, float], sr_src: 'osgeo.osr.SpatialRefere
     return (x_dst, y_dst)
 
 
-def compute_bbox(source_dataset: gdal.Dataset) -> tuple:
+def compute_bbox(source_dataset: gdal.Dataset) -> Tuple:
     """Image boundingbox computing method
 
     Args:
-        source_dataset (gdal.Dataset): Dataset object created from the raster image
+        source_dataset (gdal.Dataset): Dataset instanciated
+          from the raster image
 
     Limitations:
         Image's axis must be parallel to SRS' axis
@@ -184,64 +195,49 @@ def compute_bbox(source_dataset: gdal.Dataset) -> tuple:
         AttributeError: source_dataset is not a gdal.Dataset instance.
         Exception: The dataset does not contain transform data.
     """
-
     bbox = None
     transform_vector = source_dataset.GetGeoTransform()
-
     if transform_vector is None:
-        raise Exception(f"No transform vector found in the dataset created from the following file : {source_dataset.GetFileList()[0]}")
-
+        raise Exception(
+            f"No transform vector found in the dataset created from "
+            + f"the following file : {source_dataset.GetFileList()[0]}"
+        )
     width = source_dataset.RasterXSize
     height = source_dataset.RasterYSize
-
     x_range = (
         transform_vector[0],
-        transform_vector[0] + width * transform_vector[1] + height * transform_vector[2]
+        transform_vector[0] + width * transform_vector[1] + height * transform_vector[2],
     )
-
     y_range = (
         transform_vector[3],
-        transform_vector[3] + width * transform_vector[4] + height * transform_vector[5]
+        transform_vector[3] + width * transform_vector[4] + height * transform_vector[5],
     )
-
     spatial_ref = source_dataset.GetSpatialRef()
     if spatial_ref is not None and spatial_ref.GetDataAxisToSRSAxisMapping() == [2, 1]:
-        # Coordonnées terrain de type (latitude, longitude) => on permute les coordonnées terrain par rapport à l'image
-        bbox = (
-            min(y_range),
-            min(x_range),
-            max(y_range),
-            max(x_range)
-        )
-    elif spatial_ref is None or spatial_ref.GetDataAxisToSRSAxisMapping() == [1, 2]:
-        # Coordonnées terrain de type (longitude, latitude) ou pas de SRS => les coordonnées terrain sont dans le même ordre que celle de l'image
-        bbox = (
-            min(x_range),
-            min(y_range),
-            max(x_range),
-            max(y_range)
-        )
-
+        # Coordonnées terrain de type (latitude, longitude)
+        # => on permute les coordonnées terrain par rapport à l'image
+        bbox = (min(y_range), min(x_range), max(y_range), max(x_range))
+    else:
+        # Coordonnées terrain de type (longitude, latitude) ou pas de SRS
+        # => les coordonnées terrain sont dans le même ordre que celle de l'image
+        bbox = (min(x_range), min(y_range), max(x_range), max(y_range))
     return bbox
 
 
-def compute_format(dataset: gdal.Dataset, path: str = None) -> 'ColorFormat':
+def compute_format(dataset: gdal.Dataset, path: str = None) -> ColorFormat:
     """Image color format computing method
 
     Args:
-        dataset (gdal.Dataset): Dataset object created from the raster image
+        dataset (gdal.Dataset): Dataset instanciated from the image
         path (str, optionnal): path to the original file/object
 
     Raises:
         AttributeError: source_dataset is not a gdal.Dataset instance.
-        Exception: Image has no color band or its color format is unsupported.
+        Exception: No color band found or unsupported color format.
     """
-
-    format = None
-
+    color_format = None
     if path is None:
         path = dataset.GetFileList()[0]
-
     if dataset.RasterCount < 1:
         raise Exception(f"Image {path} contains no color band.")
 
@@ -252,16 +248,23 @@ def compute_format(dataset: gdal.Dataset, path: str = None) -> 'ColorFormat':
     color_name = None
     if color_interpretation is not None:
         color_name = gdal.GetColorInterpretationName(color_interpretation)
-    compression_regex_match = re.search(r'COMPRESSION\s*=\s*PACKBITS', gdal.Info(dataset))
+    compression_regex_match = re.search(r"COMPRESSION\s*=\s*PACKBITS", gdal.Info(dataset))
 
-
-    if data_type_name == "Byte" and data_type_size == 8 and color_name == "Palette" and compression_regex_match:
-        format = ColorFormat.BIT
+    if (
+        data_type_name == "Byte"
+        and data_type_size == 8
+        and color_name == "Palette"
+        and compression_regex_match
+    ):
+        # Compris par libTIFF comme du noir et blanc sur 1 bit
+        color_format = ColorFormat.BIT
     elif data_type_name == "Byte" and data_type_size == 8:
-        format = ColorFormat.UINT8
+        color_format = ColorFormat.UINT8
     elif data_type_name == "Float32" and data_type_size == 32:
-        format = ColorFormat.FLOAT32
+        color_format = ColorFormat.FLOAT32
     else:
-        raise Exception(f"Unsupported color format for image {path} : '{data_type_name}' ({data_type_size} bits)")
-
-    return format
+        raise Exception(
+            f"Unsupported color format for image {path} : "
+            + f"'{data_type_name}' ({data_type_size} bits)"
+        )
+    return color_format

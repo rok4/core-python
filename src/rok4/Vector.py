@@ -15,7 +15,8 @@ import tempfile
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
-class Vector :
+
+class Vector:
     """A data vector
 
     Attributes:
@@ -25,7 +26,7 @@ class Vector :
     """
 
     @classmethod
-    def from_file(cls, path: str, **kwargs) -> 'Vector' :
+    def from_file(cls, path: str, **kwargs) -> "Vector":
         """Constructor method of a Vector from a file (Shapefile, Geopackage, CSV and GeoJSON)
 
         Args:
@@ -65,9 +66,8 @@ class Vector :
         path_split = path.split("/")
 
         if path_split[0] == "ceph:" or path.endswith(".csv"):
-
-            if path.endswith(".shp") :
-                with tempfile.TemporaryDirectory() as tmp :
+            if path.endswith(".shp"):
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-4]
 
                     copy(path, "file://" + tmp_path + ".shp")
@@ -78,99 +78,111 @@ class Vector :
 
                     dataSource = ogr.Open(tmp_path + ".shp", 0)
 
-            elif path.endswith(".gpkg") :
-                with tempfile.TemporaryDirectory() as tmp :
+            elif path.endswith(".gpkg"):
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-5]
 
                     copy(path, "file://" + tmp_path + ".gpkg")
 
                     dataSource = ogr.Open(tmp_path + ".gpkg", 0)
 
-            elif path.endswith(".geojson") :
-                with tempfile.TemporaryDirectory() as tmp :
+            elif path.endswith(".geojson"):
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-8]
 
                     copy(path, "file://" + tmp_path + ".geojson")
 
                     dataSource = ogr.Open(tmp_path + ".geojson", 0)
 
-            elif path.endswith(".csv") :
+            elif path.endswith(".csv"):
                 # Récupération des informations optionnelles
-                if "csv" in kwargs :
+                if "csv" in kwargs:
                     csv = kwargs["csv"]
-                else :
+                else:
                     csv = {}
 
-                if "srs" in csv and csv["srs"] is not None :
+                if "srs" in csv and csv["srs"] is not None:
                     srs = csv["srs"]
-                else :
+                else:
                     srs = "EPSG:2154"
 
-                if "column_x" in csv and csv["column_x"] is not None :
+                if "column_x" in csv and csv["column_x"] is not None:
                     column_x = csv["column_x"]
-                else :
+                else:
                     column_x = "x"
 
-                if "column_y" in csv and csv["column_y"] is not None :
+                if "column_y" in csv and csv["column_y"] is not None:
                     column_y = csv["column_y"]
-                else :
+                else:
                     column_y = "y"
 
-                if "column_wkt" in csv :
+                if "column_wkt" in csv:
                     column_wkt = csv["column_wkt"]
-                else :
+                else:
                     column_wkt = None
 
-                with tempfile.TemporaryDirectory() as tmp :
+                with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = tmp + "/" + path_split[-1][:-4]
                     name_fich = path_split[-1][:-4]
 
                     copy(path, "file://" + tmp_path + ".csv")
 
-                    with tempfile.NamedTemporaryFile(mode='w', suffix=".vrt", dir=tmp, delete=False) as tmp2 :
+                    with tempfile.NamedTemporaryFile(
+                        mode="w", suffix=".vrt", dir=tmp, delete=False
+                    ) as tmp2:
                         vrt_file = "<OGRVRTDataSource>\n"
                         vrt_file += '<OGRVRTLayer name="' + name_fich + '">\n'
                         vrt_file += "<SrcDataSource>" + tmp_path + ".csv</SrcDataSource>\n"
                         vrt_file += "<SrcLayer>" + name_fich + "</SrcLayer>\n"
                         vrt_file += "<LayerSRS>" + srs + "</LayerSRS>\n"
-                        if column_wkt == None :
-                            vrt_file += '<GeometryField encoding="PointFromColumns" x="' + column_x + '" y="' + column_y + '"/>\n'
-                        else :
-                            vrt_file += '<GeometryField encoding="WKT" field="' + column_wkt + '"/>\n'
+                        if column_wkt == None:
+                            vrt_file += (
+                                '<GeometryField encoding="PointFromColumns" x="'
+                                + column_x
+                                + '" y="'
+                                + column_y
+                                + '"/>\n'
+                            )
+                        else:
+                            vrt_file += (
+                                '<GeometryField encoding="WKT" field="' + column_wkt + '"/>\n'
+                            )
                         vrt_file += "</OGRVRTLayer>\n"
                         vrt_file += "</OGRVRTDataSource>"
                         tmp2.write(vrt_file)
                     dataSourceVRT = ogr.Open(tmp2.name, 0)
                     os.remove(tmp2.name)
-                    dataSource=ogr.GetDriverByName("ESRI Shapefile").CopyDataSource(dataSourceVRT, tmp_path + "shp")
+                    dataSource = ogr.GetDriverByName("ESRI Shapefile").CopyDataSource(
+                        dataSourceVRT, tmp_path + "shp"
+                    )
 
-            else :
+            else:
                 raise Exception("This format of file cannot be loaded")
 
-        else :
+        else:
             dataSource = ogr.Open(get_osgeo_path(path), 0)
 
         multipolygon = ogr.Geometry(ogr.wkbGeometryCollection)
-        try :
+        try:
             layer = dataSource.GetLayer()
-        except AttributeError :
+        except AttributeError:
             raise Exception(f"The content of {self.path} cannot be read")
 
         layers = []
-        for i in range (dataSource.GetLayerCount()) :
+        for i in range(dataSource.GetLayerCount()):
             layer = dataSource.GetLayer(i)
             name = layer.GetName()
             count = layer.GetFeatureCount()
             layerDefinition = layer.GetLayerDefn()
             attributes = []
             for j in range(layerDefinition.GetFieldCount()):
-                fieldName =  layerDefinition.GetFieldDefn(j).GetName()
+                fieldName = layerDefinition.GetFieldDefn(j).GetName()
                 fieldTypeCode = layerDefinition.GetFieldDefn(j).GetType()
                 fieldType = layerDefinition.GetFieldDefn(j).GetFieldTypeName(fieldTypeCode)
                 attributes += [(fieldName, fieldType)]
-            for feature in layer :
+            for feature in layer:
                 geom = feature.GetGeometryRef()
-                if geom != None :
+                if geom != None:
                     multipolygon.AddGeometry(geom)
             layers += [(name, count, attributes)]
 
@@ -180,7 +192,7 @@ class Vector :
         return self
 
     @classmethod
-    def from_parameters(cls, path: str, bbox : tuple, layers : list) -> 'Vector' :
+    def from_parameters(cls, path: str, bbox: tuple, layers: list) -> "Vector":
         """Constructor method of a Vector from a parameters
 
         Args:
