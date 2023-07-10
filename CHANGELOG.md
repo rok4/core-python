@@ -1,3 +1,41 @@
+## 1.7.1
+
+### [Added]
+
+* Raster
+    * Classe RasterSet, réprésentant une collection d'objets de la classe Raster, avec des informations supplémentaires
+    * Méthodes d'import et export des informations extraites par une instance RasterSet, au travers d'un descripteur (fichier ou objet json, voire sortie standard)
+    * Documentation interne
+    * Tests unitaires pour la classe RasterSet
+    * Classe Raster : constructeur à partir des paramètres
+  
+* Pyramid
+    * Fonction de calcul de la taille d'une pyramide
+    * Générateur de lecture de la liste du contenu
+
+* Storage
+    * Fonction de calcul de la taille des fichiers d'un chemin selon le stockage
+    * Ajout de la copie de HTTP vers FILE/S3/CEPH
+    * Ajout de la fonction de lecture d'un fichier HTTP, de l'existence d'un fichier HTTP et du calcul de taille d'un fichier HTTP
+
+### [Changed]
+
+* Raster
+    * Homogénéisation du code
+    * Mise en conformité PEP-8
+* test_Raster
+    * Homogénéisation du code
+    * Mise en conformité PEP-8
+* Utils
+    * Mise en conformité PEP-8 des fonctions `compute_bbox` et `compute_format`
+
+
+### [Fixed]
+
+* Utils
+    * Correction d'un nom de variable dans la fonction `compute_format`, qui écrasait une fonction du noyau python.
+
+
 
 ## 1.6.0
 

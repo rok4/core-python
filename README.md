@@ -4,11 +4,6 @@
 
 Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
 
-- [Installer la librairie](#installer-la-librairie)
-- [Utiliser la librairie](#utiliser-la-librairie)
-- [Compiler la librairie](#compiler-la-librairie)
-- [Publier la librairie sur Pypi](#publier-la-librairie-sur-pypi)
-
 ## Installer la librairie
 
 Installations système requises :
@@ -73,6 +68,7 @@ python3 -m build
 ```
 
 Remarque :
+
 Lors de l'installation du paquet apt `python3-gdal`, une dépendance, peut demander des interactions de configuration. Pour installer dans un environnement non-interactif, définir la variable shell `DEBIAN_FRONTEND=noninteractive` permet d'adopter une configuration par défaut.
 
 ## Publier la librairie sur Pypi

@@ -8,22 +8,13 @@ Nous utilisons les git hooks via [pre-commit](https://pre-commit.com/) pour appl
 
 Voir le fichier de configuration correspondant : `.pre-commit-config.yaml`.
 
-## Changelog
+## Pull request
 
-Pour éviter les conflits d'édition du changelog en cas de multiples contributions parallèles, n'éditez pas directement le fichier `CHANGELOG.md` sur votre branche de travail.
-
-A la place, indiquez en description ou commentaire de votre pull request, bien en évidence, le changelog qui concerne spécifiquement cette PR, avec le même formalisme que le fichier `CHANGELOG.md`.
-
-Lors de la release de la prochaine version, le mainteneur ajoutera vos notes de modifications dans le fichier `CHANGELOG.md` ce fichier dans le même temps, avec deux objectifs :
-
-* la date de modification sera celle de la fusion de branches.
-* le contenu pourra tenir compte de toutes les modifications depuis la dernière release.
+Le titre de la PR est utilisé pour constituer automatiquement les notes de release. Vous pouvez préciser en commentaire de votre PR des détails qui seront ajoutés dans le fichier `CHANGELOG.md` par les mainteneurs du projet.
 
 Le formalisme du changelog est le suivant, en markdown :
 
 ```md
-Résumé des objectifs des modifications apportées
-
 ### [Added]
 
 Liste de nouvelles fonctionnalités.
