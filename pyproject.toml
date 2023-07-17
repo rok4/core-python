@@ -55,7 +55,7 @@ test = [
 [project.urls]
 "Homepage" = "https://rok4.github.io/core-python"
 "Bug Reports" = "https://github.com/rok4/core-python/issues"
-"Changelog" = "https://github.com/rok4/core-python/releases"
+"Changelog" = "https://rok4.github.io/core-python/versions/"
 "Source" = "https://github.com/rok4/core-python"
 
 [build-system]
