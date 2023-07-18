@@ -1,13 +1,15 @@
+import os
+from unittest import mock
+from unittest.mock import *
+
+import pytest
+
+from rok4.Exceptions import *
 from rok4.Pyramid import *
 from rok4.TileMatrixSet import TileMatrixSet
 from rok4.enums import SlabType, StorageType
-from rok4.Utils import *
-from rok4.Exceptions import *
 
-import pytest
-import os
-from unittest.mock import *
-from unittest import mock
+from rok4.Utils import *
 
 
 @mock.patch("rok4.Pyramid.get_data_str", side_effect=StorageError("FILE", "Not found"))

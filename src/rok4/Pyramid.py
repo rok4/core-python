@@ -6,20 +6,21 @@ The module contains the following classes:
 - `Level` - Level of a pyramid
 """
 
-from typing import Dict, List, Tuple, Union, Iterator
+import io
 import json
-from json.decoder import JSONDecodeError
 import os
 import re
-import numpy
 import zlib
-import io
+from json.decoder import JSONDecodeError
+from typing import Dict, Iterator, List, Tuple, Union
+
 import mapbox_vector_tile
+import numpy
 from PIL import Image
 
 from rok4.Exceptions import *
-from rok4.TileMatrixSet import TileMatrixSet, TileMatrix
 from rok4.Storage import *
+from rok4.TileMatrixSet import TileMatrix, TileMatrixSet
 from rok4.Utils import *
 from rok4.enums import PyramidType, SlabType, StorageType
 
@@ -768,7 +769,7 @@ class Pyramid:
             roots = {}
             s3_cluster = self.storage_s3_cluster
 
-            with open(list_file, "r") as listin:
+            with open(list_file) as listin:
                 # Lecture des racines
                 for line in listin:
                     line = line.rstrip()

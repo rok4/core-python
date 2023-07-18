@@ -30,17 +30,18 @@ Example: work with 2 S3 clusters:
 To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used
 """
 
-import boto3
-import botocore.exceptions
-import tempfile
-import re
-import os
-import rados
 import hashlib
-import requests
-from typing import Dict, List, Tuple, Union
+import os
+import re
+import tempfile
 from enum import Enum
 from shutil import copyfile
+from typing import Dict, List, Tuple, Union
+
+import boto3
+import botocore.exceptions
+import rados
+import requests
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -933,11 +934,9 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
         try:
             target_s3_client["client"].put_object(
-                Body=f"{__OBJECT_SYMLINK_SIGNATURE}{target_bucket}/{target_base_name}".encode(
-                    "utf-8"
-                ),
-                Bucket=link_bucket,
-                Key=link_base_name,
+                Body = f"{__OBJECT_SYMLINK_SIGNATURE}{target_bucket}/{target_base_name}".encode(),
+                Bucket = link_bucket,
+                Key = link_base_name
             )
         except Exception as e:
             raise StorageError("S3", e)
@@ -946,9 +945,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
         ioctx = __get_ceph_ioctx(link_tray)
 
         try:
-            ioctx.write_full(
-                link_base_name, f"{__OBJECT_SYMLINK_SIGNATURE}{target_path}".encode("utf-8")
-            )
+            ioctx.write_full(link_base_name, f"{__OBJECT_SYMLINK_SIGNATURE}{target_path}".encode())
         except Exception as e:
             raise StorageError("CEPH", e)
 

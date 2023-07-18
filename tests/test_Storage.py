@@ -1,15 +1,14 @@
-from rok4.Storage import *
-from rok4.Exceptions import *
-from rok4.enums import StorageType
-
-import pytest
 import os
-
-import botocore.exceptions
-from rados import ObjectNotFound
-
 from unittest import mock
 from unittest.mock import *
+
+import botocore.exceptions
+import pytest
+from rados import ObjectNotFound
+
+from rok4.Exceptions import *
+from rok4.Storage import *
+from rok4.enums import StorageType
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
