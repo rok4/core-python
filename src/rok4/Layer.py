@@ -12,10 +12,11 @@ from json.decoder import JSONDecodeError
 from typing import Dict, List, Tuple, Union
 
 from rok4.Exceptions import *
-from rok4.Pyramid import Pyramid, PyramidType
-from rok4.Storage import *
+from rok4.Pyramid import Pyramid
 from rok4.TileMatrixSet import TileMatrixSet
+from rok4.Storage import *
 from rok4.Utils import *
+from rok4.enums import PyramidType
 
 
 class Layer:

@@ -6,7 +6,7 @@ import pytest
 
 from rok4.Exceptions import *
 from rok4.Layer import Layer
-from rok4.Pyramid import PyramidType
+from rok4.enums import PyramidType
 
 
 @mock.patch.dict(os.environ, {}, clear=True)

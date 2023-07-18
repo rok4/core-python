@@ -8,6 +8,7 @@ from rados import ObjectNotFound
 
 from rok4.Exceptions import *
 from rok4.Storage import *
+from rok4.enums import StorageType
 
 
 @mock.patch.dict(os.environ, {}, clear=True)

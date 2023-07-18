@@ -46,15 +46,8 @@ from osgeo import gdal
 
 gdal.UseExceptions()
 
+from rok4.enums import StorageType
 from rok4.Exceptions import *
-
-
-class StorageType(Enum):
-    FILE = "file://"
-    S3 = "s3://"
-    CEPH = "ceph://"
-    HTTP = "http://"
-    HTTPS = "https://"
 
 
 __S3_CLIENTS = {}
