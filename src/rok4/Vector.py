@@ -6,11 +6,13 @@ The module contains the following class :
 
 """
 
-from osgeo import ogr
-from rok4.Storage import get_osgeo_path, copy
-from rok4.Exceptions import *
 import os
 import tempfile
+
+from osgeo import ogr
+
+from rok4.Exceptions import *
+from rok4.Storage import copy, get_osgeo_path
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()

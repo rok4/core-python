@@ -5,16 +5,16 @@ The module contains the following classe:
 - `Layer` - Descriptor to broadcast pyramids' data
 """
 
-from typing import Dict, List, Tuple, Union
 import json
-from json.decoder import JSONDecodeError
 import os
 import re
+from json.decoder import JSONDecodeError
+from typing import Dict, List, Tuple, Union
 
 from rok4.Exceptions import *
 from rok4.Pyramid import Pyramid, PyramidType
-from rok4.TileMatrixSet import TileMatrixSet
 from rok4.Storage import *
+from rok4.TileMatrixSet import TileMatrixSet
 from rok4.Utils import *
 
 
