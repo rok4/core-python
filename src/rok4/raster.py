@@ -14,8 +14,9 @@ from typing import Dict, Tuple
 
 from osgeo import gdal, ogr
 
-from rok4.Storage import exists, get_osgeo_path, put_data_str
-from rok4.Utils import ColorFormat, compute_bbox, compute_format
+from rok4.storage import exists, get_osgeo_path, put_data_str
+from rok4.utils import compute_bbox, compute_format
+from rok4.enums import ColorFormat
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
@@ -59,7 +60,7 @@ class Raster:
 
             Loading informations from a file stored raster TIFF image
 
-                from rok4.Raster import Raster
+                from rok4.raster import Raster
 
                 try:
                     raster = Raster.from_file(
@@ -141,7 +142,7 @@ class Raster:
             Loading informations from parameters, related to
               a TIFF main image coupled to a TIFF mask image
 
-                from rok4.Raster import Raster
+                from rok4.raster import Raster
 
                 try:
                     raster = Raster.from_parameters(
@@ -213,7 +214,7 @@ class RasterSet:
 
             Loading informations from a file stored list
 
-                from rok4.Raster import RasterSet
+                from rok4.raster import RasterSet
 
                 try:
                     raster_set = RasterSet.from_list(
@@ -276,7 +277,7 @@ class RasterSet:
 
             Loading informations from a file stored descriptor
 
-                from rok4.Raster import RasterSet
+                from rok4.raster import RasterSet
 
                 try:
                     raster_set = RasterSet.from_descriptor(

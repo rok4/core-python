@@ -13,6 +13,7 @@ ogr.UseExceptions()
 osr.UseExceptions()
 gdal.UseExceptions()
 
+from rok4.enums import ColorFormat
 
 __SR_BOOK = {}
 

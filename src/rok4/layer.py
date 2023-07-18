@@ -5,17 +5,17 @@ The module contains the following classe:
 - `Layer` - Descriptor to broadcast pyramids' data
 """
 
+from typing import Dict, List, Tuple, Union
 import json
+from json.decoder import JSONDecodeError
 import os
 import re
-from json.decoder import JSONDecodeError
-from typing import Dict, List, Tuple, Union
 
-from rok4.Exceptions import *
-from rok4.Pyramid import Pyramid
-from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Storage import *
-from rok4.Utils import *
+from rok4.exceptions import *
+from rok4.pyramid import Pyramid, PyramidType
+from rok4.tile_matrix_set import TileMatrixSet
+from rok4.storage import *
+from rok4.utils import *
 from rok4.enums import PyramidType
 
 
@@ -24,12 +24,12 @@ class Layer:
 
     Attributes:
         __name (str): layer's technical name
-        __pyramids (Dict[str, Union[rok4.Pyramid.Pyramid,str,str]]): used pyramids
+        __pyramids (Dict[str, Union[rok4.pyramid.Pyramid,str,str]]): used pyramids
         __format (str): pyramid's list path
-        __tms (rok4.TileMatrixSet.TileMatrixSet): Used grid
+        __tms (rok4.tile_matrix_set.TileMatrixSet): Used grid
         __keywords (List[str]): Keywords
-        __levels (Dict[str, rok4.Pyramid.Level]): Used pyramids' levels
-        __best_level (rok4.Pyramid.Level): Used pyramids best level
+        __levels (Dict[str, rok4.pyramid.Level]): Used pyramids' levels
+        __best_level (rok4.pyramid.Level): Used pyramids best level
         __resampling (str): Interpolation to use fot resampling
         __bbox (Tuple[float, float, float, float]): data bounding box, TMS coordinates system
         __geobbox (Tuple[float, float, float, float]): data bounding box, EPSG:4326

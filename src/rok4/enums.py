@@ -19,10 +19,21 @@ class SlabType(Enum):
 
 
 class StorageType(Enum):
-    """Matrice de correspondance entre type de stockage et protocole."""
+    """Storage type and path's protocol"""
 
     CEPH = "ceph://"
     FILE = "file://"
     HTTP = "http://"
     HTTPS = "https://"
     S3 = "s3://"
+
+class ColorFormat(Enum):
+    """A color format enumeration.
+    Except from "BIT", the member's name matches
+      a common variable format name. The member's value is
+      the allocated bit size associated to this format.
+    """
+
+    BIT = 1
+    UINT8 = 8
+    FLOAT32 = 32
