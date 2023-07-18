@@ -21,21 +21,7 @@ from rok4.exceptions import *
 from rok4.tile_matrix_set import TileMatrixSet, TileMatrix
 from rok4.storage import *
 from rok4.utils import *
-
-
-class PyramidType(Enum):
-    """Pyramid's data type"""
-
-    RASTER = "RASTER"
-    VECTOR = "VECTOR"
-
-
-class SlabType(Enum):
-    """Slab's type"""
-
-    DATA = "DATA"  # Slab of data, raster or vector
-    MASK = "MASK"  # Slab of mask, only for raster pyramid, image with one band : 0 is nodata, other values are data
-
+from rok4.enums import PyramidType, SlabType, StorageType
 
 ROK4_IMAGE_HEADER_SIZE = 2048
 """Slab's header size, 2048 bytes"""
@@ -372,10 +358,10 @@ class Pyramid:
         __name (str): pyramid's name
         __descriptor (str): pyramid's descriptor path
         __list (str): pyramid's list path
-        __tms (rok4.TileMatrixSet.TileMatrixSet): Used grid
+        __tms (rok4.tile_matrix_set.TileMatrixSet): Used grid
         __levels (Dict[str, Level]): Pyramid's levels
         __format (str): Data format
-        __storage (Dict[str, Union[rok4.Storage.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
+        __storage (Dict[str, Union[rok4.storage.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
         __raster_specifications (Dict): If raster pyramid, raster specifications
         __content (Dict): Loading status (loaded) and list content (cache).
 
@@ -412,7 +398,7 @@ class Pyramid:
 
             S3 stored descriptor
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
@@ -549,8 +535,11 @@ class Pyramid:
         Returns:
             Dict: descriptor structured object description
         """
-
-        serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
+        
+        serialization = {
+            "tile_matrix_set": self.__tms.name,
+            "format": self.__format
+        }
 
         serialization["levels"] = []
         sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
@@ -667,6 +656,7 @@ class Pyramid:
 
     @property
     def tile_extension(self) -> str:
+
         if self.__format in [
             "TIFF_RAW_UINT8",
             "TIFF_LZW_UINT8",
@@ -741,8 +731,8 @@ class Pyramid:
 
             S3 stored descriptor
 
-                from rok4.Pyramid import Pyramid
-
+                from rok4.pyramid import Pyramid
+                
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
 
@@ -766,7 +756,10 @@ class Pyramid:
                         'slab': 'DATA_18_5424_7526'
                     }
                 )
-
+                
+        Raises:
+            StorageError: Unhandled pyramid storage to copy list
+            MissingEnvironmentError: Missing object storage informations
         """
         if self.__content["loaded"]:
             for slab, infos in self.__content["cache"].items():
@@ -848,7 +841,7 @@ class Pyramid:
 
             All levels
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
@@ -859,7 +852,7 @@ class Pyramid:
 
             From pyramid's bottom to provided top (level 5)
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
@@ -930,7 +923,7 @@ class Pyramid:
 
             FILE stored pyramid
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("/path/to/descriptor.json")
@@ -941,7 +934,7 @@ class Pyramid:
 
             S3 stored pyramid
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/pyramid.json")
@@ -1035,7 +1028,7 @@ class Pyramid:
 
             FILE stored raster pyramid, to extract a tile containing a point and save it as independent image
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("/data/pyramids/SCAN1000.json")
@@ -1147,7 +1140,7 @@ class Pyramid:
 
             FILE stored DTM (raster) pyramid, to get the altitude value at a point in the best level
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("/data/pyramids/RGEALTI.json")
@@ -1177,6 +1170,7 @@ class Pyramid:
         level_object = self.get_level(level)
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
+
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
@@ -1258,7 +1252,8 @@ class Pyramid:
 
             S3 stored vector pyramid, to print a tile as GeoJSON
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
+
                 import json
 
                 try:
@@ -1319,7 +1314,7 @@ class Pyramid:
 
             FILE stored DTM (raster) pyramid, to get the altitude value at a point in the best level
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("/data/pyramids/RGEALTI.json")
@@ -1361,7 +1356,7 @@ class Pyramid:
 
         Examples:
 
-                from rok4.Pyramid import Pyramid
+                from rok4.pyramid import Pyramid
 
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
@@ -1373,8 +1368,10 @@ class Pyramid:
         Returns:
             int: size of the pyramid
         """
+        
         if not hasattr(self, "_Pyramid__size"):
             self.__size = size_path(
                 get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name)
             )
+      
         return self.__size

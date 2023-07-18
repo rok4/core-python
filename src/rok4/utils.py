@@ -5,25 +5,14 @@ import os
 import re
 
 from typing import Dict, List, Tuple, Union
-from osgeo import ogr, osr, gdal
-from enum import Enum
+
+from osgeo import gdal, ogr, osr
 
 ogr.UseExceptions()
 osr.UseExceptions()
 gdal.UseExceptions()
 
-
-class ColorFormat(Enum):
-    """A color format enumeration.
-    Except from "BIT", the member's name matches
-      a common variable format name. The member's value is
-      the allocated bit size associated to this format.
-    """
-
-    BIT = 1
-    UINT8 = 8
-    FLOAT32 = 32
-
+from rok4.enums import ColorFormat
 
 __SR_BOOK = {}
 
