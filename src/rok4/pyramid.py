@@ -759,7 +759,9 @@ class Pyramid:
                         'slab': 'DATA_18_5424_7526'
                     }
                 )
-
+        Raises:
+            StorageError: Unhandled pyramid storage to copy list
+            MissingEnvironmentError: Missing object storage informations
         """
         if self.__content["loaded"]:
             for slab, infos in self.__content["cache"].items():
