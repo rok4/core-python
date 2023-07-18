@@ -11,11 +11,11 @@ from json.decoder import JSONDecodeError
 import os
 import re
 
-from rok4.Exceptions import *
-from rok4.Pyramid import Pyramid, PyramidType
-from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Storage import *
-from rok4.Utils import *
+from rok4.exceptions import *
+from rok4.pyramid import Pyramid, PyramidType
+from rok4.tile_matrix_set import TileMatrixSet
+from rok4.storage import *
+from rok4.utils import *
 
 
 class Layer:

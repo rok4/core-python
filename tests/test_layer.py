@@ -1,6 +1,6 @@
-from rok4.Layer import Layer
-from rok4.Pyramid import PyramidType
-from rok4.Exceptions import *
+from rok4.layer import Layer
+from rok4.pyramid import PyramidType
+from rok4.exceptions import *
 
 import pytest
 import os

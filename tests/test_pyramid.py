@@ -1,8 +1,8 @@
-from rok4.Pyramid import *
-from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Storage import StorageType
-from rok4.Utils import *
-from rok4.Exceptions import *
+from rok4.pyramid import *
+from rok4.tile_matrix_set import TileMatrixSet
+from rok4.storage import StorageType
+from rok4.utils import *
+from rok4.exceptions import *
 
 import pytest
 import os

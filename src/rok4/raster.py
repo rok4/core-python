@@ -14,8 +14,8 @@ from typing import Tuple, Dict
 
 from osgeo import ogr, gdal
 
-from rok4.Storage import exists, get_osgeo_path, put_data_str
-from rok4.Utils import ColorFormat, compute_bbox, compute_format
+from rok4.storage import exists, get_osgeo_path, put_data_str
+from rok4.utils import ColorFormat, compute_bbox, compute_format
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()

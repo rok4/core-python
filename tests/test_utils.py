@@ -1,5 +1,5 @@
-from rok4.Utils import *
-from rok4.Exceptions import *
+from rok4.utils import *
+from rok4.exceptions import *
 
 import pytest
 import os

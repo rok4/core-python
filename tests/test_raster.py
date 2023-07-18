@@ -13,8 +13,8 @@ import pytest
 from unittest import mock, TestCase
 from unittest.mock import call, MagicMock, Mock, mock_open, patch
 
-from rok4.Raster import Raster, RasterSet
-from rok4.Utils import ColorFormat
+from rok4.raster import Raster, RasterSet
+from rok4.utils import ColorFormat
 
 
 # rok4.Raster.Raster class tests

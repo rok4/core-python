@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from rok4.Vector import *
-from rok4.Exceptions import *
-from rok4.Storage import disconnect_ceph_clients
+from rok4.vector import *
+from rok4.exceptions import *
+from rok4.storage import disconnect_ceph_clients
 
 import pytest
 import os

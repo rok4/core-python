@@ -7,8 +7,8 @@ The module contains the following class :
 """
 
 from osgeo import ogr
-from rok4.Storage import get_osgeo_path, copy
-from rok4.Exceptions import *
+from rok4.storage import get_osgeo_path, copy
+from rok4.exceptions import *
 import os
 import tempfile
 
