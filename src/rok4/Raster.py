@@ -10,9 +10,9 @@ import copy
 import json
 import re
 from enum import Enum
-from typing import Tuple, Dict
+from typing import Dict, Tuple
 
-from osgeo import ogr, gdal
+from osgeo import gdal, ogr
 
 from rok4.Storage import exists, get_osgeo_path, put_data_str
 from rok4.Utils import ColorFormat, compute_bbox, compute_format
