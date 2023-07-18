@@ -1,14 +1,14 @@
-from rok4.Utils import *
-from rok4.Exceptions import *
+import math
+import os
+import random
+from unittest import mock
+from unittest.mock import *
 
 import pytest
-import os
 from osgeo import gdal, osr
-import math
-import random
 
-from unittest.mock import *
-from unittest import mock
+from rok4.Exceptions import *
+from rok4.Utils import *
 
 
 def test_srs_to_spatialreference_ignf_ok():

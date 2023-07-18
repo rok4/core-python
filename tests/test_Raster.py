@@ -6,16 +6,16 @@ Each variable prefixed by "m_" is a mock, or part of it.
 """
 
 import copy
-import math
 import json
+import math
 import random
+from unittest import TestCase, mock
+from unittest.mock import MagicMock, Mock, call, mock_open, patch
+
 import pytest
-from unittest import mock, TestCase
-from unittest.mock import call, MagicMock, Mock, mock_open, patch
 
 from rok4.Raster import Raster, RasterSet
 from rok4.Utils import ColorFormat
-
 
 # rok4.Raster.Raster class tests
 

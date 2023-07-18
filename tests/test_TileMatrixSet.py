@@ -1,10 +1,11 @@
-from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Exceptions import *
+import os
+from unittest import mock
+from unittest.mock import *
 
 import pytest
-import os
-from unittest.mock import *
-from unittest import mock
+
+from rok4.Exceptions import *
+from rok4.TileMatrixSet import TileMatrixSet
 
 
 @mock.patch.dict(os.environ, {}, clear=True)

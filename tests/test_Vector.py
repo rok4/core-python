@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-from rok4.Vector import *
-from rok4.Exceptions import *
-from rok4.Storage import disconnect_ceph_clients
+import os
+from unittest import mock
+from unittest.mock import *
 
 import pytest
-import os
-from unittest.mock import *
-from unittest import mock
+
+from rok4.Exceptions import *
+from rok4.Storage import disconnect_ceph_clients
+from rok4.Vector import *
 
 
 @mock.patch.dict(os.environ, {}, clear=True)

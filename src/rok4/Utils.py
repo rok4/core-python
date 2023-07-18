@@ -3,10 +3,10 @@
 
 import os
 import re
-
-from typing import Dict, List, Tuple, Union
-from osgeo import ogr, osr, gdal
 from enum import Enum
+from typing import Dict, List, Tuple, Union
+
+from osgeo import gdal, ogr, osr
 
 ogr.UseExceptions()
 osr.UseExceptions()
