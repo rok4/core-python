@@ -1,12 +1,10 @@
-import os
-from unittest import mock
-from unittest.mock import *
-
 import pytest
+import os
+from unittest.mock import *
+from unittest import mock
 
-from rok4.Exceptions import *
-from rok4.TileMatrixSet import TileMatrixSet
-
+from rok4.tile_matrix_set import TileMatrixSet
+from rok4.exceptions import *
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_missing_env():
@@ -15,7 +13,7 @@ def test_missing_env():
 
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
-@mock.patch("rok4.TileMatrixSet.get_data_str", side_effect=StorageError("FILE", "Not found"))
+@mock.patch("rok4.tile_matrix_set.get_data_str", side_effect=StorageError("FILE", "Not found"))
 def test_wrong_file(mocked_get_data_str):
     with pytest.raises(StorageError):
         tms = TileMatrixSet("tms")
@@ -23,7 +21,7 @@ def test_wrong_file(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_bad_json(mocked_get_data_str):
@@ -34,7 +32,7 @@ def test_bad_json(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[{"id":"0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"crs":"EPSG:3857","orderedAxes":["X","Y"]}',
 )
 def test_missing_id(mocked_get_data_str):
@@ -46,7 +44,7 @@ def test_missing_id(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[{"id":"0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_missing_crs(mocked_get_data_str):
@@ -58,7 +56,7 @@ def test_missing_crs(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"crs":"epsg:123456","orderedAxes":["X","Y"],"tileMatrices":[{"id":"0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_wrong_crs(mocked_get_data_str):
@@ -73,7 +71,7 @@ def test_wrong_crs(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"crs":"epsg:4326","orderedAxes":["Lat","Lon"],"tileMatrices":[{"id":"0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"id":"PM"}',
 )
 def test_wrong_axes_order(mocked_get_data_str):
@@ -88,7 +86,7 @@ def test_wrong_axes_order(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_missing_levels(mocked_get_data_str):
@@ -100,7 +98,7 @@ def test_missing_levels(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[],"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_no_levels(mocked_get_data_str):
@@ -112,7 +110,7 @@ def test_no_levels(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[{"tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"orderedAxes":["X","Y"],"id":"PM","crs":"EPSG:3857"}',
 )
 def test_wrong_level(mocked_get_data_str):
@@ -124,7 +122,7 @@ def test_wrong_level(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[{"id":"level_0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_wrong_level_id(mocked_get_data_str):
@@ -140,7 +138,7 @@ def test_wrong_level_id(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[{"id":"0","tileWidth":256,"scaleDenominator":559082264.028718,"matrixWidth":1,"cellSize":156543.033928041,"matrixHeight":1,"tileHeight":256,"pointOfOrigin":[-20037508.3427892,20037508.3427892]}],"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_ok(mocked_get_data_str):
@@ -155,7 +153,7 @@ def test_ok(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"tileMatrices":[{"id":"17","cellSize":1.19432856695588,"matrixHeight":131072,"pointOfOrigin":[-20037508.3427892,20037508.3427892],"tileHeight":256,"tileWidth":256,"scaleDenominator":4265.45916769957,"matrixWidth":131072}],"crs":"EPSG:3857","orderedAxes":["X","Y"],"id":"PM"}',
 )
 def test_pm_conversions(mocked_get_data_str):
@@ -180,7 +178,7 @@ def test_pm_conversions(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {"ROK4_TMS_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
-    "rok4.TileMatrixSet.get_data_str",
+    "rok4.tile_matrix_set.get_data_str",
     return_value='{"crs":"EPSG:4326","tileMatrices":[{"tileWidth":256,"scaleDenominator":1066.36480348451,"matrixWidth":524288,"cellSize":2.68220901489258e-06,"matrixHeight":262144,"pointOfOrigin":[-180,90],"tileHeight":256,"id":"18"}],"orderedAxes":["Lon","Lat"],"id":"4326"}',
 )
 def test_4326_conversions(mocked_get_data_str):

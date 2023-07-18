@@ -17,25 +17,13 @@ import io
 import mapbox_vector_tile
 from PIL import Image
 
-from rok4.Exceptions import *
+from rok4.exceptions import *
 from rok4.tile_matrix_set import TileMatrixSet, TileMatrix
 from rok4.storage import *
 from rok4.utils import *
-from rok4.enums import StorageType
 
 
-class PyramidType(Enum):
-    """Pyramid's data type"""
-
-    RASTER = "RASTER"
-    VECTOR = "VECTOR"
-
-
-class SlabType(Enum):
-    """Slab's type"""
-
-    DATA = "DATA"  # Slab of data, raster or vector
-    MASK = "MASK"  # Slab of mask, only for raster pyramid, image with one band : 0 is nodata, other values are data
+from rok4.enums import PyramidType, SlabType, StorageType
 
 
 ROK4_IMAGE_HEADER_SIZE = 2048

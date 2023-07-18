@@ -16,7 +16,7 @@ The `rok4` package is available on :
 ## Usage
 
 ```python
-from rok4.TileMatrixSet import TileMatrixSet
+from rok4.tile_matrix_set import TileMatrixSet
 
 try:
     tms = TileMatrixSet("file:///path/to/tms.json")

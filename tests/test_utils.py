@@ -1,15 +1,14 @@
-import math
-import os
-import random
-from unittest import mock
-from unittest.mock import *
-
 import pytest
+import os
 from osgeo import gdal, osr
+import math
+import random
 
-from rok4.Exceptions import *
-from rok4.Utils import *
+from unittest.mock import *
+from unittest import mock
 
+from rok4.utils import *
+from rok4.exceptions import *
 
 def test_srs_to_spatialreference_ignf_ok():
     try:
@@ -74,7 +73,7 @@ def test_reproject_point_ok():
         assert False, f"Bbox reprojection raises an exception: {exc}"
 
 
-# Tests for the rok4.Utils.compute_bbox function.
+# Tests for the rok4.utils.compute_bbox function.
 
 
 def test_compute_bbox_epsg_3857_ok():
@@ -215,13 +214,13 @@ def test_compute_bbox_no_srs_ok():
         assert False, f"Bbox computation raises an exception: {exc}"
 
 
-# Tests for the rok4.Utils.compute_format function.
+# Tests for the rok4.utils.compute_format function.
 
 
-@mock.patch("rok4.Utils.gdal.Info")
-@mock.patch("rok4.Utils.gdal.GetColorInterpretationName", return_value="Palette")
-@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=8)
-@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="Byte")
+@mock.patch("rok4.utils.gdal.Info")
+@mock.patch("rok4.utils.gdal.GetColorInterpretationName", return_value="Palette")
+@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=8)
+@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="Byte")
 def test_compute_format_bit_ok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -247,10 +246,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.Utils.gdal.Info")
-@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=8)
-@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="Byte")
+@mock.patch("rok4.utils.gdal.Info")
+@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=8)
+@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="Byte")
 def test_compute_format_uint8_ok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -284,10 +283,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.Utils.gdal.Info")
-@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=32)
-@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="Float32")
+@mock.patch("rok4.utils.gdal.Info")
+@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=32)
+@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="Float32")
 def test_compute_format_float32_ok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -321,10 +320,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.Utils.gdal.Info")
-@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=16)
-@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="UInt16")
+@mock.patch("rok4.utils.gdal.Info")
+@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=16)
+@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="UInt16")
 def test_compute_format_unsupported_nok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -358,10 +357,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.Utils.gdal.Info")
-@mock.patch("rok4.Utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.Utils.gdal.GetDataTypeSize", return_value=16)
-@mock.patch("rok4.Utils.gdal.GetDataTypeName", return_value="UInt16")
+@mock.patch("rok4.utils.gdal.Info")
+@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
+@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=16)
+@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="UInt16")
 def test_compute_format_no_band_nok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
