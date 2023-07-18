@@ -11,6 +11,13 @@ class PyramidType(Enum):
     VECTOR = "VECTOR"
 
 
+class SlabType(Enum):
+    """Slab's type"""
+
+    DATA = "DATA"  # Slab of data, raster or vector
+    MASK = "MASK"  # Slab of mask, only for raster pyramid, image with one band : 0 is nodata, other values are data
+
+
 class StorageType(Enum):
     """Matrice de correspondance entre type de stockage et protocole."""
 

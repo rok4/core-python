@@ -1,6 +1,6 @@
 from rok4.Pyramid import *
 from rok4.TileMatrixSet import TileMatrixSet
-from rok4.enums import StorageType
+from rok4.enums import SlabType, StorageType
 from rok4.Utils import *
 from rok4.Exceptions import *
 
