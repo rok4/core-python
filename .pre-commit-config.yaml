@@ -25,6 +25,8 @@ repos:
     rev: 23.3.0
     hooks:
       - id: black
+        args: ["--target-version=py38"]
+
 
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
@@ -38,4 +40,3 @@ repos:
       - id: pyupgrade
         args:
           - "--py38-plus"
-
