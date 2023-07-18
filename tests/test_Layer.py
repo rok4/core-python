@@ -1,5 +1,5 @@
 from rok4.Layer import Layer
-from rok4.Pyramid import PyramidType
+from rok4.enums import PyramidType
 from rok4.Exceptions import *
 
 import pytest

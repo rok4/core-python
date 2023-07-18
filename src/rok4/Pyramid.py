@@ -21,14 +21,7 @@ from rok4.Exceptions import *
 from rok4.TileMatrixSet import TileMatrixSet, TileMatrix
 from rok4.Storage import *
 from rok4.Utils import *
-from rok4.enums import StorageType
-
-
-class PyramidType(Enum):
-    """Pyramid's data type"""
-
-    RASTER = "RASTER"
-    VECTOR = "VECTOR"
+from rok4.enums import PyramidType, StorageType
 
 
 class SlabType(Enum):
