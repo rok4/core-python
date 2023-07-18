@@ -782,7 +782,7 @@ class Pyramid:
             roots = {}
             s3_cluster = self.storage_s3_cluster
 
-            with open(list_file, "r") as listin:
+            with open(list_file) as listin:
                 # Lecture des racines
                 for line in listin:
                     line = line.rstrip()
