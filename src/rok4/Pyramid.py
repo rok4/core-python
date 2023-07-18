@@ -21,6 +21,7 @@ from rok4.Exceptions import *
 from rok4.TileMatrixSet import TileMatrixSet, TileMatrix
 from rok4.Storage import *
 from rok4.Utils import *
+from rok4.enums import StorageType
 
 
 class PyramidType(Enum):
@@ -549,11 +550,8 @@ class Pyramid:
         Returns:
             Dict: descriptor structured object description
         """
-        
-        serialization = {
-            "tile_matrix_set": self.__tms.name,
-            "format": self.__format
-        }
+
+        serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
 
         serialization["levels"] = []
         sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
@@ -620,7 +618,7 @@ class Pyramid:
         Returns:
             str: Pyramid's storage root
         """
-        
+
         return self.__storage["root"].split("@", 1)[
             0
         ]  # Suppression de l'éventuel hôte de spécification du cluster S3
@@ -670,7 +668,6 @@ class Pyramid:
 
     @property
     def tile_extension(self) -> str:
-
         if self.__format in [
             "TIFF_RAW_UINT8",
             "TIFF_LZW_UINT8",
@@ -835,7 +832,7 @@ class Pyramid:
         Returns:
             The corresponding pyramid's level, None if not present
         """
-        
+
         return self.__levels.get(level_id, None)
 
     def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[Level]:
@@ -1019,7 +1016,6 @@ class Pyramid:
         else:
             return slab_path
 
-
     def get_tile_data_binary(self, level: str, column: int, row: int) -> str:
         """Get a pyramid's tile as binary string
 
@@ -1182,7 +1178,6 @@ class Pyramid:
         level_object = self.get_level(level)
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
-
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
@@ -1379,6 +1374,8 @@ class Pyramid:
         Returns:
             int: size of the pyramid
         """
-        if not hasattr(self,"_Pyramid__size") :
-            self.__size = size_path(get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name))
+        if not hasattr(self, "_Pyramid__size"):
+            self.__size = size_path(
+                get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name)
+            )
         return self.__size
