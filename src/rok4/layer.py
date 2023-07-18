@@ -12,7 +12,7 @@ import os
 import re
 
 from rok4.exceptions import *
-from rok4.pyramid import Pyramid, PyramidType
+from rok4.pyramid import Pyramid
 from rok4.tile_matrix_set import TileMatrixSet
 from rok4.storage import *
 from rok4.utils import *

@@ -18,7 +18,6 @@ from rok4.exceptions import *
 from rok4.storage import get_data_str
 from rok4.utils import *
 
-
 class TileMatrix:
     """A tile matrix is a tile matrix set's level.
 

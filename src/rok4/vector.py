@@ -16,7 +16,6 @@ ogr.UseExceptions()
 from rok4.storage import get_osgeo_path, copy
 from rok4.exceptions import *
 
-
 class Vector:
     """A data vector
 

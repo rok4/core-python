@@ -21,10 +21,7 @@ from rok4.exceptions import *
 from rok4.tile_matrix_set import TileMatrixSet, TileMatrix
 from rok4.storage import *
 from rok4.utils import *
-
-
 from rok4.enums import PyramidType, SlabType, StorageType
-
 
 ROK4_IMAGE_HEADER_SIZE = 2048
 """Slab's header size, 2048 bytes"""
@@ -609,7 +606,7 @@ class Pyramid:
         Returns:
             str: Pyramid's storage root
         """
-        
+
         return self.__storage["root"].split("@", 1)[
             0
         ]  # Suppression de l'éventuel hôte de spécification du cluster S3
@@ -735,7 +732,7 @@ class Pyramid:
             S3 stored descriptor
 
                 from rok4.pyramid import Pyramid
-
+                
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
 
@@ -759,6 +756,7 @@ class Pyramid:
                         'slab': 'DATA_18_5424_7526'
                     }
                 )
+                
         Raises:
             StorageError: Unhandled pyramid storage to copy list
             MissingEnvironmentError: Missing object storage informations
@@ -826,7 +824,7 @@ class Pyramid:
         Returns:
             The corresponding pyramid's level, None if not present
         """
-        
+
         return self.__levels.get(level_id, None)
 
     def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[Level]:
@@ -1009,7 +1007,6 @@ class Pyramid:
             )
         else:
             return slab_path
-
 
     def get_tile_data_binary(self, level: str, column: int, row: int) -> str:
         """Get a pyramid's tile as binary string
@@ -1256,6 +1253,7 @@ class Pyramid:
             S3 stored vector pyramid, to print a tile as GeoJSON
 
                 from rok4.pyramid import Pyramid
+
                 import json
 
                 try:
@@ -1370,6 +1368,10 @@ class Pyramid:
         Returns:
             int: size of the pyramid
         """
-        if not hasattr(self,"_Pyramid__size") :
-            self.__size = size_path(get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name))
+        
+        if not hasattr(self, "_Pyramid__size"):
+            self.__size = size_path(
+                get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name)
+            )
+      
         return self.__size

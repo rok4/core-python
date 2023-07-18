@@ -8,7 +8,6 @@ from rok4.layer import Layer
 from rok4.enums import PyramidType
 from rok4.exceptions import *
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
     "rok4.layer.get_data_str",

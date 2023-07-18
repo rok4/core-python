@@ -4,7 +4,6 @@
 import os
 import re
 
-from enum import Enum
 from typing import Dict, List, Tuple, Union
 
 from osgeo import gdal, ogr, osr

@@ -9,7 +9,7 @@ The module contains the following class :
 import copy
 import json
 import re
-from enum import Enum
+
 from typing import Dict, Tuple
 
 from osgeo import gdal, ogr

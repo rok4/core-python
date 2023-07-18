@@ -75,7 +75,6 @@ def test_reproject_point_ok():
 
 # Tests for the rok4.utils.compute_bbox function.
 
-
 def test_compute_bbox_epsg_3857_ok():
     try:
         mocked_datasource = MagicMock(gdal.Dataset)
@@ -215,7 +214,6 @@ def test_compute_bbox_no_srs_ok():
 
 
 # Tests for the rok4.utils.compute_format function.
-
 
 @mock.patch("rok4.utils.gdal.Info")
 @mock.patch("rok4.utils.gdal.GetColorInterpretationName", return_value="Palette")

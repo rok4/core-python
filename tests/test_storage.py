@@ -103,6 +103,7 @@ def test_file_read_ok(mock_file):
     except Exception as exc:
         assert False, f"FILE read raises an exception: {exc}"
 
+
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -179,6 +180,7 @@ def test_http_read_range_error():
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("requests.get")
 def test_http_read_ok(mock_http):
+
     try :
         requests_instance = MagicMock()
         requests_instance.content = b'data'
@@ -186,7 +188,7 @@ def test_http_read_ok(mock_http):
 
         data = get_data_str("http://path/to/file.ext")
         mock_http.assert_called_with("http://path/to/file.ext", stream=True)
-        assert data == 'data'
+        assert data == "data"
     except Exception as exc:
         assert False, f"HTTP read raises an exception: {exc}"
 
@@ -373,6 +375,7 @@ def test_copy_s3_s3_intercluster_nok(mocked_s3_client):
     with pytest.raises(StorageError):
         copy("s3://bucket@a/source.ext", "s3://bucket@c/destination.ext", "toto")
 
+
 @mock.patch.dict(
     os.environ,
     {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"},
@@ -422,6 +425,7 @@ def test_copy_file_ceph_ok(mock_file, mocked_rados_client):
         )
     except Exception as exc:
         assert False, f"FILE -> CEPH copy raises an exception: {exc}"
+
 
 @mock.patch.dict(
     os.environ,
@@ -513,7 +517,6 @@ def test_copy_http_ceph_ok(mock_requests, mocked_rados_client):
         http_instance.iter_content.return_value = ["data","data2"]
         mock_requests.return_value = http_instance
 
-
         disconnect_ceph_clients()
         ioctx_instance = MagicMock()
         ioctx_instance.write.return_value = None
@@ -546,7 +549,7 @@ def test_copy_http_s3_ok(mock_remove, mock_tempfile, mock_requests, mocked_s3_cl
 
         copy("http://path/to/source.ext", "s3://bucket/destination.ext")
         mock_requests.assert_called_once_with("http://path/to/source.ext", stream=True)
-        mock_tempfile.assert_called_once_with("w+b",delete=False)
+        mock_tempfile.assert_called_once_with("w+b", delete=False)
     except Exception as exc:
         assert False, f"HTTP -> CEPH copy raises an exception: {exc}"
 
@@ -562,6 +565,7 @@ def test_link_type_nok():
 def test_link_hard_nok():
     with pytest.raises(StorageError):
         link("ceph://pool1/source.ext", "ceph://pool2/destination.ext", True)
+
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.symlink", return_value=None)
@@ -618,6 +622,7 @@ def test_link_s3_ok(mocked_s3_client):
         link("s3://bucket1/target.ext", "s3://bucket2/link.ext")
     except Exception as exc:
         assert False, f"S3 link raises an exception: {exc}"
+
 
 @mock.patch.dict(
     os.environ,
@@ -792,6 +797,7 @@ def test_exists_http_ok(mock_requests):
 
 ############ remove
 
+
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.remove")
 def test_remove_file_ok(mock_remove):
@@ -806,6 +812,7 @@ def test_remove_file_ok(mock_remove):
         remove("file:///path/to/file.ext")
     except Exception as exc:
         assert False, f"FILE deletion (not found) raises an exception: {exc}"
+
 
 @mock.patch.dict(
     os.environ,
@@ -888,6 +895,7 @@ def test_size_path_file_ok():
         assert size == 124838
     except Exception as exc:
         assert False, f"FILE size of the path raises an exception: {exc}"
+
 
 def test_size_file_nok():
     with pytest.raises(StorageError) :
