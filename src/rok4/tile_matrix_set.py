@@ -9,15 +9,14 @@ Loading a tile matrix set requires environment variables :
 - ROK4_TMS_DIRECTORY
 """
 
-from rok4.Exceptions import *
-from rok4.Storage import get_data_str
-from rok4.Utils import *
-
 from typing import Dict, List, Tuple
 from json.decoder import JSONDecodeError
 import json
 import os
 
+from rok4.exceptions import *
+from rok4.storage import get_data_str
+from rok4.utils import *
 
 class TileMatrix:
     """A tile matrix is a tile matrix set's level.

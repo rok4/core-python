@@ -39,21 +39,13 @@ import rados
 import hashlib
 import requests
 from typing import Dict, List, Tuple, Union
-from enum import Enum
 from shutil import copyfile
 from osgeo import gdal
 
 gdal.UseExceptions()
 
-from rok4.Exceptions import *
-
-
-class StorageType(Enum):
-    FILE = "file://"
-    S3 = "s3://"
-    CEPH = "ceph://"
-    HTTP = "http://"
-    HTTPS = "https://"
+from rok4.exceptions import *
+from rok4.enums import StorageType
 
 
 __S3_CLIENTS = {}
@@ -75,7 +67,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
     Returns:
         Tuple[Dict[str, Union['boto3.client',str]], str, str]: the S3 informations (client, host, key, secret) and the simple bucket name
     """
-    
+
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
 
     if not __S3_CLIENTS:
@@ -134,7 +126,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
 
 def disconnect_s3_clients() -> None:
     """Clean S3 clients"""
-  
+
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
     __S3_CLIENTS = {}
     __S3_DEFAULT_CLIENT = None
@@ -845,10 +837,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             response = requests.get(from_type.value + from_path, stream = True)
             with open(to_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=65536) :
+
                     if chunk:
                         f.write(chunk)
 
         except Exception as e:
+
             raise StorageError(f"HTTP(S) and FILE", f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}")
 
     elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.CEPH :
@@ -865,6 +859,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                     offset += size
 
         except Exception as e:
+
             raise StorageError(f"HTTP(S) and CEPH", f"Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}")
 
     elif (from_type == StorageType.HTTP or from_type == StorageType.HTTPS) and to_type == StorageType.S3 :
@@ -876,6 +871,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
                 name_fich = f.name
                 for chunk in response.iter_content(chunk_size=65536) :
+
                     if chunk:
                         f.write(chunk)
 
@@ -885,6 +881,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(f"HTTP(S) and S3", f"Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}")
+
 
     else:
         raise StorageError(
@@ -1029,6 +1026,7 @@ def size_path(path: str) -> int :
     elif storage_type == StorageType.S3:
         s3_client, bucket_name = __get_s3_client(tray_name)
 
+
         try :
             paginator = s3_client["client"].get_paginator('list_objects_v2')
             pages = paginator.paginate(
@@ -1045,7 +1043,6 @@ def size_path(path: str) -> int :
 
         except Exception as e:
             raise StorageError("S3", e)
-
 
     elif storage_type == StorageType.CEPH:
         raise NotImplementedError

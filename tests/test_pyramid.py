@@ -1,23 +1,22 @@
-from rok4.Pyramid import *
-from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Storage import StorageType
-from rok4.Utils import *
-from rok4.Exceptions import *
-
 import pytest
 import os
 from unittest.mock import *
 from unittest import mock
 
+from rok4.pyramid import *
+from rok4.tile_matrix_set import TileMatrixSet
+from rok4.enums import SlabType, StorageType
+from rok4.utils import *
+from rok4.exceptions import *
 
-@mock.patch("rok4.Pyramid.get_data_str", side_effect=StorageError("FILE", "Not found"))
+@mock.patch("rok4.pyramid.get_data_str", side_effect=StorageError("FILE", "Not found"))
 def test_wrong_file(mocked_get_data_str):
     with pytest.raises(StorageError):
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
 
 
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"format": "TIFF_PBF_MVT","levels":[{"id": "100","tables":',
 )
 def test_bad_json(mocked_get_data_str):
@@ -31,7 +30,7 @@ def test_bad_json(mocked_get_data_str):
     mocked_get_data_str.assert_called_once_with("file:///pyramid.json")
 
 
-@mock.patch("rok4.Pyramid.get_data_str", return_value='{"format": "TIFF_PBF_MVT","levels":[]}')
+@mock.patch("rok4.pyramid.get_data_str", return_value='{"format": "TIFF_PBF_MVT","levels":[]}')
 def test_missing_tms(mocked_get_data_str):
     with pytest.raises(MissingAttributeError) as exc:
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
@@ -42,10 +41,10 @@ def test_missing_tms(mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"format": "TIFF_PBF_MVT","levels":[{}], "tile_matrix_set": "PM"}',
 )
-@mock.patch("rok4.Pyramid.TileMatrixSet", side_effect=StorageError("FILE", "TMS not found"))
+@mock.patch("rok4.pyramid.TileMatrixSet", side_effect=StorageError("FILE", "TMS not found"))
 def test_wrong_tms(mocked_tms_constructor, mocked_get_data_str):
     with pytest.raises(StorageError) as exc:
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
@@ -57,10 +56,10 @@ def test_wrong_tms(mocked_tms_constructor, mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}',
 )
-@mock.patch("rok4.Pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.TileMatrixSet")
 def test_raster_missing_raster_specifications(mocked_tms_class, mocked_get_data_str):
     with pytest.raises(MissingAttributeError) as exc:
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
@@ -71,10 +70,10 @@ def test_raster_missing_raster_specifications(mocked_tms_class, mocked_get_data_
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"raster_specifications":{"channels":3,"nodata":"255,0,0","photometric":"rgb","interpolation":"bicubic"}, "format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"unknown"}], "tile_matrix_set": "PM"}',
 )
-@mock.patch("rok4.Pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.TileMatrixSet")
 def test_wrong_level(mocked_tms_class, mocked_get_data_str):
     tms_instance = MagicMock()
     tms_instance.get_level.return_value = None
@@ -95,10 +94,10 @@ def test_wrong_level(mocked_tms_class, mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"format": "TIFF_PBF_MVT","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}',
 )
-@mock.patch("rok4.Pyramid.TileMatrixSet", autospec=True)
+@mock.patch("rok4.pyramid.TileMatrixSet", autospec=True)
 def test_vector_missing_tables(mocked_tms_class, mocked_get_data_str):
     with pytest.raises(MissingAttributeError) as exc:
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
@@ -109,11 +108,11 @@ def test_vector_missing_tables(mocked_tms_class, mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"raster_specifications":{"channels":3,"nodata":"255,0,0","photometric":"rgb","interpolation":"bicubic"}, "format": "TIFF_JPG_UINT8","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_prefix":"SCAN1000/DATA_0","pool_name":"pool1","type":"CEPH"},"tiles_per_width":16,"id":"0"}], "tile_matrix_set": "PM"}',
 )
-@mock.patch("rok4.Pyramid.TileMatrixSet")
-@mock.patch("rok4.Pyramid.put_data_str", return_value=None)
+@mock.patch("rok4.pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.put_data_str", return_value=None)
 def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
     tms_instance = MagicMock()
     tms_instance.name = "PM"
@@ -167,10 +166,10 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Pyramid.get_data_str",
+    "rok4.pyramid.get_data_str",
     return_value='{"format": "TIFF_PBF_MVT","levels":[{"tiles_per_height":16,"tile_limits":{"min_col":0,"max_row":15,"max_col":15,"min_row":0},"storage":{"image_directory":"SCAN1000/DATA/0","path_depth":2,"type":"FILE"},"tiles_per_width":16,"id":"0","tables":[{"name":"table","geometry":"POINT","attributes":[{"type":"bigint","name":"fid","count":1531}]}]}], "tile_matrix_set": "PM"}',
 )
-@mock.patch("rok4.Pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.TileMatrixSet")
 def test_vector_ok(mocked_tms_class, mocked_get_data_str):
     try:
         pyramid = Pyramid.from_descriptor("file:///pyramid.json")
@@ -195,7 +194,7 @@ def test_vector_ok(mocked_tms_class, mocked_get_data_str):
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("rok4.Pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.TileMatrixSet")
 def test_tile_read_raster(mocked_tms_class):
     tms_instance = MagicMock()
     tms_instance.name = "UTM20W84MART_1M_MNT"
@@ -220,7 +219,7 @@ def test_tile_read_raster(mocked_tms_class):
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("rok4.Pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.TileMatrixSet")
 def test_tile_read_vector(mocked_tms_class):
     tms_instance = MagicMock()
     tms_instance.name = "PM"
@@ -248,7 +247,7 @@ def test_tile_read_vector(mocked_tms_class):
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("rok4.Pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.TileMatrixSet")
 def test_list_read(mocked_tms_class):
     tms_instance = MagicMock()
     tms_instance.name = "PM"

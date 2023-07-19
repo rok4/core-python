@@ -7,14 +7,14 @@ The module contains the following class :
 """
 
 from osgeo import ogr
-from rok4.Storage import get_osgeo_path, copy
-from rok4.Exceptions import *
 import os
 import tempfile
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
+from rok4.storage import get_osgeo_path, copy
+from rok4.exceptions import *
 
 class Vector:
     """A data vector
@@ -39,7 +39,7 @@ class Vector:
 
         Examples:
 
-            from rok4.Vector import Vector
+            from rok4.vector import Vector
 
             try:
                 vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")

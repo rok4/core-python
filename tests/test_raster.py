@@ -1,4 +1,4 @@
-"""Describes unit tests for the rok4.Raster module.
+"""Describes unit tests for the rok4.raster module.
 
 There is one test class for each tested functionnality.
 See internal docstrings for more information.
@@ -6,22 +6,22 @@ Each variable prefixed by "m_" is a mock, or part of it.
 """
 
 import copy
-import math
 import json
+import math
 import random
+from unittest import TestCase, mock
+from unittest.mock import MagicMock, Mock, call, mock_open, patch
+
 import pytest
-from unittest import mock, TestCase
-from unittest.mock import call, MagicMock, Mock, mock_open, patch
 
-from rok4.Raster import Raster, RasterSet
-from rok4.Utils import ColorFormat
+from rok4.raster import Raster, RasterSet
+from rok4.enums import ColorFormat
 
-
-# rok4.Raster.Raster class tests
+# rok4.raster.Raster class tests
 
 
 class TestRasterInit(TestCase):
-    """rok4.Raster.Raster default constructor."""
+    """rok4.raster.Raster default constructor."""
 
     def test_default(self):
         """Default property values."""
@@ -44,7 +44,7 @@ class TestRasterInit(TestCase):
 
 
 class TestRasterFromFile(TestCase):
-    """rok4.Raster.Raster.from_file(path) class constructor."""
+    """rok4.raster.Raster.from_file(path) class constructor."""
 
     def setUp(self):
         self.source_image_path = "file:///home/user/image.tif"
@@ -60,18 +60,18 @@ class TestRasterFromFile(TestCase):
         with pytest.raises(TypeError):
             Raster.from_file()
 
-    @mock.patch("rok4.Raster.exists", return_value=False)
+    @mock.patch("rok4.raster.exists", return_value=False)
     def test_image_not_found(self, m_exists):
         """Constructor called on a path matching no file or object."""
         with pytest.raises(Exception):
             Raster.from_file(self.source_image_path)
         m_exists.assert_called_once_with(self.source_image_path)
 
-    @mock.patch("rok4.Raster.get_osgeo_path")
-    @mock.patch("rok4.Raster.compute_format", return_value=ColorFormat.UINT8)
-    @mock.patch("rok4.Raster.gdal.Open")
-    @mock.patch("rok4.Raster.compute_bbox")
-    @mock.patch("rok4.Raster.exists", side_effect=[True, False])
+    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.compute_format", return_value=ColorFormat.UINT8)
+    @mock.patch("rok4.raster.gdal.Open")
+    @mock.patch("rok4.raster.compute_bbox")
+    @mock.patch("rok4.raster.exists", side_effect=[True, False])
     def test_image(self, m_exists, m_compute_bbox, m_gdal_open, m_compute_format, m_get_osgeo_path):
         """Constructor called nominally on an image without mask."""
         m_compute_bbox.return_value = self.bbox
@@ -104,12 +104,12 @@ class TestRasterFromFile(TestCase):
         assert raster.format == ColorFormat.UINT8
         assert raster.dimensions == self.image_size
 
-    @mock.patch("rok4.Raster.get_osgeo_path")
-    @mock.patch("rok4.Raster.compute_format", return_value=ColorFormat.UINT8)
-    @mock.patch("rok4.Raster.gdal.IdentifyDriver")
-    @mock.patch("rok4.Raster.gdal.Open")
-    @mock.patch("rok4.Raster.compute_bbox")
-    @mock.patch("rok4.Raster.exists", side_effect=[True, True])
+    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.compute_format", return_value=ColorFormat.UINT8)
+    @mock.patch("rok4.raster.gdal.IdentifyDriver")
+    @mock.patch("rok4.raster.gdal.Open")
+    @mock.patch("rok4.raster.compute_bbox")
+    @mock.patch("rok4.raster.exists", side_effect=[True, True])
     def test_image_and_mask(
         self,
         m_exists,
@@ -154,9 +154,9 @@ class TestRasterFromFile(TestCase):
         assert raster.format == ColorFormat.UINT8
         assert raster.dimensions == self.image_size
 
-    @mock.patch("rok4.Raster.get_osgeo_path")
-    @mock.patch("rok4.Raster.gdal.Open", side_effect=RuntimeError)
-    @mock.patch("rok4.Raster.exists", side_effect=[True, False])
+    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.gdal.Open", side_effect=RuntimeError)
+    @mock.patch("rok4.raster.exists", side_effect=[True, False])
     def test_unsupported_image_format(self, m_exists, m_gdal_open, m_get_osgeo_path):
         """Test case : Constructor called on an unsupported image file or object."""
         m_get_osgeo_path.return_value = self.osgeo_image_path
@@ -168,10 +168,10 @@ class TestRasterFromFile(TestCase):
         m_get_osgeo_path.assert_called_once_with(self.source_image_path)
         m_gdal_open.assert_called_once_with(self.osgeo_image_path)
 
-    @mock.patch("rok4.Raster.get_osgeo_path")
-    @mock.patch("rok4.Raster.gdal.IdentifyDriver")
-    @mock.patch("rok4.Raster.gdal.Open", side_effect=None)
-    @mock.patch("rok4.Raster.exists", side_effect=[True, True])
+    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.gdal.IdentifyDriver")
+    @mock.patch("rok4.raster.gdal.Open", side_effect=None)
+    @mock.patch("rok4.raster.exists", side_effect=[True, True])
     def test_unsupported_mask_format(
         self, m_exists, m_gdal_open, m_identifydriver, m_get_osgeo_path
     ):
@@ -191,7 +191,7 @@ class TestRasterFromFile(TestCase):
 
 
 class TestRasterFromParameters(TestCase):
-    """rok4.Raster.Raster.from_parameters(**kwargs) class constructor."""
+    """rok4.raster.Raster.from_parameters(**kwargs) class constructor."""
 
     def test_image(self):
         """Parameters describing an image without mask"""
@@ -247,11 +247,11 @@ class TestRasterFromParameters(TestCase):
         assert raster.mask == parameters["mask"]
 
 
-# rok4.Raster.RasterSet class tests
+# rok4.raster.RasterSet class tests
 
 
 class TestRasterSetInit(TestCase):
-    """rok4.Raster.RasterSet default constructor."""
+    """rok4.raster.RasterSet default constructor."""
 
     def test_default(self):
         """Default property values."""
@@ -268,10 +268,10 @@ class TestRasterSetInit(TestCase):
 
 
 class TestRasterSetFromList(TestCase):
-    """rok4.Raster.RasterSet.from_list(path, srs) class constructor."""
+    """rok4.raster.RasterSet.from_list(path, srs) class constructor."""
 
-    @mock.patch("rok4.Raster.get_osgeo_path")
-    @mock.patch("rok4.Raster.Raster.from_file")
+    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.Raster.from_file")
     def test_ok_at_least_3_files(self, m_from_file, m_get_osgeo_path):
         """List of 3 or more valid image files"""
         file_number = random.randint(3, 100)
@@ -326,7 +326,7 @@ class TestRasterSetFromList(TestCase):
         bbox = (-0.75, -1.33, 0.25 + math.floor((file_number - 1) / 3), 1.67)
         serial_in["bbox"] = list(bbox)
 
-        with mock.patch("rok4.Raster.open", m_open):
+        with mock.patch("rok4.raster.open", m_open):
             rasterset = RasterSet.from_list(list_path, srs)
 
         serial_out = rasterset.serializable
@@ -347,10 +347,10 @@ class TestRasterSetFromList(TestCase):
 
 
 class TestRasterSetFromDescriptor(TestCase):
-    """rok4.Raster.RasterSet.from_descriptor(path) class constructor."""
+    """rok4.raster.RasterSet.from_descriptor(path) class constructor."""
 
-    @mock.patch("rok4.Raster.get_osgeo_path")
-    @mock.patch("rok4.Raster.Raster.from_parameters")
+    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.Raster.from_parameters")
     def test_simple_ok(self, m_from_parameters, m_get_osgeo_path):
         serial_in = {
             "bbox": [550000.000, 6210000.000, 570000.000, 6230000.000],
@@ -401,7 +401,7 @@ class TestRasterSetFromDescriptor(TestCase):
         m_get_osgeo_path.return_value = local_path
         m_open = mock_open(read_data=desc_content)
 
-        with mock.patch("rok4.Raster.open", m_open):
+        with mock.patch("rok4.raster.open", m_open):
             rasterset = RasterSet.from_descriptor(desc_path)
 
         m_get_osgeo_path.assert_called_once_with(desc_path)
@@ -429,9 +429,9 @@ class TestRasterSetFromDescriptor(TestCase):
 
 
 class TestRasterSetWriteDescriptor(TestCase):
-    """rok4.Raster.RasterSet.write_descriptor(path) class method."""
+    """rok4.raster.RasterSet.write_descriptor(path) class method."""
 
-    @mock.patch("rok4.Raster.put_data_str")
+    @mock.patch("rok4.raster.put_data_str")
     def test_ok_with_output_path(self, m_put_data_str):
         serial_in = {
             "bbox": [550000.000, 6210000.000, 570000.000, 6230000.000],
@@ -489,7 +489,7 @@ class TestRasterSetWriteDescriptor(TestCase):
 
         m_put_data_str.assert_called_once_with(content, path)
 
-    @mock.patch("rok4.Raster.print")
+    @mock.patch("rok4.raster.print")
     def test_ok_no_output_path(self, m_print):
         serial_in = {
             "bbox": [550000.000, 6210000.000, 570000.000, 6230000.000],

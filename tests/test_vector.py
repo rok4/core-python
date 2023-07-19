@@ -1,13 +1,11 @@
-#!/usr/bin/env python3
-from rok4.Vector import *
-from rok4.Exceptions import *
-from rok4.Storage import disconnect_ceph_clients
-
 import pytest
 import os
 from unittest.mock import *
 from unittest import mock
 
+from rok4.vector import *
+from rok4.exceptions import *
+from rok4.storage import disconnect_ceph_clients
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_missing_env():
@@ -16,7 +14,7 @@ def test_missing_env():
         vector = Vector.from_file("ceph:///ign_std/vector.shp")
 
 
-@mock.patch("rok4.Vector.copy", side_effect=StorageError("CEPH", "Not found"))
+@mock.patch("rok4.vector.copy", side_effect=StorageError("CEPH", "Not found"))
 def test_wrong_file(mocked_copy):
     with pytest.raises(StorageError):
         vector = Vector.from_file("ceph:///vector.geojson")
@@ -28,15 +26,15 @@ def test_wrong_format():
     assert str(exc.value) == "This format of file cannot be loaded"
 
 
-@mock.patch("rok4.Vector.ogr.Open", return_value="not a shape")
+@mock.patch("rok4.vector.ogr.Open", return_value="not a shape")
 def test_wrong_content(mocked_copy):
     with pytest.raises(Exception) as exc:
         vector = Vector.from_file("file:///vector.shp")
     assert str(exc.value) == "The content of file:///vector.shp cannot be read"
 
 
-@mock.patch("rok4.Vector.copy")
-@mock.patch("rok4.Vector.ogr.Open", return_value="not a shape")
+@mock.patch("rok4.vector.copy")
+@mock.patch("rok4.vector.ogr.Open", return_value="not a shape")
 def test_wrong_content_ceph(mocked_open, mocked_copy):
     with pytest.raises(Exception) as exc:
         vector = Vector.from_file("file:///vector.shp")

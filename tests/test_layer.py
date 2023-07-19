@@ -1,21 +1,20 @@
-from rok4.Layer import Layer
-from rok4.Pyramid import PyramidType
-from rok4.Exceptions import *
-
 import pytest
 import os
 
 from unittest.mock import *
 from unittest import mock
 
+from rok4.layer import Layer
+from rok4.enums import PyramidType
+from rok4.exceptions import *
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(
-    "rok4.Layer.get_data_str",
+    "rok4.layer.get_data_str",
     return_value='{"pyramids" : [{"bottom_level" : "10","top_level" : "10","path" : "s3://pyramids/SCAN1000.json"}],"title" : "SCAN1000","bbox":{"east": 11.250000000000997,"west": -5.624999999999043,"north": 52.48278022207774,"south": 40.9798980696195},"styles" : ["normal","hypso"],"abstract" : "Diffusion de la donnée BDORTHO","resampling" : "linear","keywords" : ["PM","TIFF_JPG_UINT8"]}',
 )
-@mock.patch("rok4.Layer.Pyramid.from_descriptor")
-@mock.patch("rok4.Layer.put_data_str", return_value=None)
+@mock.patch("rok4.layer.Pyramid.from_descriptor")
+@mock.patch("rok4.layer.put_data_str", return_value=None)
 def test_descriptor_ok(mocked_put_data_str, mocked_pyramid_class, mocked_get_data_str):
     tms_instance = MagicMock()
     tms_instance.srs = "EPSG:3857"
@@ -51,9 +50,9 @@ def test_descriptor_ok(mocked_put_data_str, mocked_pyramid_class, mocked_get_dat
         assert False, f"Layer creation from descriptor raises an exception: {exc}"
 
 
-@mock.patch("rok4.Layer.Pyramid.from_descriptor")
-@mock.patch("rok4.Layer.reproject_bbox", return_value=(0, 0, 100, 100))
-@mock.patch("rok4.Layer.put_data_str", return_value=None)
+@mock.patch("rok4.layer.Pyramid.from_descriptor")
+@mock.patch("rok4.layer.reproject_bbox", return_value=(0, 0, 100, 100))
+@mock.patch("rok4.layer.put_data_str", return_value=None)
 def test_parameters_vector_ok(
     mocked_put_data_str, mocked_utils_reproject_bbox, mocked_pyramid_class
 ):
@@ -97,9 +96,9 @@ def test_parameters_vector_ok(
         assert False, f"Layer creation from parameters raises an exception: {exc}"
 
 
-@mock.patch("rok4.Layer.Pyramid.from_descriptor")
-@mock.patch("rok4.Layer.reproject_bbox", return_value=(0, 0, 100, 100))
-@mock.patch("rok4.Layer.put_data_str", return_value=None)
+@mock.patch("rok4.layer.Pyramid.from_descriptor")
+@mock.patch("rok4.layer.reproject_bbox", return_value=(0, 0, 100, 100))
+@mock.patch("rok4.layer.put_data_str", return_value=None)
 def test_parameters_raster_ok(
     mocked_put_data_str, mocked_utils_reproject_bbox, mocked_pyramid_class
 ):

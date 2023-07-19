@@ -19,7 +19,7 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 ## Utiliser la librairie
 
 ```python
-from rok4.TileMatrixSet import TileMatrixSet
+from rok4.tile_matrix_set import TileMatrixSet
 
 try:
     tms = TileMatrixSet("file:///path/to/tms.json")
@@ -34,7 +34,7 @@ Plus d'exemple dans la documentation développeur.
 * Installer les dépendances de développement :
 
     ```sh
-    python3 -m pip install -e[dev]
+    python3 -m pip install -e .[dev]
     ```
 
 * Consulter les [directives de contribution](./CONTRIBUTING.md)
