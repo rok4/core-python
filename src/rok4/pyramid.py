@@ -734,10 +734,13 @@ class Pyramid:
 
         self.__content["loaded"] = True
 
-    def list_generator(self) -> Iterator[Tuple[Tuple[SlabType, str, int, int], Dict]]:
+    def list_generator(self, level_id : str = None) -> Iterator[Tuple[Tuple[SlabType, str, int, int], Dict]]:
         """Get list content
 
         List is copied as temporary file, roots are read and informations about each slab is returned. If list is already loaded, we yield the cached content
+
+        Args :
+            level_id (str) : id of the level for load only one level
 
         Examples:
 
@@ -775,7 +778,11 @@ class Pyramid:
         """
         if self.__content["loaded"]:
             for slab, infos in self.__content["cache"].items():
-                yield slab, infos
+                if level_id != None:
+                    if slab[1] == level_id:
+                        yield slab, infos
+                else :
+                    yield slab, infos
         else:
             # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
             list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
@@ -823,49 +830,13 @@ class Pyramid:
                         "md5": slab_md5,
                     }
 
-                    yield ((slab_type, level, column, row), infos)
+                    if level_id != None:
+                        if level == level_id:
+                            yield ((slab_type, level, column, row), infos)
+                    else :
+                        yield ((slab_type, level, column, row), infos)
 
             remove(f"file://{list_file}")
-
-    def list_generator_level(self, level_id : str) -> Iterator[Tuple[Tuple[SlabType,str,int,int], Dict]]:
-        """Get list content for a level
-
-        Informations about each slab of a level is returned
-
-        Examples:
-
-            S3 stored descriptor
-
-                from rok4.Pyramid import Pyramid
-
-                try:
-                    pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
-
-                    for (slab_type, level, column, row), infos in pyramid.list_generator('6'):
-                        print(infos)
-
-                except Exception as e:
-                    print("Cannot load the pyramid from its descriptor and read the list")
-
-        Yields:
-            Iterator[Tuple[Tuple[SlabType,str,int,int], Dict]]: Slab indices and storage informations
-
-            Value example:
-
-                (
-                    (<SlabType.DATA: 'DATA'>, '6', 5424, 7526),
-                    {
-                        'link': False,
-                        'md5': None,
-                        'root': 'pyramids@localhost:9000/LIMADM',
-                        'slab': 'DATA_6_1_2'
-                    }
-                )
-
-        """
-        for slab, infos in self.list_generator() :
-            if slab[1] == level_id :
-                yield slab, infos
 
     def get_level(self, level_id: str) -> 'Level':
         """Get one level according to its identifier
