@@ -1,13 +1,15 @@
-import pytest
 import os
-from unittest.mock import *
 from unittest import mock
+from unittest.mock import *
 
+import pytest
+
+from rok4.enums import SlabType, StorageType
+from rok4.exceptions import *
 from rok4.pyramid import *
 from rok4.tile_matrix_set import TileMatrixSet
-from rok4.enums import SlabType, StorageType
 from rok4.utils import *
-from rok4.exceptions import *
+
 
 @mock.patch("rok4.pyramid.get_data_str", side_effect=StorageError("FILE", "Not found"))
 def test_wrong_file(mocked_get_data_str):

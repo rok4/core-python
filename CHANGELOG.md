@@ -8,7 +8,7 @@
     * Documentation interne
     * Tests unitaires pour la classe RasterSet
     * Classe Raster : constructeur à partir des paramètres
-  
+
 * Pyramid
     * Fonction de calcul de la taille d'une pyramide
     * Générateur de lecture de la liste du contenu
@@ -75,7 +75,7 @@ Lecture par système de fichier virtuel avec GDAL
 * Utils
     * Meilleure gestion de reprojection par `reproject_bbox` : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul
     * Ajout de la fonction de reprojection d'un point `reproject_point` : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul
-  
+
 ### [Changed]
 
 * Utils :
@@ -98,8 +98,8 @@ Ajout de fonctionnalités de lecture de donnée d'une pyramide et suivi des reco
 * Storage :
     * Fonction de lecture binaire, complète ou partielle, d'un fichier ou objet S3 ou CEPH
 * Exceptions : NotImplementedError permet de préciser qu'une fonctionnalité n'a pas été implémentée pour tous les cas. Ici, on ne gère pas la décompression des données raster pour les compressions packbit et LZW
-  
-* Ajout de la publication PyPI dans la CI GitHub 
+
+* Ajout de la publication PyPI dans la CI GitHub
 
 ### [Changed]
 

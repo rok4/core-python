@@ -6,15 +6,17 @@ The module contains the following class :
 
 """
 
-from osgeo import ogr
 import os
 import tempfile
+
+from osgeo import ogr
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
-from rok4.storage import get_osgeo_path, copy
 from rok4.exceptions import *
+from rok4.storage import copy, get_osgeo_path
+
 
 class Vector:
     """A data vector

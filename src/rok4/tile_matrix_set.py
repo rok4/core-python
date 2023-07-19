@@ -9,14 +9,15 @@ Loading a tile matrix set requires environment variables :
 - ROK4_TMS_DIRECTORY
 """
 
-from typing import Dict, List, Tuple
-from json.decoder import JSONDecodeError
 import json
 import os
+from json.decoder import JSONDecodeError
+from typing import Dict, List, Tuple
 
 from rok4.exceptions import *
 from rok4.storage import get_data_str
 from rok4.utils import *
+
 
 class TileMatrix:
     """A tile matrix is a tile matrix set's level.
@@ -169,14 +170,15 @@ class TileMatrix:
             absolute_pixel_column % self.tile_size[0],
             absolute_pixel_row % self.tile_size[1],
         )
-    
+
     @property
     def tile_width(self) -> int:
         return self.tile_size[0]
-    
+
     @property
     def tile_heigth(self) -> int:
         return self.tile_size[1]
+
 
 class TileMatrixSet:
     """A tile matrix set is multi levels grid definition

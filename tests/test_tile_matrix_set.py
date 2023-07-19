@@ -1,11 +1,12 @@
+import os
+from unittest import mock
+from unittest.mock import *
 
 import pytest
-import os
-from unittest.mock import *
-from unittest import mock
 
-from rok4.tile_matrix_set import TileMatrixSet
 from rok4.exceptions import *
+from rok4.tile_matrix_set import TileMatrixSet
+
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_missing_env():

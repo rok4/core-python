@@ -9,14 +9,13 @@ The module contains the following class :
 import copy
 import json
 import re
-
 from typing import Dict, Tuple
 
 from osgeo import gdal, ogr
 
+from rok4.enums import ColorFormat
 from rok4.storage import exists, get_osgeo_path, put_data_str
 from rok4.utils import compute_bbox, compute_format
-from rok4.enums import ColorFormat
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
@@ -239,7 +238,7 @@ class RasterSet:
 
         local_list_path = get_osgeo_path(path)
         image_list = []
-        with open(file=local_list_path, mode="r") as list_file:
+        with open(file=local_list_path) as list_file:
             for line in list_file:
                 image_path = line.strip(" \t\n\r")
                 image_list.append(image_path)
@@ -298,7 +297,7 @@ class RasterSet:
         """
         self = cls()
         descriptor_path = get_osgeo_path(path)
-        with open(file=descriptor_path, mode="r") as file_handle:
+        with open(file=descriptor_path) as file_handle:
             raw_content = file_handle.read()
         serialization = json.loads(raw_content)
         self.srs = serialization["srs"]

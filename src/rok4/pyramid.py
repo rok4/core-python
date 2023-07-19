@@ -6,22 +6,23 @@ The module contains the following classes:
 - `Level` - Level of a pyramid
 """
 
-from typing import Dict, List, Tuple, Union, Iterator
+import io
 import json
-from json.decoder import JSONDecodeError
 import os
 import re
-import numpy
 import zlib
-import io
+from json.decoder import JSONDecodeError
+from typing import Dict, Iterator, List, Tuple, Union
+
 import mapbox_vector_tile
+import numpy
 from PIL import Image
 
-from rok4.exceptions import *
-from rok4.tile_matrix_set import TileMatrixSet, TileMatrix
-from rok4.storage import *
-from rok4.utils import *
 from rok4.enums import PyramidType, SlabType, StorageType
+from rok4.exceptions import *
+from rok4.storage import *
+from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
+from rok4.utils import *
 
 ROK4_IMAGE_HEADER_SIZE = 2048
 """Slab's header size, 2048 bytes"""
@@ -315,7 +316,7 @@ class Level:
         return self.__slab_size[1]
 
     @property
-    def tile_limits(self) -> Dict[str,int]:
+    def tile_limits(self) -> Dict[str, int]:
         return self.__tile_limits
 
     def is_in_limits(self, column: int, row: int) -> bool:
@@ -462,7 +463,7 @@ class Pyramid:
         return pyramid
 
     @classmethod
-    def from_other(cls, other: 'Pyramid', name: str, storage: Dict, **kwargs) -> 'Pyramid':
+    def from_other(cls, other: "Pyramid", name: str, storage: Dict, **kwargs) -> "Pyramid":
         """Create a pyramid from another one
 
         Args:
@@ -481,7 +482,7 @@ class Pyramid:
         """
         try:
             # On convertit le type de stockage selon l'énumération
-            if type(storage["type"]) is str :
+            if type(storage["type"]) is str:
                 storage["type"] = StorageType[storage["type"]]
 
             if storage["type"] == StorageType.FILE and name.find("/") != -1:
@@ -507,7 +508,7 @@ class Pyramid:
             pyramid.__format = other.__format
 
             # Attributs d'une pyramide raster
-            if pyramid.type == PyramidType.RASTER :
+            if pyramid.type == PyramidType.RASTER:
                 if "mask" in kwargs:
                     pyramid.__masks = kwargs["mask"]
                 elif other.own_masks:
@@ -543,11 +544,8 @@ class Pyramid:
         Returns:
             Dict: descriptor structured object description
         """
-        
-        serialization = {
-            "tile_matrix_set": self.__tms.name,
-            "format": self.__format
-        }
+
+        serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
 
         serialization["levels"] = []
         sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
@@ -649,9 +647,7 @@ class Pyramid:
             Exception: the depth is not equal to the already known depth
         """
         if "depth" in self.__storage and self.__storage["depth"] != d:
-            raise Exception(
-                f"Pyramid {self.__descriptor} owns levels with different path depths"
-            )
+            raise Exception(f"Pyramid {self.__descriptor} owns levels with different path depths")
         self.__storage["depth"] = d
 
     @property
@@ -668,7 +664,6 @@ class Pyramid:
 
     @property
     def tile_extension(self) -> str:
-
         if self.__format in [
             "TIFF_RAW_UINT8",
             "TIFF_LZW_UINT8",
@@ -734,7 +729,9 @@ class Pyramid:
 
         self.__content["loaded"] = True
 
-    def list_generator(self, level_id : str = None) -> Iterator[Tuple[Tuple[SlabType, str, int, int], Dict]]:
+    def list_generator(
+        self, level_id: str = None
+    ) -> Iterator[Tuple[Tuple[SlabType, str, int, int], Dict]]:
         """Get list content
 
         List is copied as temporary file, roots are read and informations about each slab is returned. If list is already loaded, we yield the cached content
@@ -747,7 +744,7 @@ class Pyramid:
             S3 stored descriptor
 
                 from rok4.pyramid import Pyramid
-                
+
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
 
@@ -771,7 +768,7 @@ class Pyramid:
                         'slab': 'DATA_18_5424_7526'
                     }
                 )
-                
+
         Raises:
             StorageError: Unhandled pyramid storage to copy list
             MissingEnvironmentError: Missing object storage informations
@@ -781,7 +778,7 @@ class Pyramid:
                 if level_id != None:
                     if slab[1] == level_id:
                         yield slab, infos
-                else :
+                else:
                     yield slab, infos
         else:
             # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
@@ -793,7 +790,7 @@ class Pyramid:
             roots = {}
             s3_cluster = self.storage_s3_cluster
 
-            with open(list_file, "r") as listin:
+            with open(list_file) as listin:
                 # Lecture des racines
                 for line in listin:
                     line = line.rstrip()
@@ -833,12 +830,12 @@ class Pyramid:
                     if level_id != None:
                         if level == level_id:
                             yield ((slab_type, level, column, row), infos)
-                    else :
+                    else:
                         yield ((slab_type, level, column, row), infos)
 
             remove(f"file://{list_file}")
 
-    def get_level(self, level_id: str) -> 'Level':
+    def get_level(self, level_id: str) -> "Level":
         """Get one level according to its identifier
 
         Args:
@@ -1193,7 +1190,6 @@ class Pyramid:
         level_object = self.get_level(level)
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
-
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
@@ -1373,7 +1369,7 @@ class Pyramid:
 
         return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
 
-    def delete_level(self, level_id : str) -> None :
+    def delete_level(self, level_id: str) -> None:
         """Delete the given level in the description of the pyramid
 
         Args:
@@ -1383,12 +1379,18 @@ class Pyramid:
             Exception: Cannot find level
         """
 
-        try :
+        try:
             del self.__levels[level_id]
         except Exception as e:
             raise Exception(f"The level {level_id} don't exist in the pyramid")
 
-    def add_level(self, level_id : str, tiles_per_width : int, tiles_per_height : int, tile_limits : Dict[str, int]) -> None :
+    def add_level(
+        self,
+        level_id: str,
+        tiles_per_width: int,
+        tiles_per_height: int,
+        tile_limits: Dict[str, int],
+    ) -> None:
         """Add a level in the description of the pyramid
 
         Args:
@@ -1399,23 +1401,26 @@ class Pyramid:
         """
 
         data = {
-            "id" : level_id,
-            "tile_limits" : tile_limits,
-            "tiles_per_width" : tiles_per_width,
-            "tiles_per_height" : tiles_per_height,
-            "storage" : {"type" : self.storage_type.name}
+            "id": level_id,
+            "tile_limits": tile_limits,
+            "tiles_per_width": tiles_per_width,
+            "tiles_per_height": tiles_per_height,
+            "storage": {"type": self.storage_type.name},
         }
-        if self.own_masks :
+        if self.own_masks:
             data["storage"]["mask_prefix"] = True
-        if self.storage_type == StorageType.FILE :
+        if self.storage_type == StorageType.FILE:
             data["storage"]["path_depth"] = self.storage_depth
 
         lev = Level.from_descriptor(data, self)
 
         if self.__tms.get_level(lev.id) is None:
-            raise Exception(f"Pyramid {self.name} owns a level with the ID '{lev.id}', not defined in the TMS '{self.tms.name}'")
-        else :
+            raise Exception(
+                f"Pyramid {self.name} owns a level with the ID '{lev.id}', not defined in the TMS '{self.tms.name}'"
+            )
+        else:
             self.__levels[lev.id] = lev
+
     @property
     def size(self) -> int:
         """Get the size of the pyramid
@@ -1434,10 +1439,10 @@ class Pyramid:
         Returns:
             int: size of the pyramid
         """
-        
+
         if not hasattr(self, "_Pyramid__size"):
             self.__size = size_path(
                 get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name)
             )
-      
+
         return self.__size
