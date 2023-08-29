@@ -30,24 +30,36 @@ Example: work with 2 S3 clusters:
 To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used
 """
 
-# -- IMPORTS --
-
-# standard library
 import hashlib
 import os
 import re
 import tempfile
 from shutil import copyfile
-from typing import Dict, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
-# 3rd party
 import boto3
 import botocore.exceptions
+import tempfile
+import re
+import os
 import rados
+import hashlib
 import requests
+from typing import Dict, List, Tuple, Union
+from shutil import copyfile
 from osgeo import gdal
 
-# package
+# conditional import
+try:
+    import rados
+
+    CEPH_RADOS_AVAILABLE: bool = True
+except ImportError:
+    CEPH_RADOS_AVAILABLE: bool = False
+    rados = None
+
+gdal.UseExceptions()
+
 from rok4.enums import StorageType
 from rok4.exceptions import MissingEnvironmentError, StorageError
 
