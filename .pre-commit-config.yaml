@@ -27,7 +27,6 @@ repos:
       - id: black
         args: ["--target-version=py38"]
 
-
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
@@ -40,3 +39,9 @@ repos:
       - id: pyupgrade
         args:
           - "--py38-plus"
+
+ci:
+  autofix_commit_msg: "[pre-commit.ci] Corrections automatiques appliquées par les git hooks."
+  autofix_prs: true
+  autoupdate_commit_msg: "[pre-commit.ci] Mise à jour des git hooks."
+  autoupdate_schedule: quarterly
