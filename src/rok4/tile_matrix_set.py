@@ -255,4 +255,4 @@ class TileMatrixSet:
 
     @property
     def sorted_levels(self) -> List[TileMatrix]:
-        return sorted(self.levels.values(), key=lambda l: l.resolution)
+        return sorted(self.levels.values(), key=lambda level: level.resolution)

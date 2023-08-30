@@ -233,7 +233,7 @@ class Layer:
                 {"pyramid": pyramid, "bottom_level": bottom_level, "top_level": top_level}
             )
 
-        self.__best_level = sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
+        self.__best_level = sorted(self.__levels.values(), key=lambda level: level.resolution)[0]
 
     def __str__(self) -> str:
         return f"{self.type.name} layer '{self.__name}'"

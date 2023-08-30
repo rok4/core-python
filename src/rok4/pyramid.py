@@ -28,13 +28,16 @@ from rok4.enums import PyramidType, SlabType, StorageType
 from rok4.exceptions import FormatError, MissingAttributeError
 from rok4.storage import (
     copy,
+    get_data_binary,
     get_data_str,
     get_infos_from_path,
     get_path_from_infos,
     put_data_str,
     remove,
+    size_path,
 )
 from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
+from rok4.utils import reproject_point, srs_to_spatialreference
 
 # -- GLOBALS --
 ROK4_IMAGE_HEADER_SIZE = 2048
@@ -528,7 +531,7 @@ class Pyramid:
                 pyramid.__levels[lev.id] = lev
 
         except KeyError as e:
-            raise MissingAttributeError(descriptor, e)
+            raise MissingAttributeError(pyramid.descriptor, e)
 
         return pyramid
 
@@ -553,7 +556,9 @@ class Pyramid:
         serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
 
         serialization["levels"] = []
-        sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
+        sorted_levels = sorted(
+            self.__levels.values(), key=lambda level: level.resolution, reverse=True
+        )
 
         for level in sorted_levels:
             serialization["levels"].append(level.serializable)
@@ -652,9 +657,7 @@ class Pyramid:
             Exception: the depth is not equal to the already known depth
         """
         if "depth" in self.__storage and self.__storage["depth"] != d:
-            raise Exception(
-                f"Pyramid {pyramid.__descriptor} owns levels with different path depths"
-            )
+            raise Exception(f"Pyramid {self.__descriptor} owns levels with different path depths")
         self.__storage["depth"] = d
 
     @property
@@ -696,7 +699,7 @@ class Pyramid:
         Returns:
             Level: the bottom level
         """
-        return sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
+        return sorted(self.__levels.values(), key=lambda level: level.resolution)[0]
 
     @property
     def top_level(self) -> "Level":
@@ -705,7 +708,7 @@ class Pyramid:
         Returns:
             Level: the top level
         """
-        return sorted(self.__levels.values(), key=lambda l: l.resolution)[-1]
+        return sorted(self.__levels.values(), key=lambda level: level.resolution)[-1]
 
     @property
     def type(self) -> PyramidType:
@@ -875,7 +878,7 @@ class Pyramid:
             List[Level]: asked sorted levels
         """
 
-        sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution)
+        sorted_levels = sorted(self.__levels.values(), key=lambda level: level.resolution)
 
         levels = []
 
@@ -894,13 +897,13 @@ class Pyramid:
 
         end = False
 
-        for l in sorted_levels:
-            if not begin and l.id == bottom_id:
+        for level in sorted_levels:
+            if not begin and level.id == bottom_id:
                 begin = True
 
             if begin:
-                levels.append(l)
-                if top_id is not None and l.id == top_id:
+                levels.append(level)
+                if top_id is not None and level.id == top_id:
                     end = True
                     break
                 else:
