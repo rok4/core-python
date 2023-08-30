@@ -1,12 +1,13 @@
-import pytest
 import os
-
-from unittest.mock import *
 from unittest import mock
+from unittest.mock import *
 
-from rok4.layer import Layer
+import pytest
+
 from rok4.enums import PyramidType
 from rok4.exceptions import *
+from rok4.layer import Layer
+
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch(

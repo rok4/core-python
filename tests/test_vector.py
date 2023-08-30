@@ -1,11 +1,13 @@
-import pytest
 import os
-from unittest.mock import *
 from unittest import mock
+from unittest.mock import *
 
-from rok4.vector import *
+import pytest
+
 from rok4.exceptions import *
 from rok4.storage import disconnect_ceph_clients
+from rok4.vector import *
+
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_missing_env():
