@@ -27,6 +27,7 @@ class StorageType(Enum):
     HTTPS = "https://"
     S3 = "s3://"
 
+
 class ColorFormat(Enum):
     """A color format enumeration.
     Except from "BIT", the member's name matches

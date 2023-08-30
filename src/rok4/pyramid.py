@@ -6,22 +6,23 @@ The module contains the following classes:
 - `Level` - Level of a pyramid
 """
 
-from typing import Dict, List, Tuple, Union, Iterator
+import io
 import json
-from json.decoder import JSONDecodeError
 import os
 import re
-import numpy
 import zlib
-import io
+from json.decoder import JSONDecodeError
+from typing import Dict, Iterator, List, Tuple, Union
+
 import mapbox_vector_tile
+import numpy
 from PIL import Image
 
-from rok4.exceptions import *
-from rok4.tile_matrix_set import TileMatrixSet, TileMatrix
-from rok4.storage import *
-from rok4.utils import *
 from rok4.enums import PyramidType, SlabType, StorageType
+from rok4.exceptions import *
+from rok4.storage import *
+from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
+from rok4.utils import *
 
 ROK4_IMAGE_HEADER_SIZE = 2048
 """Slab's header size, 2048 bytes"""
@@ -535,11 +536,8 @@ class Pyramid:
         Returns:
             Dict: descriptor structured object description
         """
-        
-        serialization = {
-            "tile_matrix_set": self.__tms.name,
-            "format": self.__format
-        }
+
+        serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
 
         serialization["levels"] = []
         sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
@@ -656,7 +654,6 @@ class Pyramid:
 
     @property
     def tile_extension(self) -> str:
-
         if self.__format in [
             "TIFF_RAW_UINT8",
             "TIFF_LZW_UINT8",
@@ -732,7 +729,7 @@ class Pyramid:
             S3 stored descriptor
 
                 from rok4.pyramid import Pyramid
-                
+
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
 
@@ -756,7 +753,7 @@ class Pyramid:
                         'slab': 'DATA_18_5424_7526'
                     }
                 )
-                
+
         Raises:
             StorageError: Unhandled pyramid storage to copy list
             MissingEnvironmentError: Missing object storage informations
@@ -774,7 +771,7 @@ class Pyramid:
             roots = {}
             s3_cluster = self.storage_s3_cluster
 
-            with open(list_file, "r") as listin:
+            with open(list_file) as listin:
                 # Lecture des racines
                 for line in listin:
                     line = line.rstrip()
@@ -1170,7 +1167,6 @@ class Pyramid:
         level_object = self.get_level(level)
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
-
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
@@ -1368,10 +1364,10 @@ class Pyramid:
         Returns:
             int: size of the pyramid
         """
-        
+
         if not hasattr(self, "_Pyramid__size"):
             self.__size = size_path(
                 get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name)
             )
-      
+
         return self.__size
