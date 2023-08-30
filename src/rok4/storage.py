@@ -39,11 +39,6 @@ from typing import Dict, List, Tuple, Union
 
 import boto3
 import botocore.exceptions
-import tempfile
-import re
-import os
-import rados
-import hashlib
 import requests
 from typing import Dict, List, Tuple, Union
 from shutil import copyfile
