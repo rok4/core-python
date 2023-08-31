@@ -35,13 +35,11 @@ import os
 import re
 import tempfile
 from shutil import copyfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 
 import boto3
 import botocore.exceptions
 import requests
-from typing import Dict, List, Tuple, Union
-from shutil import copyfile
 from osgeo import gdal
 
 # conditional import
