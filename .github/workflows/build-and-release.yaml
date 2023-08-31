@@ -14,9 +14,12 @@ jobs:
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       job_status: ${{ job.status }}
+
     steps:
       - name: Checkout project
         uses: actions/checkout@v3
