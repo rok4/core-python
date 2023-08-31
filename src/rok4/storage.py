@@ -62,6 +62,7 @@ gdal.UseExceptions()
 
 __CEPH_CLIENT = None
 __CEPH_IOCTXS = {}
+__OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
 
