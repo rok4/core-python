@@ -3,18 +3,12 @@ name: Test, build and publish artefacts and documentation
 on:
   push:
     tags:
-      - '**'
-  pull_request:
-    branches:
-      - develop
-      - master
+      - "**"
 
 jobs:
-
   create_release:
     name: Create Release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
 
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -36,7 +30,6 @@ jobs:
           prerelease: false
 
   build_and_test:
-
     name: Test and build artefacts
     needs: create_release
     outputs:
@@ -61,8 +54,8 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: '**/pyproject.toml'
+          cache: "pip"
+          cache-dependency-path: "./pyproject.toml"
 
       - name: Install system dependencies
         run: |
@@ -79,7 +72,6 @@ jobs:
           echo "/usr/lib/python3/dist-packages/" >.venv/lib/python${{ matrix.python-version }}/site-packages/system.pth
 
       - name: Run unit tests
-        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           pip install -e .[test]
@@ -123,7 +115,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - uses: actions/download-artifact@v3
         with:
           name: dist-py3
@@ -169,11 +160,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout project on gh-pages
         uses: actions/checkout@v3
         with:
-          ref: 'gh-pages'
+          ref: "gh-pages"
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/download-artifact@v3
