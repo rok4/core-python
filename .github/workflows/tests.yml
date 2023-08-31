@@ -44,7 +44,8 @@ jobs:
           export CPLUS_INCLUDE_PATH=/usr/include/gdal
           export C_INCLUDE_PATH=/usr/include/gdal
           gdal-config --version
-          sudo apt -y install python3-rados python3-gdal
+          sudo apt install python3-rados python3-gdal
+          python3 -c "import rados; print(rados.Rados().version())"
 
       - name: Install project requirements
         run: |
