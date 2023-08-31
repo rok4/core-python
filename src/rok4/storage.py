@@ -195,9 +195,6 @@ def disconnect_ceph_clients() -> None:
     __CEPH_IOCTXS = {}
 
 
-__OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
-
-
 def get_infos_from_path(path: str) -> Tuple[StorageType, str, str, str]:
     """Extract storage type, the unprefixed path, the container and the basename from path (Default: FILE storage)
 
