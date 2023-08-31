@@ -5,18 +5,21 @@ The module contains the following classe:
 - `Layer` - Descriptor to broadcast pyramids' data
 """
 
+# -- IMPORTS --
+
+# standard library
 import json
 import os
 import re
 from json.decoder import JSONDecodeError
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
+# package
 from rok4.enums import PyramidType
-from rok4.exceptions import *
+from rok4.exceptions import FormatError, MissingAttributeError
 from rok4.pyramid import Pyramid
-from rok4.storage import *
-from rok4.tile_matrix_set import TileMatrixSet
-from rok4.utils import *
+from rok4.storage import get_data_str, get_infos_from_path, put_data_str
+from rok4.utils import reproject_bbox
 
 
 class Layer:
@@ -92,8 +95,8 @@ class Layer:
                 )
                 layer.__bbox = reproject_bbox(layer.__geobbox, "EPSG:4326", layer.__tms.srs, 5)
                 # On force l'emprise de la couche, on recalcule donc les tuiles limites correspondantes pour chaque niveau
-                for l in layer.__levels.values():
-                    l.set_limits_from_bbox(layer.__bbox)
+                for level in layer.__levels.values():
+                    level.set_limits_from_bbox(layer.__bbox)
             else:
                 layer.__bbox = layer.__best_level.bbox
                 layer.__geobbox = reproject_bbox(layer.__bbox, layer.__tms.srs, "EPSG:4326", 5)
@@ -184,7 +187,7 @@ class Layer:
             Exception: Overlapping in usage pyramids' levels
         """
 
-        ## Toutes les pyramides doivent avoir les même caractéristiques
+        # Toutes les pyramides doivent avoir les même caractéristiques
         channels = None
         for p in pyramids:
             pyramid = Pyramid.from_descriptor(p["path"])
@@ -221,16 +224,16 @@ class Layer:
                 self.__resampling = pyramid.raster_specifications["interpolation"]
 
             levels = pyramid.get_levels(bottom_level, top_level)
-            for l in levels:
-                if l.id in self.__levels:
-                    raise Exception(f"Level {l.id} is present in two used pyramids")
-                self.__levels[l.id] = l
+            for level in levels:
+                if level.id in self.__levels:
+                    raise Exception(f"Level {level.id} is present in two used pyramids")
+                self.__levels[level.id] = level
 
             self.__pyramids.append(
                 {"pyramid": pyramid, "bottom_level": bottom_level, "top_level": top_level}
             )
 
-        self.__best_level = sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
+        self.__best_level = sorted(self.__levels.values(), key=lambda level: level.resolution)[0]
 
     def __str__(self) -> str:
         return f"{self.type.name} layer '{self.__name}'"

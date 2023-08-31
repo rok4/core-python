@@ -30,24 +30,31 @@ Example: work with 2 S3 clusters:
 To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used
 """
 
+# -- IMPORTS --
+
+# standard library
 import hashlib
 import os
 import re
 import tempfile
 from shutil import copyfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 
+# 3rd party
 import boto3
 import botocore.exceptions
 import rados
 import requests
 from osgeo import gdal
 
-gdal.UseExceptions()
-
+# package
 from rok4.enums import StorageType
-from rok4.exceptions import *
+from rok4.exceptions import MissingEnvironmentError, StorageError
 
+# -- GLOBALS --
+
+# Enable GDAL/OGR exceptions
+gdal.UseExceptions()
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
 
@@ -331,7 +338,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
             else:
                 data = ioctx.read(base_name, range[1], range[0])
 
-        except rados.ObjectNotFound as e:
+        except rados.ObjectNotFound:
             raise FileNotFoundError(f"{storage_type.value}{path}")
 
         except Exception as e:
@@ -348,7 +355,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
 
             f.close()
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise FileNotFoundError(f"{storage_type.value}{path}")
 
         except Exception as e:
@@ -507,7 +514,7 @@ def exists(path: str) -> bool:
         try:
             ioctx.stat(base_name)
             return True
-        except rados.ObjectNotFound as e:
+        except rados.ObjectNotFound:
             return False
         except Exception as e:
             raise StorageError("CEPH", e)
@@ -554,7 +561,7 @@ def remove(path: str) -> None:
 
         try:
             ioctx.remove_object(base_name)
-        except rados.ObjectNotFound as e:
+        except rados.ObjectNotFound:
             pass
         except Exception as e:
             raise StorageError("CEPH", e)
@@ -562,7 +569,7 @@ def remove(path: str) -> None:
     elif storage_type == StorageType.FILE:
         try:
             os.remove(path)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             pass
         except Exception as e:
             raise StorageError("FILE", e)
@@ -599,12 +606,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 to_md5 = hash_file(to_path)
                 if to_md5 != from_md5:
                     raise StorageError(
-                        f"FILE",
+                        "FILE",
                         f"Invalid MD5 sum control for copy file {from_path} to {to_path} : {from_md5} != {to_md5}",
                     )
 
         except Exception as e:
-            raise StorageError(f"FILE", f"Cannot copy file {from_path} to {to_path} : {e}")
+            raise StorageError("FILE", f"Cannot copy file {from_path} to {to_path} : {e}")
 
     elif from_type == StorageType.S3 and to_type == StorageType.FILE:
         s3_client, from_bucket = __get_s3_client(from_tray)
@@ -625,7 +632,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"S3 and FILE", f"Cannot copy S3 object {from_path} to file {to_path} : {e}"
+                "S3 and FILE", f"Cannot copy S3 object {from_path} to file {to_path} : {e}"
             )
 
     elif from_type == StorageType.FILE and to_type == StorageType.S3:
@@ -642,12 +649,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 )
                 if to_md5 != from_md5:
                     raise StorageError(
-                        f"FILE and S3",
+                        "FILE and S3",
                         f"Invalid MD5 sum control for copy file {from_path} to S3 object {to_path} : {from_md5} != {to_md5}",
                     )
         except Exception as e:
             raise StorageError(
-                f"FILE and S3", f"Cannot copy file {from_path} to S3 object {to_path} : {e}"
+                "FILE and S3", f"Cannot copy file {from_path} to S3 object {to_path} : {e}"
             )
 
     elif from_type == StorageType.S3 and to_type == StorageType.S3:
@@ -672,12 +679,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 )
                 if to_md5 != from_md5:
                     raise StorageError(
-                        f"S3",
+                        "S3",
                         f"Invalid MD5 sum control for copy S3 object {from_path} to {to_path} : {from_md5} != {to_md5}",
                     )
 
         except Exception as e:
-            raise StorageError(f"S3", f"Cannot copy S3 object {from_path} to {to_path} : {e}")
+            raise StorageError("S3", f"Cannot copy S3 object {from_path} to {to_path} : {e}")
 
     elif from_type == StorageType.CEPH and to_type == StorageType.FILE:
         ioctx = __get_ceph_ioctx(from_tray)
@@ -709,13 +716,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"CEPH and FILE",
+                    "CEPH and FILE",
                     f"Invalid MD5 sum control for copy CEPH object {from_path} to file {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
             raise StorageError(
-                f"CEPH and FILE", f"Cannot copy CEPH object {from_path} to file {to_path} : {e}"
+                "CEPH and FILE", f"Cannot copy CEPH object {from_path} to file {to_path} : {e}"
             )
 
     elif from_type == StorageType.FILE and to_type == StorageType.CEPH:
@@ -746,13 +753,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"FILE and CEPH",
+                    "FILE and CEPH",
                     f"Invalid MD5 sum control for copy file {from_path} to CEPH object {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
             raise StorageError(
-                f"FILE and CEPH", f"Cannot copy file {from_path} to CEPH object {to_path} : {e}"
+                "FILE and CEPH", f"Cannot copy file {from_path} to CEPH object {to_path} : {e}"
             )
 
     elif from_type == StorageType.CEPH and to_type == StorageType.CEPH:
@@ -780,12 +787,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"FILE and CEPH",
+                    "FILE and CEPH",
                     f"Invalid MD5 sum control for copy CEPH object {from_path} to {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
-            raise StorageError(f"CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
+            raise StorageError("CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
 
     elif from_type == StorageType.CEPH and to_type == StorageType.S3:
         from_ioctx = __get_ceph_ioctx(from_tray)
@@ -819,13 +826,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"CEPH and S3",
+                    "CEPH and S3",
                     f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
             raise StorageError(
-                f"CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}"
+                "CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}"
             )
 
     elif (
@@ -840,7 +847,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"HTTP(S) and FILE",
+                "HTTP(S) and FILE",
                 f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}",
             )
 
@@ -860,7 +867,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"HTTP(S) and CEPH",
+                "HTTP(S) and CEPH",
                 f"Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}",
             )
 
@@ -883,7 +890,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"HTTP(S) and S3",
+                "HTTP(S) and S3",
                 f"Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}",
             )
 
@@ -913,7 +920,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
     if target_type != link_type:
         raise StorageError(
             f"{target_type.name} and {link_type.name}",
-            f"Cannot make link between two different storage types",
+            "Cannot make link between two different storage types",
         )
 
     if hard and target_type != StorageType.FILE:
@@ -926,7 +933,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
         if target_s3_client["host"] != link_s3_client["host"]:
             raise StorageError(
-                f"S3",
+                "S3",
                 f"Cannot make link {link_path} -> {target_path} : link works only on the same S3 cluster",
             )
 

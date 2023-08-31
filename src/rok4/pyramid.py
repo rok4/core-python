@@ -6,24 +6,40 @@ The module contains the following classes:
 - `Level` - Level of a pyramid
 """
 
+# -- IMPORTS --
+
+# standard library
 import io
 import json
 import os
 import re
+import tempfile
 import zlib
 from json.decoder import JSONDecodeError
-from typing import Dict, Iterator, List, Tuple, Union
+from typing import Dict, Iterator, List, Tuple
 
+# 3rd party
 import mapbox_vector_tile
 import numpy
 from PIL import Image
 
+# package
 from rok4.enums import PyramidType, SlabType, StorageType
-from rok4.exceptions import *
-from rok4.storage import *
+from rok4.exceptions import FormatError, MissingAttributeError
+from rok4.storage import (
+    copy,
+    get_data_binary,
+    get_data_str,
+    get_infos_from_path,
+    get_path_from_infos,
+    put_data_str,
+    remove,
+    size_path,
+)
 from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
-from rok4.utils import *
+from rok4.utils import reproject_point, srs_to_spatialreference
 
+# -- GLOBALS --
 ROK4_IMAGE_HEADER_SIZE = 2048
 """Slab's header size, 2048 bytes"""
 
@@ -441,8 +457,8 @@ class Pyramid:
                     pyramid.__masks = False
 
             # Niveaux
-            for l in data["levels"]:
-                lev = Level.from_descriptor(l, pyramid)
+            for level in data["levels"]:
+                lev = Level.from_descriptor(level, pyramid)
                 pyramid.__levels[lev.id] = lev
 
                 if pyramid.__tms.get_level(lev.id) is None:
@@ -510,12 +526,12 @@ class Pyramid:
                 pyramid.__raster_specifications = other.__raster_specifications
 
             # Niveaux
-            for l in other.__levels.values():
-                lev = Level.from_other(l, pyramid)
+            for level in other.__levels.values():
+                lev = Level.from_other(level, pyramid)
                 pyramid.__levels[lev.id] = lev
 
         except KeyError as e:
-            raise MissingAttributeError(descriptor, e)
+            raise MissingAttributeError(pyramid.descriptor, e)
 
         return pyramid
 
@@ -540,10 +556,12 @@ class Pyramid:
         serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
 
         serialization["levels"] = []
-        sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution, reverse=True)
+        sorted_levels = sorted(
+            self.__levels.values(), key=lambda level: level.resolution, reverse=True
+        )
 
-        for l in sorted_levels:
-            serialization["levels"].append(l.serializable)
+        for level in sorted_levels:
+            serialization["levels"].append(level.serializable)
 
         if self.type == PyramidType.RASTER:
             serialization["raster_specifications"] = self.__raster_specifications
@@ -639,9 +657,7 @@ class Pyramid:
             Exception: the depth is not equal to the already known depth
         """
         if "depth" in self.__storage and self.__storage["depth"] != d:
-            raise Exception(
-                f"Pyramid {pyramid.__descriptor} owns levels with different path depths"
-            )
+            raise Exception(f"Pyramid {self.__descriptor} owns levels with different path depths")
         self.__storage["depth"] = d
 
     @property
@@ -683,7 +699,7 @@ class Pyramid:
         Returns:
             Level: the bottom level
         """
-        return sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
+        return sorted(self.__levels.values(), key=lambda level: level.resolution)[0]
 
     @property
     def top_level(self) -> "Level":
@@ -692,7 +708,7 @@ class Pyramid:
         Returns:
             Level: the top level
         """
-        return sorted(self.__levels.values(), key=lambda l: l.resolution)[-1]
+        return sorted(self.__levels.values(), key=lambda level: level.resolution)[-1]
 
     @property
     def type(self) -> PyramidType:
@@ -862,7 +878,7 @@ class Pyramid:
             List[Level]: asked sorted levels
         """
 
-        sorted_levels = sorted(self.__levels.values(), key=lambda l: l.resolution)
+        sorted_levels = sorted(self.__levels.values(), key=lambda level: level.resolution)
 
         levels = []
 
@@ -881,13 +897,13 @@ class Pyramid:
 
         end = False
 
-        for l in sorted_levels:
-            if not begin and l.id == bottom_id:
+        for level in sorted_levels:
+            if not begin and level.id == bottom_id:
                 begin = True
 
             if begin:
-                levels.append(l)
-                if top_id is not None and l.id == top_id:
+                levels.append(level)
+                if top_id is not None and level.id == top_id:
                     end = True
                     break
                 else:
@@ -1059,7 +1075,7 @@ class Pyramid:
             raise Exception(f"No level {level} in the pyramid")
 
         if level_object.slab_width == 1 and level_object.slab_height == 1:
-            raise NotImplementedError(f"One-tile slab pyramid is not handled")
+            raise NotImplementedError("One-tile slab pyramid is not handled")
 
         if not level_object.is_in_limits(column, row):
             return None
@@ -1090,7 +1106,7 @@ class Pyramid:
                     2 * 4 * level_object.slab_width * level_object.slab_height,
                 ),
             )
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             # L'absence de la dalle est gérée comme simplement une absence de données
             return None
 
@@ -1277,7 +1293,7 @@ class Pyramid:
         if binary_tile is None:
             return None
 
-        level_object = self.get_level(level)
+        self.get_level(level)
 
         if self.__format == "TIFF_PBF_MVT":
             try:
@@ -1334,7 +1350,7 @@ class Pyramid:
             level_object = self.get_level(level)
 
         if level_object is None:
-            raise Exception(f"Cannot found the level to calculate indices")
+            raise Exception("Cannot found the level to calculate indices")
 
         if (
             "srs" in kwargs

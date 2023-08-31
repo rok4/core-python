@@ -1,17 +1,22 @@
 """Provide functions to manipulate OGR / OSR entities
 """
+# -- IMPORTS --
 
+# standard library
 import os
 import re
-from typing import Dict, List, Tuple, Union
+from typing import Tuple
 
+# 3rd party
 from osgeo import gdal, ogr, osr
 
+# package
+from rok4.enums import ColorFormat
+
+# -- GLOBALS --
 ogr.UseExceptions()
 osr.UseExceptions()
 gdal.UseExceptions()
-
-from rok4.enums import ColorFormat
 
 __SR_BOOK = {}
 
@@ -187,7 +192,7 @@ def compute_bbox(source_dataset: gdal.Dataset) -> Tuple:
     transform_vector = source_dataset.GetGeoTransform()
     if transform_vector is None:
         raise Exception(
-            f"No transform vector found in the dataset created from "
+            "No transform vector found in the dataset created from "
             + f"the following file : {source_dataset.GetFileList()[0]}"
         )
     width = source_dataset.RasterXSize
