@@ -14,7 +14,7 @@ jobs:
   unit-test:
     name: "🎳 Unit tests"
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os:
           - ubuntu-22.04
