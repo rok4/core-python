@@ -1,5 +1,4 @@
 import math
-import os
 import random
 from unittest import mock
 from unittest.mock import *
@@ -13,28 +12,28 @@ from rok4.utils import *
 
 def test_srs_to_spatialreference_ignf_ok():
     try:
-        sr = srs_to_spatialreference("IGNF:LAMB93")
-        sr = srs_to_spatialreference("ignf:lamb93")
+        srs_to_spatialreference("IGNF:LAMB93")
+        srs_to_spatialreference("ignf:lamb93")
     except Exception as exc:
         assert False, f"SpatialReference creation raises an exception: {exc}"
 
 
 def test_srs_to_spatialreference_epsg_ok():
     try:
-        sr = srs_to_spatialreference("EPSG:3857")
-        sr = srs_to_spatialreference("epsg:3857")
+        srs_to_spatialreference("EPSG:3857")
+        srs_to_spatialreference("epsg:3857")
     except Exception as exc:
         assert False, f"SpatialReference creation raises an exception: {exc}"
 
 
 def test_srs_to_spatialreference_ignf_nok():
     with pytest.raises(Exception):
-        sr = srs_to_spatialreference("IGNF:TOTO")
+        srs_to_spatialreference("IGNF:TOTO")
 
 
 def test_srs_to_spatialreference_epsg_nok():
     with pytest.raises(Exception):
-        sr = srs_to_spatialreference("EPSG:123456")
+        srs_to_spatialreference("EPSG:123456")
 
 
 def test_bbox_to_geometry_ok():

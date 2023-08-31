@@ -4,7 +4,6 @@ from unittest.mock import *
 
 import botocore.exceptions
 import pytest
-from rados import ObjectNotFound
 
 from rok4.enums import StorageType
 from rok4.exceptions import *
@@ -55,13 +54,13 @@ def test_get_path_from_infos():
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_s3_missing_env():
     with pytest.raises(MissingEnvironmentError):
-        data = get_data_str("s3://bucket/path/to/object")
+        get_data_str("s3://bucket/path/to/object")
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_ceph_missing_env():
     with pytest.raises(MissingEnvironmentError):
-        data = get_data_str("ceph://bucket/path/to/object")
+        get_data_str("ceph://bucket/path/to/object")
 
 
 @mock.patch.dict(
@@ -71,7 +70,7 @@ def test_ceph_missing_env():
 )
 def test_s3_invalid_envs():
     with pytest.raises(StorageError):
-        data = get_data_str("s3://bucket/path/to/object")
+        get_data_str("s3://bucket/path/to/object")
 
 
 @mock.patch.dict(
@@ -79,17 +78,17 @@ def test_s3_invalid_envs():
 )
 @mock.patch("rok4.storage.boto3.client")
 def test_s3_invalid_endpoint(mocked_s3_client):
-    s3_instance = MagicMock()
+    MagicMock()
     mocked_s3_client.side_effect = Exception("Invalid URL")
     with pytest.raises(StorageError):
-        data = get_data_str("s3://bucket/path/to/object")
+        get_data_str("s3://bucket/path/to/object")
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("builtins.open", side_effect=FileNotFoundError("not_found"))
 def test_file_read_error(mock_file):
     with pytest.raises(FileNotFoundError):
-        data = get_data_str("file:///path/to/file.ext")
+        get_data_str("file:///path/to/file.ext")
 
     mock_file.assert_called_with("/path/to/file.ext", "rb")
 
@@ -117,7 +116,7 @@ def test_s3_read_nok(mocked_s3_client):
     s3_instance.get_object.side_effect = Exception("Bucket or object not found")
     mocked_s3_client.return_value = s3_instance
     with pytest.raises(StorageError):
-        data = get_data_str("s3://bucket/path/to/object")
+        get_data_str("s3://bucket/path/to/object")
 
 
 @mock.patch.dict(
@@ -171,7 +170,7 @@ def test_http_read_error(mock_http):
         requests_instance.content = "NULL"
         requests_instance.status_code = 404
         mock_http.return_value = requests_instance
-        data = get_data_str("http://path/to/file.ext")
+        get_data_str("http://path/to/file.ext")
 
     mock_http.assert_called_with("http://path/to/file.ext", stream=True)
 
@@ -179,7 +178,7 @@ def test_http_read_error(mock_http):
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_http_read_range_error():
     with pytest.raises(NotImplementedError):
-        data = get_data_binary("http://path/to/file.ext", (0, 100))
+        get_data_binary("http://path/to/file.ext", (0, 100))
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -925,7 +924,7 @@ def test_size_path_file_ok():
 
 def test_size_file_nok():
     with pytest.raises(StorageError):
-        size = size_path("file://tests/fixtures/TIFF_PBF_M")
+        size_path("file://tests/fixtures/TIFF_PBF_M")
 
 
 @mock.patch.dict(
@@ -935,7 +934,7 @@ def test_size_file_nok():
 )
 def test_size_path_ceph_nok():
     with pytest.raises(NotImplementedError):
-        size = size_path("ceph://pool/path")
+        size_path("ceph://pool/path")
 
 
 @mock.patch.dict(
