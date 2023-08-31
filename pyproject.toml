@@ -46,7 +46,8 @@ doc = [
 dev = [
   "black",
   "isort >= 5.12.0",
-  "pre-commit >3,<4"
+  "pre-commit >3,<4",
+  "ruff >= 0.0.281"
 ]
 
 test = [
@@ -67,6 +68,15 @@ build-backend = "setuptools.build_meta"
 [tool.black]
 line-length = 100
 target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+target-version = "py38"
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
