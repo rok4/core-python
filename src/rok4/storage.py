@@ -30,9 +30,6 @@ Example: work with 2 S3 clusters:
 To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used
 """
 
-# -- IMPORTS --
-
-# standard library
 import hashlib
 import os
 import re
@@ -40,12 +37,19 @@ import tempfile
 from shutil import copyfile
 from typing import Dict, Tuple, Union
 
-# 3rd party
 import boto3
 import botocore.exceptions
-import rados
 import requests
 from osgeo import gdal
+
+# conditional import
+try:
+    import rados
+
+    CEPH_RADOS_AVAILABLE: bool = True
+except ImportError:
+    CEPH_RADOS_AVAILABLE: bool = False
+    rados = None
 
 # package
 from rok4.enums import StorageType
@@ -55,6 +59,10 @@ from rok4.exceptions import MissingEnvironmentError, StorageError
 
 # Enable GDAL/OGR exceptions
 gdal.UseExceptions()
+
+__CEPH_CLIENT = None
+__CEPH_IOCTXS = {}
+__OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
 
@@ -139,10 +147,6 @@ def disconnect_s3_clients() -> None:
     __S3_DEFAULT_CLIENT = None
 
 
-__CEPH_CLIENT = None
-__CEPH_IOCTXS = {}
-
-
 def __get_ceph_ioctx(pool: str) -> "rados.Ioctx":
     """Get the CEPH IO context
 
@@ -189,9 +193,6 @@ def disconnect_ceph_clients() -> None:
     global __CEPH_CLIENT, __CEPH_IOCTXS
     __CEPH_CLIENT = None
     __CEPH_IOCTXS = {}
-
-
-__OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 
 
 def get_infos_from_path(path: str) -> Tuple[StorageType, str, str, str]:
