@@ -1,13 +1,30 @@
 import os
 from unittest import mock
-from unittest.mock import *
+from unittest.mock import MagicMock, mock_open, patch
 
 import botocore.exceptions
 import pytest
 
 from rok4.enums import StorageType
-from rok4.exceptions import *
-from rok4.storage import *
+from rok4.exceptions import MissingEnvironmentError, StorageError
+from rok4.storage import (
+    copy,
+    disconnect_ceph_clients,
+    disconnect_s3_clients,
+    exists,
+    get_data_binary,
+    get_data_str,
+    get_infos_from_path,
+    get_osgeo_path,
+    get_path_from_infos,
+    get_size,
+    hash_file,
+    link,
+    put_data_str,
+    rados,
+    remove,
+    size_path,
+)
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -48,7 +65,7 @@ def test_get_path_from_infos():
     assert get_path_from_infos(StorageType.CEPH, "toto", "titi/tutu") == "ceph://toto/titi/tutu"
 
 
-############ get_data_str
+# -- get_data_str
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -196,7 +213,7 @@ def test_http_read_ok(mock_http):
         assert False, f"HTTP read raises an exception: {exc}"
 
 
-############ put_data_str
+# -- put_data_str
 
 
 @mock.patch.dict(
@@ -252,7 +269,7 @@ def test_ceph_write_ok(mocked_rados_client):
         assert False, f"CEPH write raises an exception: {exc}"
 
 
-############ copy
+# -- copy
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -571,7 +588,7 @@ def test_copy_http_s3_ok(mock_remove, mock_tempfile, mock_requests, mocked_s3_cl
         assert False, f"HTTP -> CEPH copy raises an exception: {exc}"
 
 
-############ link
+# -- link
 
 
 def test_link_type_nok():
@@ -658,7 +675,7 @@ def test_link_s3_nok(mocked_s3_client):
         link("s3://bucket1@a/target.ext", "s3://bucket2@b/link.ext")
 
 
-############ get_size
+# -- get_size
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -726,7 +743,7 @@ def test_size_http_ok(mock_requests):
         assert False, f"HTTP size raises an exception: {exc}"
 
 
-############ exists
+# --exists
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -817,7 +834,7 @@ def test_exists_http_ok(mock_requests):
         assert False, f"HTTP exists raises an exception: {exc}"
 
 
-############ remove
+# -- remove
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -880,7 +897,7 @@ def test_remove_s3_ok(mocked_s3_client):
         assert False, f"S3 deletion raises an exception: {exc}"
 
 
-############ get_osgeo_path
+# -- get_osgeo_path
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -913,7 +930,7 @@ def test_get_osgeo_path_nok():
         get_osgeo_path("ceph://pool/data.ext")
 
 
-############ size_path
+# -- size_path
 def test_size_path_file_ok():
     try:
         size = size_path("file://tests/fixtures/TIFF_PBF_MVT")

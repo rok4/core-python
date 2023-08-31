@@ -1,13 +1,13 @@
 import os
 from unittest import mock
-from unittest.mock import *
+from unittest.mock import MagicMock
 
 import pytest
 
 from rok4.enums import SlabType, StorageType
-from rok4.exceptions import *
-from rok4.pyramid import *
-from rok4.utils import *
+from rok4.exceptions import FormatError, MissingAttributeError, StorageError
+from rok4.pyramid import Pyramid, b36_path_decode, b36_path_encode
+from rok4.utils import srs_to_spatialreference
 
 
 @mock.patch("rok4.pyramid.get_data_str", side_effect=StorageError("FILE", "Not found"))

@@ -1,10 +1,14 @@
 import os
 from unittest import mock
-from unittest.mock import *
 
 import pytest
 
-from rok4.exceptions import *
+from rok4.exceptions import (
+    FormatError,
+    MissingAttributeError,
+    MissingEnvironmentError,
+    StorageError,
+)
 from rok4.tile_matrix_set import TileMatrixSet
 
 
