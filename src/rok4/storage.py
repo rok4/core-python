@@ -51,8 +51,7 @@ except ImportError:
     CEPH_RADOS_AVAILABLE: bool = False
     rados = None
 
-gdal.UseExceptions()
-
+# package
 from rok4.enums import StorageType
 from rok4.exceptions import MissingEnvironmentError, StorageError
 
@@ -60,6 +59,9 @@ from rok4.exceptions import MissingEnvironmentError, StorageError
 
 # Enable GDAL/OGR exceptions
 gdal.UseExceptions()
+
+__CEPH_CLIENT = None
+__CEPH_IOCTXS = {}
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
 
@@ -142,10 +144,6 @@ def disconnect_s3_clients() -> None:
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
     __S3_CLIENTS = {}
     __S3_DEFAULT_CLIENT = None
-
-
-__CEPH_CLIENT = None
-__CEPH_IOCTXS = {}
 
 
 def __get_ceph_ioctx(pool: str) -> "rados.Ioctx":
