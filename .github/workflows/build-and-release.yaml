@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-beta[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+b[0-9]+'
 
 jobs:
 
@@ -27,7 +27,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           generateReleaseNotes: true
           draft: false
-          prerelease: contains(${{ github.ref_name }},'beta')
+          prerelease: contains(${{ github.ref_name }},'b')
 
   build_and_test:
 
@@ -158,7 +158,7 @@ jobs:
   commit_documentation:
     name: Add documentation and unit tests results into gh-pages branch
     needs: build_and_test
-    if: "!(contains(${{ github.ref_name }},'beta'))&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
+    if: "!(contains(${{ github.ref_name }},'b'))&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
     runs-on: ubuntu-latest
 
     steps:
