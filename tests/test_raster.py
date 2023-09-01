@@ -332,7 +332,7 @@ class TestRasterSetFromList(TestCase):
         serial_out = rasterset.serializable
         assert rasterset.srs == srs
         m_get_osgeo_path.assert_called_once_with(list_path)
-        m_open.assert_called_once_with(file=list_local_path, mode="r")
+        m_open.assert_called_once_with(file=list_local_path)
         assert rasterset.raster_list == raster_list
         assert isinstance(serial_out["bbox"], list)
         for i in range(0, 4, 1):
@@ -405,7 +405,7 @@ class TestRasterSetFromDescriptor(TestCase):
             rasterset = RasterSet.from_descriptor(desc_path)
 
         m_get_osgeo_path.assert_called_once_with(desc_path)
-        m_open.assert_called_once_with(file=local_path, mode="r")
+        m_open.assert_called_once_with(file=local_path)
         assert rasterset.srs == serial_in["srs"]
         m_from_parameters.assert_called()
         assert m_from_parameters.call_count == 3

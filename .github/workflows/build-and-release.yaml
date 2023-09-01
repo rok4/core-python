@@ -27,7 +27,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           generateReleaseNotes: true
           draft: false
-          prerelease: false
+          prerelease: contains(${{ github.ref_name }},'beta')
 
   build_and_test:
 
