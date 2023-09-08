@@ -10,7 +10,7 @@ import json
 import math
 import random
 from unittest import TestCase, mock
-from unittest.mock import MagicMock, Mock, call, mock_open, patch
+from unittest.mock import MagicMock, call, mock_open
 
 import pytest
 
