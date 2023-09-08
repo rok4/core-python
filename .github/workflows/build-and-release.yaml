@@ -27,7 +27,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           generateReleaseNotes: true
           draft: false
-          prerelease: contains(${{ github.ref_name }},'b')
+          prerelease: ${{ contains(github.ref_name ,'b') }}
 
   build_and_test:
 
@@ -80,7 +80,7 @@ jobs:
           coverage report -m
 
       - name: Build unit tests report
-        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           coverage html -d dist/tests/
@@ -93,7 +93,7 @@ jobs:
           python3 -m build
 
       - name: Build documentation
-        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           pip install -e .[doc]
@@ -112,7 +112,7 @@ jobs:
   publish_artefacts:
     name: Add built artefacts to release and PyPI
     needs: [create_release, build_and_test]
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
+    if: "always() && needs.create_release.outputs.job_status == 'success' && needs.build_and_test.outputs.job_status == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -158,7 +158,7 @@ jobs:
   commit_documentation:
     name: Add documentation and unit tests results into gh-pages branch
     needs: build_and_test
-    if: "!(contains(${{ github.ref_name }},'b'))&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
+    if: "always() && ! contains(github.ref_name,'b') && needs.create_release.outputs.job_status == 'success' && needs.build_and_test.outputs.job_status == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -208,7 +208,7 @@ jobs:
   delete_version:
     name: Remove release and tag if error occured
     needs: build_and_test
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status!='success')"
+    if: "always() && needs.create_release.outputs.job_status == 'success' && needs.build_and_test.outputs.job_status != 'success'"
     runs-on: ubuntu-latest
 
     steps:
