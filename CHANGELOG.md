@@ -1,3 +1,16 @@
+## 2.0.0
+
+### [Fixed]
+
+* Pyramid
+    * quand on lit une tuile dans une pyramide PNG 1 canal, on retourne bien aussi un numpy.array à 3 dimensions (la dernière dimension sera bien un array à un élément)
+
+### [Changed]
+
+* Storage
+    * Le client S3 garde ouverte des connexions
+    * La fonction get_data_binary a un système de cache de type LRU, avec un temps de validité de 5 minutes
+
 ## 1.7.1
 
 ### [Added]
