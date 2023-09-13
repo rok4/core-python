@@ -35,15 +35,14 @@ import hashlib
 import os
 import re
 import tempfile
+import time
 from functools import lru_cache
 from shutil import copyfile
 from typing import Dict, Tuple, Union
 
 import boto3
 import botocore.exceptions
-
 import requests
-import time
 from osgeo import gdal
 
 # conditional import
@@ -75,6 +74,7 @@ def __get_ttl_hash():
     """Return the same value withing 5 minutes time period"""
     return round(time.time() / 300)
 
+
 def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", str]], str, str]:
     """Get the S3 client
 
@@ -93,9 +93,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
 
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
 
-
     if not __S3_CLIENTS:
-
         verify = True
         if "ROK4_SSL_NO_VERIFY" in os.environ and os.environ["ROK4_SSL_NO_VERIFY"] != "":
             verify = False
@@ -125,10 +123,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
                         aws_secret_access_key=secret_keys[i],
                         verify=verify,
                         endpoint_url=urls[i],
-                        config=botocore.config.Config(
-                            tcp_keepalive = True,
-                            max_pool_connections = 10
-                        )
+                        config=botocore.config.Config(tcp_keepalive=True, max_pool_connections=10),
                     ),
                     "key": keys[i],
                     "secret_key": secret_keys[i],
@@ -395,12 +390,13 @@ def __get_cached_data_binary(path: str, ttl_hash: int, range: Tuple[int, int] = 
             except Exception as e:
                 raise StorageError(storage_type.name, e)
         else:
-            raise NotImplementedError(f"Cannot get partial data for storage type HTTP(S)")
+            raise NotImplementedError("Cannot get partial data for storage type HTTP(S)")
 
     else:
         raise NotImplementedError(f"Cannot get data for storage type {storage_type.name}")
 
     return data
+
 
 def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     """Load data into a binary string
@@ -901,8 +897,10 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             )
 
     elif (
-        from_type == StorageType.HTTP or from_type == StorageType.HTTPS
-    ) and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        (from_type == StorageType.HTTP or from_type == StorageType.HTTPS)
+        and to_type == StorageType.CEPH
+        and CEPH_RADOS_AVAILABLE
+    ):
         to_ioctx = __get_ceph_ioctx(to_tray)
 
         try:
@@ -944,7 +942,9 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
             )
 
     else:
-        raise NotImplementedError(f"Cannot copy data from storage type {from_type.name} to storage type {to_type.name}")
+        raise NotImplementedError(
+            f"Cannot copy data from storage type {from_type.name} to storage type {to_type.name}"
+        )
 
 
 def link(target_path: str, link_path: str, hard: bool = False) -> None:
@@ -1100,6 +1100,8 @@ def size_path(path: str) -> int:
             raise StorageError("S3", e)
 
     else:
-        raise NotImplementedError(f"Cannot get prefix path size for storage type {storage_type.name}")
+        raise NotImplementedError(
+            f"Cannot get prefix path size for storage type {storage_type.name}"
+        )
 
     return total
