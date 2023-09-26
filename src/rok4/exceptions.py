@@ -8,6 +8,7 @@ class MissingAttributeError(Exception):
         self.missing = missing
         super().__init__(f"Missing attribute {missing} in '{path}'")
 
+
 class MissingEnvironmentError(Exception):
     """
     Exception raised when a needed environment variable is not defined
@@ -16,6 +17,7 @@ class MissingEnvironmentError(Exception):
     def __init__(self, missing):
         self.missing = missing
         super().__init__(f"Missing environment variable {missing}")
+
 
 class StorageError(Exception):
     """
@@ -27,6 +29,7 @@ class StorageError(Exception):
         self.issue = issue
         super().__init__(f"Issue occured using a {type} storage : {issue}")
 
+
 class FormatError(Exception):
     """
     Exception raised when a format is expected but not respected
@@ -37,11 +40,3 @@ class FormatError(Exception):
         self.content = content
         self.issue = issue
         super().__init__(f"Expected format {expected_format} to read '{content}' : {issue}")
-
-class NotImplementedError(Exception):
-    """
-    Exception raised when a feature could be provided but is not implemented yet
-    """
-
-    def __init__(self, issue):
-        super().__init__(issue)

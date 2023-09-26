@@ -3,7 +3,8 @@ name: Test, build and publish artefacts and documentation
 on:
   push:
     tags:
-      - '**'
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+b[0-9]+'
 
 jobs:
 
@@ -19,15 +20,14 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref_name }} 
-          release_name: Release ${{ github.ref_name }} 
-          body_path: CHANGELOG.md
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generateReleaseNotes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name ,'b') }}
 
   build_and_test:
 
@@ -68,12 +68,11 @@ jobs:
           python3 -m venv .venv
           source .venv/bin/activate
           python3 -m pip install --upgrade build bump2version
-          bump2version --current-version 0.0.0 --new-version ${{ github.ref_name }} patch pyproject.toml src/rok4/__init__.py
+          bump2version --current-version 0.0.0 --new-version ${{ github.ref_name }} patch
           pip install -e .
           echo "/usr/lib/python3/dist-packages/" >.venv/lib/python${{ matrix.python-version }}/site-packages/system.pth
 
       - name: Run unit tests
-        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
         run: |
           source .venv/bin/activate
           pip install -e .[test]
@@ -81,20 +80,20 @@ jobs:
           coverage report -m
 
       - name: Build unit tests report
-        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           coverage html -d dist/tests/
           rm dist/tests/.gitignore
 
       - name: Build package
-        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           python3 -m build
 
       - name: Build documentation
-        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         run: |
           source .venv/bin/activate
           pip install -e .[doc]
@@ -102,7 +101,7 @@ jobs:
           cp README.md CHANGELOG.md dist/
 
       - name: Upload packages, tests results and documentation
-        if: "(${{ matrix.os }}=='ubuntu-20.04')&&(${{ matrix.python-version }}=='3.8')"
+        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
         uses: actions/upload-artifact@v3
         with:
           name: dist-py3
@@ -113,7 +112,7 @@ jobs:
   publish_artefacts:
     name: Add built artefacts to release and PyPI
     needs: [create_release, build_and_test]
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')"
+    if: "always() && needs.create_release.outputs.job_status == 'success' && needs.build_and_test.outputs.job_status == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -135,7 +134,7 @@ jobs:
           asset_content_type: application/zip
 
       - name: Add tarball package to release
-        id: upload-release-targz 
+        id: upload-release-targz
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,7 +158,7 @@ jobs:
   commit_documentation:
     name: Add documentation and unit tests results into gh-pages branch
     needs: build_and_test
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status=='success')" 
+    if: "always() && ! contains(github.ref_name,'b') && needs.create_release.outputs.job_status == 'success' && needs.build_and_test.outputs.job_status == 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -183,16 +182,18 @@ jobs:
 
       - name: Add pages from templates
         run: |
-          sed "s#__version__#${{ github.ref_name }}#" templates/TESTS.template.md >docs/versions/${{ github.ref_name }}/TESTS.md
-          sed "s#__version__#${{ github.ref_name }}#" templates/DOCUMENTATION.template.md >docs/versions/${{ github.ref_name }}/DOCUMENTATION.md
-          sed "s#__version__#${{ github.ref_name }}#" templates/CHANGELOG.template.md >docs/versions/${{ github.ref_name }}/CHANGELOG.md
-          cat artifact/CHANGELOG.md >>docs/versions/${{ github.ref_name }}/CHANGELOG.md
-          sed "s#__version__#${{ github.ref_name }}#" templates/README.template.md >docs/versions/${{ github.ref_name }}/README.md
-          cat artifact/README.md >>docs/versions/${{ github.ref_name }}/README.md
-          sed "s#__version__#${{ github.ref_name }}#" templates/index.template.md >docs/index.md
-          echo "# Versions" >docs/versions.md
-          echo "" >>docs/versions.md
-          for v in `ls -t docs/versions | grep -v latest`; do sed "s#__version__#$v#" templates/versions.template.md >>docs/versions.md; done
+          sed "s#__version__#${{ github.ref_name }}#" templates/mkdocs.template.yml >mkdocs.yml
+
+          sed "s#__version__#${{ github.ref_name }}#" templates/unit-tests.template.md >docs/versions/${{ github.ref_name }}/unit-tests.md
+          sed "s#__version__#${{ github.ref_name }}#" templates/documentation.template.md >docs/versions/${{ github.ref_name }}/documentation.md
+
+          sed "s#__version__#${{ github.ref_name }}#" templates/index-version.template.md >docs/versions/${{ github.ref_name }}/index.md
+          cat artifact/README.md >>docs/versions/${{ github.ref_name }}/index.md
+          sed -i "s#x.y.z#${{ github.ref_name }}#g" docs/versions/${{ github.ref_name }}/index.md
+
+          cp templates/index-versions.template.md docs/versions/index.md
+          sed "s/^## \(.*\)$/## \1 \n\n[➔ Lien vers la documentation](\1\/index.md) /" artifact/CHANGELOG.md >>docs/versions/index.md
+
           sed "s#__version__#${{ github.ref_name }}#" templates/latest.template.html >docs/versions/latest/index.html
           rm -r artifact
 
@@ -200,14 +201,14 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add -v docs/versions/${{ github.ref_name }}/ docs/versions/latest/ docs/index.md docs/versions.md
+          git add -v docs/versions/${{ github.ref_name }}/ docs/versions/latest/ docs/versions/index.md mkdocs.yml
           git commit -m "Add documentation for version ${{ github.ref_name }}"
           git push
 
   delete_version:
     name: Remove release and tag if error occured
     needs: build_and_test
-    if: "always()&&(needs.create_release.outputs.job_status=='success')&&(needs.build_and_test.outputs.job_status!='success')" 
+    if: "always() && needs.create_release.outputs.job_status == 'success' && needs.build_and_test.outputs.job_status != 'success'"
     runs-on: ubuntu-latest
 
     steps:
@@ -218,4 +219,3 @@ jobs:
           delete_release: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

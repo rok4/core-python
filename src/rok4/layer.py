@@ -5,36 +5,41 @@ The module contains the following classe:
 - `Layer` - Descriptor to broadcast pyramids' data
 """
 
-from typing import Dict, List, Tuple, Union
+# -- IMPORTS --
+
+# standard library
 import json
-from json.decoder import JSONDecodeError
 import os
 import re
+from json.decoder import JSONDecodeError
+from typing import Dict, List, Tuple
 
-from rok4.Exceptions import *
-from rok4.Pyramid import Pyramid, PyramidType
-from rok4.TileMatrixSet import TileMatrixSet
-from rok4.Storage import *
-from rok4.Utils import *
+# package
+from rok4.enums import PyramidType
+from rok4.exceptions import FormatError, MissingAttributeError
+from rok4.pyramid import Pyramid
+from rok4.storage import get_data_str, get_infos_from_path, put_data_str
+from rok4.utils import reproject_bbox
+
 
 class Layer:
     """A data layer, raster or vector
 
     Attributes:
         __name (str): layer's technical name
-        __pyramids (Dict[str, Union[rok4.Pyramid.Pyramid,str,str]]): used pyramids
+        __pyramids (Dict[str, Union[rok4.pyramid.Pyramid,str,str]]): used pyramids
         __format (str): pyramid's list path
-        __tms (rok4.TileMatrixSet.TileMatrixSet): Used grid
+        __tms (rok4.tile_matrix_set.TileMatrixSet): Used grid
         __keywords (List[str]): Keywords
-        __levels (Dict[str, rok4.Pyramid.Level]): Used pyramids' levels
-        __best_level (rok4.Pyramid.Level): Used pyramids best level
+        __levels (Dict[str, rok4.pyramid.Level]): Used pyramids' levels
+        __best_level (rok4.pyramid.Level): Used pyramids best level
         __resampling (str): Interpolation to use fot resampling
         __bbox (Tuple[float, float, float, float]): data bounding box, TMS coordinates system
         __geobbox (Tuple[float, float, float, float]): data bounding box, EPSG:4326
     """
 
     @classmethod
-    def from_descriptor(cls, descriptor: str) -> 'Layer':
+    def from_descriptor(cls, descriptor: str) -> "Layer":
         """Create a layer from its descriptor
 
         Args:
@@ -48,7 +53,7 @@ class Layer:
 
         Returns:
             Layer: a Layer instance
-        """        
+        """
         try:
             data = json.loads(get_data_str(descriptor))
 
@@ -58,7 +63,7 @@ class Layer:
         layer = cls()
 
         storage_type, path, root, base_name = get_infos_from_path(descriptor)
-        layer.__name = base_name[:-5] # on supprime l'extension.json
+        layer.__name = base_name[:-5]  # on supprime l'extension.json
 
         try:
             # Attributs communs
@@ -71,8 +76,7 @@ class Layer:
                 for k in data["keywords"]:
                     layer.__keywords.append(k)
 
-
-            if layer.type == PyramidType.RASTER: 
+            if layer.type == PyramidType.RASTER:
                 if "resampling" in data:
                     layer.__resampling = data["resampling"]
 
@@ -83,11 +87,16 @@ class Layer:
 
             # Les bbox, native et géographique
             if "bbox" in data:
-                layer.__geobbox = (data["bbox"]["south"], data["bbox"]["west"], data["bbox"]["north"], data["bbox"]["east"])
+                layer.__geobbox = (
+                    data["bbox"]["south"],
+                    data["bbox"]["west"],
+                    data["bbox"]["north"],
+                    data["bbox"]["east"],
+                )
                 layer.__bbox = reproject_bbox(layer.__geobbox, "EPSG:4326", layer.__tms.srs, 5)
                 # On force l'emprise de la couche, on recalcule donc les tuiles limites correspondantes pour chaque niveau
-                for l in layer.__levels.values():
-                    l.set_limits_from_bbox(layer.__bbox)
+                for level in layer.__levels.values():
+                    level.set_limits_from_bbox(layer.__bbox)
             else:
                 layer.__bbox = layer.__best_level.bbox
                 layer.__geobbox = reproject_bbox(layer.__bbox, layer.__tms.srs, "EPSG:4326", 5)
@@ -95,11 +104,10 @@ class Layer:
         except KeyError as e:
             raise MissingAttributeError(descriptor, e)
 
-
         return layer
 
     @classmethod
-    def from_parameters(cls, pyramids: List[Dict[str, str]], name: str, **kwargs) -> 'Layer':
+    def from_parameters(cls, pyramids: List[Dict[str, str]], name: str, **kwargs) -> "Layer":
         """Create a default layer from parameters
 
         Args:
@@ -121,7 +129,9 @@ class Layer:
 
         # Informations obligatoires
         if not re.match("^[A-Za-z0-9_-]*$", name):
-            raise Exception(f"Layer's name have to contain only letters, number, hyphen and underscore, to be URL and storage compliant ({name})")
+            raise Exception(
+                f"Layer's name have to contain only letters, number, hyphen and underscore, to be URL and storage compliant ({name})"
+            )
 
         layer.__name = name
         layer.__load_pyramids(pyramids)
@@ -145,7 +155,7 @@ class Layer:
         else:
             layer.__abstract = name
 
-        if layer.type == PyramidType.RASTER: 
+        if layer.type == PyramidType.RASTER:
             if "styles" in kwargs and kwargs["styles"] is not None and len(kwargs["styles"]) > 0:
                 layer.__styles = kwargs["styles"]
             else:
@@ -156,12 +166,11 @@ class Layer:
 
         return layer
 
-
     def __init__(self) -> None:
         self.__format = None
         self.__tms = None
         self.__best_level = None
-        self.__levels = dict()
+        self.__levels = {}
         self.__keywords = []
         self.__pyramids = []
 
@@ -176,12 +185,11 @@ class Layer:
             Exception: Pyramids' do not all own the same TMS
             Exception: Pyramids' do not all own the same channels number
             Exception: Overlapping in usage pyramids' levels
-        """        
+        """
 
-        ## Toutes les pyramides doivent avoir les même caractéristiques
+        # Toutes les pyramides doivent avoir les même caractéristiques
         channels = None
         for p in pyramids:
-
             pyramid = Pyramid.from_descriptor(p["path"])
             bottom_level = p.get("bottom_level", None)
             top_level = p.get("top_level", None)
@@ -193,87 +201,83 @@ class Layer:
                 top_level = pyramid.top_level.id
 
             if self.__format is not None and self.__format != pyramid.format:
-                raise Exception(f"Used pyramids have to own the same format : {self.__format} != {pyramid.format}")
+                raise Exception(
+                    f"Used pyramids have to own the same format : {self.__format} != {pyramid.format}"
+                )
             else:
                 self.__format = pyramid.format
 
             if self.__tms is not None and self.__tms.id != pyramid.tms.id:
-                raise Exception(f"Used pyramids have to use the same TMS : {self.__tms.id} != {pyramid.tms.id}")
+                raise Exception(
+                    f"Used pyramids have to use the same TMS : {self.__tms.id} != {pyramid.tms.id}"
+                )
             else:
                 self.__tms = pyramid.tms
 
             if self.type == PyramidType.RASTER:
                 if channels is not None and channels != pyramid.raster_specifications["channels"]:
-                    raise Exception(f"Used RASTER pyramids have to own the same number of channels : {channels} != {pyramid.raster_specifications['channels']}")
+                    raise Exception(
+                        f"Used RASTER pyramids have to own the same number of channels : {channels} != {pyramid.raster_specifications['channels']}"
+                    )
                 else:
                     channels = pyramid.raster_specifications["channels"]
                 self.__resampling = pyramid.raster_specifications["interpolation"]
 
             levels = pyramid.get_levels(bottom_level, top_level)
-            for l in levels:
-                if l.id in self.__levels:
-                    raise Exception(f"Level {l.id} is present in two used pyramids")
-                self.__levels[l.id] = l
+            for level in levels:
+                if level.id in self.__levels:
+                    raise Exception(f"Level {level.id} is present in two used pyramids")
+                self.__levels[level.id] = level
 
-            self.__pyramids.append({
-                "pyramid": pyramid,
-                "bottom_level": bottom_level,
-                "top_level": top_level
-            })
+            self.__pyramids.append(
+                {"pyramid": pyramid, "bottom_level": bottom_level, "top_level": top_level}
+            )
 
-        self.__best_level = sorted(self.__levels.values(), key=lambda l: l.resolution)[0]
+        self.__best_level = sorted(self.__levels.values(), key=lambda level: level.resolution)[0]
 
     def __str__(self) -> str:
         return f"{self.type.name} layer '{self.__name}'"
 
     @property
-    def serializable(self) -> Dict: 
+    def serializable(self) -> Dict:
         """Get the dict version of the layer object, descriptor compliant
 
         Returns:
             Dict: descriptor structured object description
-        """        
+        """
         serialization = {
             "title": self.__title,
             "abstract": self.__abstract,
             "keywords": self.__keywords,
-            "wmts": {
-                "authorized": True
-            },
-            "tms": {
-                "authorized": True
-            },
+            "wmts": {"authorized": True},
+            "tms": {"authorized": True},
             "bbox": {
                 "south": self.__geobbox[0],
                 "west": self.__geobbox[1],
                 "north": self.__geobbox[2],
-                "east": self.__geobbox[3]
+                "east": self.__geobbox[3],
             },
-            "pyramids": []
+            "pyramids": [],
         }
 
         for p in self.__pyramids:
-            serialization["pyramids"].append({
-                "bottom_level" : p["bottom_level"],
-                "top_level" : p["top_level"],
-                "path" : p["pyramid"].descriptor
-            })
+            serialization["pyramids"].append(
+                {
+                    "bottom_level": p["bottom_level"],
+                    "top_level": p["top_level"],
+                    "path": p["pyramid"].descriptor,
+                }
+            )
 
         if self.type == PyramidType.RASTER:
             serialization["wms"] = {
                 "authorized": True,
-                "crs": [
-                    "CRS:84",
-                    "IGNF:WGS84G",
-                    "EPSG:3857",
-                    "EPSG:4258",
-                    "EPSG:4326"
-                ]
+                "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"],
             }
 
             if self.__tms.srs.upper() not in serialization["wms"]["crs"]:
                 serialization["wms"]["crs"].append(self.__tms.srs.upper())
-            
+
             serialization["styles"] = self.__styles
             serialization["resampling"] = self.__resampling
 
@@ -284,7 +288,7 @@ class Layer:
 
         Args:
             directory (str, optional): Directory (file or object) where to print the layer's descriptor, called <layer's name>.json. Defaults to None, JSON is printed to standard output.
-        """        
+        """
         content = json.dumps(self.serializable)
 
         if directory is None:
@@ -306,4 +310,3 @@ class Layer:
     @property
     def geobbox(self) -> Tuple[float, float, float, float]:
         return self.__geobbox
-

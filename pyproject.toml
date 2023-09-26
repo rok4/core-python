@@ -32,28 +32,51 @@ classifiers = [
 
 dependencies = [
   "boto3 >= 1.26.54",
+  "mapbox-vector-tile >= 2.0.1",
+  "numpy >= 1.24.2",
   "pillow >= 9.4.0",
-  "numpy >= 1.24.2"
+  "requests >= 2.30.0"
 ]
 
 [project.optional-dependencies]
+doc = [
+  "pdoc3 >= 0.10.0"
+]
+
+dev = [
+  "black",
+  "isort >= 5.12.0",
+  "pre-commit >3,<4",
+  "ruff >= 0.0.281"
+]
+
 test = [
   "pytest >= 7.1.2",
   "coverage >= 7.0.5"
-]
-doc = [
-  "pdoc3 >= 0.10.0"
 ]
 
 [project.urls]
 "Homepage" = "https://rok4.github.io/core-python"
 "Bug Reports" = "https://github.com/rok4/core-python/issues"
-"Changelog" = "https://github.com/rok4/core-python/releases"
+"Changelog" = "https://rok4.github.io/core-python/versions/"
 "Source" = "https://github.com/rok4/core-python"
 
 [build-system]
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+target-version = "py38"
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
