@@ -70,7 +70,7 @@ def test_wrong_crs(mocked_get_data_str):
         TileMatrixSet("tms")
     assert (
         str(exc.value)
-        == "Wrong attribute 'crs' ('epsg:123456') in 'file:///path/to/tms.json', not recognize by OSR"
+        == "Wrong attribute 'crs' ('epsg:123456') in 'file:///path/to/tms.json', not recognize by OSR. Trace : PROJ: proj_create_from_database: crs not found"
     )
     mocked_get_data_str.assert_called_once_with("file:///path/to/tms.json")
 

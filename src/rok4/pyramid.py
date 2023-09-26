@@ -1189,6 +1189,11 @@ class Pyramid:
                 raise FormatError("JPEG", "binary tile", e)
 
             data = numpy.asarray(img)
+            data.shape = (
+                level_object.tile_matrix.tile_size[0],
+                level_object.tile_matrix.tile_size[1],
+                self.__raster_specifications["channels"],
+            )
 
         elif self.__format == "TIFF_RAW_UINT8":
             data = numpy.frombuffer(binary_tile, dtype=numpy.dtype("uint8"))
@@ -1205,6 +1210,11 @@ class Pyramid:
                 raise FormatError("PNG", "binary tile", e)
 
             data = numpy.asarray(img)
+            data.shape = (
+                level_object.tile_matrix.tile_size[0],
+                level_object.tile_matrix.tile_size[1],
+                self.__raster_specifications["channels"],
+            )
 
         elif self.__format == "TIFF_ZIP_UINT8":
             try:
