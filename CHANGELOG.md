@@ -1,3 +1,13 @@
+## 2.0.1
+
+### [Added]
+
+* `storage` : le cache de lecture est configurable en taille (avec ROK4_READING_LRU_CACHE_SIZE) et en temps de rétention (avec ROK4_READING_LRU_CACHE_TTL)
+
+### [Security]
+
+* Montée de version de pillow (faille de sécurité liée à libwebp)
+
 ## 2.0.0
 
 ### [Fixed]
