@@ -213,7 +213,7 @@ jobs:
 
     steps:
       - name: Remove release and tag
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        uses: dev-drprasad/delete-tag-and-release@v1.0.1
         with:
           tag_name: ${{ github.ref_name }}
           delete_release: true
