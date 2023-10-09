@@ -96,6 +96,7 @@ except ValueError:
 except KeyError:
     pass
 
+
 def __get_ttl_hash():
     """Return the time string rounded according to time-to-live value"""
     if __LRU_TTL == 0:
