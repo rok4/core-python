@@ -9,6 +9,12 @@ Available storage types are :
 
 According to functions, all storage types are not necessarily available.
 
+Readings uses a LRU cache system with a TTL. It's possible to configure it with environment variables :
+- ROK4_READING_LRU_CACHE_SIZE : Number of cached element. Default 64. Set 0 or a negative integer to configure a cache without bound. A power of two make cache more efficient.
+- ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to disable time validity.
+
+To disable cache, set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 0.
+
 Using CEPH storage requires environment variables :
 - ROK4_CEPH_CONFFILE
 - ROK4_CEPH_USERNAME
@@ -69,10 +75,33 @@ __OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
 
+__LRU_SIZE = 64
+__LRU_TTL = 300
+
+try:
+    __LRU_SIZE = int(os.environ["ROK4_READING_LRU_CACHE_SIZE"])
+    if __LRU_SIZE < 1:
+        __LRU_SIZE = None
+except ValueError:
+    pass
+except KeyError:
+    pass
+
+try:
+    __LRU_TTL = int(os.environ["ROK4_READING_LRU_CACHE_TTL"])
+    if __LRU_TTL < 0:
+        __LRU_TTL = 0
+except ValueError:
+    pass
+except KeyError:
+    pass
 
 def __get_ttl_hash():
-    """Return the same value withing 5 minutes time period"""
-    return round(time.time() / 300)
+    """Return the time string rounded according to time-to-live value"""
+    if __LRU_TTL == 0:
+        return time.time()
+    else:
+        return round(time.time() / __LRU_TTL)
 
 
 def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", str]], str, str]:
@@ -294,7 +323,7 @@ def get_data_str(path: str) -> str:
     return get_data_binary(path).decode("utf-8")
 
 
-@lru_cache(maxsize=50)
+@lru_cache(maxsize=__LRU_SIZE)
 def __get_cached_data_binary(path: str, ttl_hash: int, range: Tuple[int, int] = None) -> str:
     """Load data into a binary string, using a LRU cache
 
