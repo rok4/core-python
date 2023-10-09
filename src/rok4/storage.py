@@ -1003,6 +1003,9 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
     if hard and target_type != StorageType.FILE:
         raise StorageError(target_type.name, "Hard link is available only for FILE storage")
 
+    if exists(link_path):
+        remove(link_path)
+
     # Réalisation du lien, selon les types de stockage
     if target_type == StorageType.S3:
         target_s3_client, target_bucket = __get_s3_client(target_tray)
@@ -1025,7 +1028,6 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
     elif target_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(link_tray)
-
         try:
             ioctx.write_full(link_base_name, f"{__OBJECT_SYMLINK_SIGNATURE}{target_path}".encode())
         except Exception as e:
@@ -1033,6 +1035,9 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
     elif target_type == StorageType.FILE:
         try:
+            to_tray = get_infos_from_path(link_path)[2]
+            if to_tray != "":
+                os.makedirs(to_tray, exist_ok=True)
             if hard:
                 os.link(target_path, link_path)
             else:
