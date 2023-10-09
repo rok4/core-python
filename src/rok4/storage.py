@@ -34,22 +34,67 @@ import hashlib
 import os
 import re
 import tempfile
+import time
+from functools import lru_cache
 from shutil import copyfile
-from typing import Dict, List, Tuple, Union
+from typing import Dict, Tuple, Union
 
 import boto3
 import botocore.exceptions
-import rados
 import requests
 from osgeo import gdal
 
+# conditional import
+try:
+    import rados
+
+    CEPH_RADOS_AVAILABLE: bool = True
+except ImportError:
+    CEPH_RADOS_AVAILABLE: bool = False
+    rados = None
+
+# package
+from rok4.enums import StorageType
+from rok4.exceptions import MissingEnvironmentError, StorageError
+
+# -- GLOBALS --
+
+# Enable GDAL/OGR exceptions
 gdal.UseExceptions()
 
-from rok4.enums import StorageType
-from rok4.exceptions import *
-
+__CEPH_CLIENT = None
+__CEPH_IOCTXS = {}
+__OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
+__LRU_SIZE = 64
+__LRU_TTL = 300
+
+try:
+    __LRU_SIZE = int(os.environ["ROK4_READING_LRU_CACHE_SIZE"])
+    if __LRU_SIZE < 1:
+        __LRU_SIZE = None
+except ValueError:
+    pass
+except KeyError:
+    pass
+
+try:
+    __LRU_TTL = int(os.environ["ROK4_READING_LRU_CACHE_TTL"])
+    if __LRU_TTL < 0:
+        __LRU_TTL = 0
+except ValueError:
+    pass
+except KeyError:
+    pass
+
+
+def __get_ttl_hash():
+    """Return the time string rounded according to time-to-live value"""
+    if __LRU_TTL == 0:
+        return time.time()
+    else:
+        return round(time.time() / __LRU_TTL)
 
 
 def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", str]], str, str]:
@@ -71,6 +116,9 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
 
     if not __S3_CLIENTS:
+        verify = True
+        if "ROK4_SSL_NO_VERIFY" in os.environ and os.environ["ROK4_SSL_NO_VERIFY"] != "":
+            verify = False
         # C'est la première fois qu'on cherche à utiliser le stockage S3, chargeons les informations depuis les variables d'environnement
         try:
             keys = os.environ["ROK4_S3_KEY"].split(",")
@@ -94,7 +142,9 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
                         "s3",
                         aws_access_key_id=keys[i],
                         aws_secret_access_key=secret_keys[i],
+                        verify=verify,
                         endpoint_url=urls[i],
+                        config=botocore.config.Config(tcp_keepalive=True, max_pool_connections=10),
                     ),
                     "key": keys[i],
                     "secret_key": secret_keys[i],
@@ -130,10 +180,6 @@ def disconnect_s3_clients() -> None:
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
     __S3_CLIENTS = {}
     __S3_DEFAULT_CLIENT = None
-
-
-__CEPH_CLIENT = None
-__CEPH_IOCTXS = {}
 
 
 def __get_ceph_ioctx(pool: str) -> "rados.Ioctx":
@@ -182,9 +228,6 @@ def disconnect_ceph_clients() -> None:
     global __CEPH_CLIENT, __CEPH_IOCTXS
     __CEPH_CLIENT = None
     __CEPH_IOCTXS = {}
-
-
-__OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 
 
 def get_infos_from_path(path: str) -> Tuple[StorageType, str, str, str]:
@@ -263,6 +306,7 @@ def get_data_str(path: str) -> str:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
         FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
 
     Returns:
         str: Data content
@@ -271,17 +315,20 @@ def get_data_str(path: str) -> str:
     return get_data_binary(path).decode("utf-8")
 
 
-def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
-    """Load data into a binary string
+@lru_cache(maxsize=__LRU_SIZE)
+def __get_cached_data_binary(path: str, ttl_hash: int, range: Tuple[int, int] = None) -> str:
+    """Load data into a binary string, using a LRU cache
 
     Args:
         path (str): path to data
+        ttl_hash (int): time hash, to invalid cache
         range (Tuple[int, int], optional): offset and size, to make a partial read. Defaults to None.
 
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
         FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
 
     Returns:
         str: Data binary content
@@ -321,7 +368,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
         except Exception as e:
             raise StorageError("S3", e)
 
-    elif storage_type == StorageType.CEPH:
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
@@ -331,7 +378,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
             else:
                 data = ioctx.read(base_name, range[1], range[0])
 
-        except rados.ObjectNotFound as e:
+        except rados.ObjectNotFound:
             raise FileNotFoundError(f"{storage_type.value}{path}")
 
         except Exception as e:
@@ -348,28 +395,49 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
 
             f.close()
 
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             raise FileNotFoundError(f"{storage_type.value}{path}")
 
         except Exception as e:
             raise StorageError("FILE", e)
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
-        if range is None:
+
+        if range is None :
             try:
                 reponse = requests.get(f"{storage_type.value}{path}", stream=True)
                 data = reponse.content
-                if reponse.status_code == 404:
+                if reponse.status_code == 404 :
                     raise FileNotFoundError(f"{storage_type.value}{path}")
             except Exception as e:
                 raise StorageError(storage_type.name, e)
-        else:
-            raise NotImplementedError
+        else :
+            raise NotImplementedError("Cannot get partial data for storage type HTTP(S)")
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to read binary data")
+        raise NotImplementedError(f"Cannot get data for storage type {storage_type.name}")
 
     return data
+
+def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
+    """Load data into a binary string
+
+    This function uses a LRU cache, with a TTL of 5 minutes
+
+    Args:
+        path (str): path to data
+        range (Tuple[int, int], optional): offset and size, to make a partial read. Defaults to None.
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: Data binary content
+    """
+    return __get_cached_data_binary(path, __get_ttl_hash(), range)
 
 
 def put_data_str(data: str, path: str) -> None:
@@ -384,6 +452,7 @@ def put_data_str(data: str, path: str) -> None:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage write issue
+        NotImplementedError: Storage type not handled
     """
 
     storage_type, path, tray_name, base_name = get_infos_from_path(path)
@@ -398,7 +467,7 @@ def put_data_str(data: str, path: str) -> None:
         except Exception as e:
             raise StorageError("S3", e)
 
-    elif storage_type == StorageType.CEPH:
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
@@ -415,7 +484,7 @@ def put_data_str(data: str, path: str) -> None:
             raise StorageError("FILE", e)
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to write string data")
+        raise NotImplementedError(f"Cannot write data for storage type {storage_type.name}")
 
 
 def get_size(path: str) -> int:
@@ -427,6 +496,7 @@ def get_size(path: str) -> int:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
+        NotImplementedError: Storage type not handled
 
     Returns:
         int: file/object size, in bytes
@@ -445,7 +515,7 @@ def get_size(path: str) -> int:
         except Exception as e:
             raise StorageError("S3", e)
 
-    elif storage_type == StorageType.CEPH:
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
@@ -462,6 +532,7 @@ def get_size(path: str) -> int:
             raise StorageError("FILE", e)
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+
         try:
             # Le stream=True permet de ne télécharger que le header initialement
             reponse = requests.get(storage_type.value + path, stream=True).headers["content-length"]
@@ -470,7 +541,7 @@ def get_size(path: str) -> int:
             raise StorageError(storage_type.name, e)
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to get size")
+        raise NotImplementedError(f"Cannot get size for storage type {storage_type.name}")
 
 
 def exists(path: str) -> bool:
@@ -482,6 +553,7 @@ def exists(path: str) -> bool:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage read issue
+        NotImplementedError: Storage type not handled
 
     Returns:
         bool: file/object existing status
@@ -501,13 +573,13 @@ def exists(path: str) -> bool:
             else:
                 raise StorageError("S3", e)
 
-    elif storage_type == StorageType.CEPH:
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
             ioctx.stat(base_name)
             return True
-        except rados.ObjectNotFound as e:
+        except rados.ObjectNotFound:
             return False
         except Exception as e:
             raise StorageError("CEPH", e)
@@ -516,17 +588,18 @@ def exists(path: str) -> bool:
         return os.path.exists(path)
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+
         try:
             response = requests.get(storage_type.value + path, stream=True)
-            if response.status_code == 200:
+            if response.status_code == 200 :
                 return True
-            else:
+            else :
                 return False
         except Exception as e:
             raise StorageError(storage_type.name, e)
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to test if exists")
+        raise NotImplementedError(f"Cannot test existence for storage type {storage_type.name}")
 
 
 def remove(path: str) -> None:
@@ -538,6 +611,7 @@ def remove(path: str) -> None:
     Raises:
         MissingEnvironmentError: Missing object storage informations
         StorageError: Storage removal issue
+        NotImplementedError: Storage type not handled
     """
     storage_type, path, tray_name, base_name = get_infos_from_path(path)
 
@@ -549,12 +623,12 @@ def remove(path: str) -> None:
         except Exception as e:
             raise StorageError("S3", e)
 
-    elif storage_type == StorageType.CEPH:
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(tray_name)
 
         try:
             ioctx.remove_object(base_name)
-        except rados.ObjectNotFound as e:
+        except rados.ObjectNotFound:
             pass
         except Exception as e:
             raise StorageError("CEPH", e)
@@ -562,13 +636,13 @@ def remove(path: str) -> None:
     elif storage_type == StorageType.FILE:
         try:
             os.remove(path)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             pass
         except Exception as e:
             raise StorageError("FILE", e)
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to remove things")
+        raise NotImplementedError(f"Cannot remove data for storage type {storage_type.name}")
 
 
 def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
@@ -580,8 +654,9 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         from_md5 (str, optional): MD5 sum, re-processed after copy and controlled. Defaults to None.
 
     Raises:
-        StorageError: Unhandled copy or copy issue
+        StorageError: Copy issue
         MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
     """
 
     from_type, from_path, from_tray, from_base_name = get_infos_from_path(from_path)
@@ -599,12 +674,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 to_md5 = hash_file(to_path)
                 if to_md5 != from_md5:
                     raise StorageError(
-                        f"FILE",
+                        "FILE",
                         f"Invalid MD5 sum control for copy file {from_path} to {to_path} : {from_md5} != {to_md5}",
                     )
 
         except Exception as e:
-            raise StorageError(f"FILE", f"Cannot copy file {from_path} to {to_path} : {e}")
+            raise StorageError("FILE", f"Cannot copy file {from_path} to {to_path} : {e}")
 
     elif from_type == StorageType.S3 and to_type == StorageType.FILE:
         s3_client, from_bucket = __get_s3_client(from_tray)
@@ -625,7 +700,7 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"S3 and FILE", f"Cannot copy S3 object {from_path} to file {to_path} : {e}"
+                "S3 and FILE", f"Cannot copy S3 object {from_path} to file {to_path} : {e}"
             )
 
     elif from_type == StorageType.FILE and to_type == StorageType.S3:
@@ -642,12 +717,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 )
                 if to_md5 != from_md5:
                     raise StorageError(
-                        f"FILE and S3",
+                        "FILE and S3",
                         f"Invalid MD5 sum control for copy file {from_path} to S3 object {to_path} : {from_md5} != {to_md5}",
                     )
         except Exception as e:
             raise StorageError(
-                f"FILE and S3", f"Cannot copy file {from_path} to S3 object {to_path} : {e}"
+                "FILE and S3", f"Cannot copy file {from_path} to S3 object {to_path} : {e}"
             )
 
     elif from_type == StorageType.S3 and to_type == StorageType.S3:
@@ -672,14 +747,14 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 )
                 if to_md5 != from_md5:
                     raise StorageError(
-                        f"S3",
+                        "S3",
                         f"Invalid MD5 sum control for copy S3 object {from_path} to {to_path} : {from_md5} != {to_md5}",
                     )
 
         except Exception as e:
-            raise StorageError(f"S3", f"Cannot copy S3 object {from_path} to {to_path} : {e}")
+            raise StorageError("S3", f"Cannot copy S3 object {from_path} to {to_path} : {e}")
 
-    elif from_type == StorageType.CEPH and to_type == StorageType.FILE:
+    elif from_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE and to_type == StorageType.FILE:
         ioctx = __get_ceph_ioctx(from_tray)
 
         if from_md5 is not None:
@@ -709,16 +784,16 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"CEPH and FILE",
+                    "CEPH and FILE",
                     f"Invalid MD5 sum control for copy CEPH object {from_path} to file {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
             raise StorageError(
-                f"CEPH and FILE", f"Cannot copy CEPH object {from_path} to file {to_path} : {e}"
+                "CEPH and FILE", f"Cannot copy CEPH object {from_path} to file {to_path} : {e}"
             )
 
-    elif from_type == StorageType.FILE and to_type == StorageType.CEPH:
+    elif from_type == StorageType.FILE and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(to_tray)
 
         if from_md5 is not None:
@@ -746,16 +821,16 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"FILE and CEPH",
+                    "FILE and CEPH",
                     f"Invalid MD5 sum control for copy file {from_path} to CEPH object {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
             raise StorageError(
-                f"FILE and CEPH", f"Cannot copy file {from_path} to CEPH object {to_path} : {e}"
+                "FILE and CEPH", f"Cannot copy file {from_path} to CEPH object {to_path} : {e}"
             )
 
-    elif from_type == StorageType.CEPH and to_type == StorageType.CEPH:
+    elif from_type == StorageType.CEPH and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         from_ioctx = __get_ceph_ioctx(from_tray)
         to_ioctx = __get_ceph_ioctx(to_tray)
 
@@ -780,14 +855,14 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"FILE and CEPH",
+                    "FILE and CEPH",
                     f"Invalid MD5 sum control for copy CEPH object {from_path} to {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
-            raise StorageError(f"CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
+            raise StorageError("CEPH", f"Cannot copy CEPH object {from_path} to {to_path} : {e}")
 
-    elif from_type == StorageType.CEPH and to_type == StorageType.S3:
+    elif from_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE and to_type == StorageType.S3:
         from_ioctx = __get_ceph_ioctx(from_tray)
 
         s3_client, to_bucket = __get_s3_client(to_tray)
@@ -819,40 +894,45 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
             if from_md5 is not None and from_md5 != checker.hexdigest():
                 raise StorageError(
-                    f"CEPH and S3",
+                    "CEPH and S3",
                     f"Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {checker.hexdigest()}",
                 )
 
         except Exception as e:
             raise StorageError(
-                f"CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}"
+                "CEPH and S3", f"Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}"
             )
 
     elif (
         from_type == StorageType.HTTP or from_type == StorageType.HTTPS
     ) and to_type == StorageType.FILE:
+
         try:
-            response = requests.get(from_type.value + from_path, stream=True)
+            response = requests.get(from_type.value + from_path, stream = True)
             with open(to_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=65536):
+                for chunk in response.iter_content(chunk_size=65536) :
+
                     if chunk:
                         f.write(chunk)
 
         except Exception as e:
             raise StorageError(
-                f"HTTP(S) and FILE",
+                "HTTP(S) and FILE",
                 f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}",
             )
 
     elif (
-        from_type == StorageType.HTTP or from_type == StorageType.HTTPS
-    ) and to_type == StorageType.CEPH:
+        (from_type == StorageType.HTTP or from_type == StorageType.HTTPS)
+        and to_type == StorageType.CEPH
+        and CEPH_RADOS_AVAILABLE
+    ):
+
         to_ioctx = __get_ceph_ioctx(to_tray)
 
         try:
-            response = requests.get(from_type.value + from_path, stream=True)
+            response = requests.get(from_type.value + from_path, stream = True)
             offset = 0
-            for chunk in response.iter_content(chunk_size=65536):
+            for chunk in response.iter_content(chunk_size=65536) :
                 if chunk:
                     size = len(chunk)
                     to_ioctx.write(to_base_name, chunk, offset)
@@ -860,20 +940,23 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"HTTP(S) and CEPH",
+                "HTTP(S) and CEPH",
                 f"Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}",
             )
+
 
     elif (
         from_type == StorageType.HTTP or from_type == StorageType.HTTPS
     ) and to_type == StorageType.S3:
+
         to_s3_client, to_bucket = __get_s3_client(to_tray)
 
         try:
-            response = requests.get(from_type.value + from_path, stream=True)
-            with tempfile.NamedTemporaryFile("w+b", delete=False) as f:
+            response = requests.get(from_type.value + from_path, stream = True)
+            with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
                 name_fich = f.name
-                for chunk in response.iter_content(chunk_size=65536):
+                for chunk in response.iter_content(chunk_size=65536) :
+
                     if chunk:
                         f.write(chunk)
 
@@ -883,14 +966,14 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
 
         except Exception as e:
             raise StorageError(
-                f"HTTP(S) and S3",
+                "HTTP(S) and S3",
                 f"Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}",
             )
 
+
     else:
-        raise StorageError(
-            f"{from_type.name} and {to_type.name}",
-            f"Cannot copy from {from_type.name} to {to_type.name}",
+        raise NotImplementedError(
+            f"Cannot copy data from storage type {from_type.name} to storage type {to_type.name}"
         )
 
 
@@ -903,8 +986,9 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
         hard (bool, optional): hard link rather than symbolic. Only for FILE storage. Defaults to False.
 
     Raises:
-        StorageError: Unhandled link or link issue
+        StorageError: link issue
         MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
     """
 
     target_type, target_path, target_tray, target_base_name = get_infos_from_path(target_path)
@@ -913,7 +997,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
     if target_type != link_type:
         raise StorageError(
             f"{target_type.name} and {link_type.name}",
-            f"Cannot make link between two different storage types",
+            "Cannot make link between two different storage types",
         )
 
     if hard and target_type != StorageType.FILE:
@@ -926,7 +1010,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
         if target_s3_client["host"] != link_s3_client["host"]:
             raise StorageError(
-                f"S3",
+                "S3",
                 f"Cannot make link {link_path} -> {target_path} : link works only on the same S3 cluster",
             )
 
@@ -939,7 +1023,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
         except Exception as e:
             raise StorageError("S3", e)
 
-    elif target_type == StorageType.CEPH:
+    elif target_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(link_tray)
 
         try:
@@ -957,7 +1041,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
             raise StorageError("FILE", e)
 
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to make link")
+        raise NotImplementedError(f"Cannot make link for storage type {target_type.name}")
 
 
 def get_osgeo_path(path: str) -> str:
@@ -995,8 +1079,7 @@ def get_osgeo_path(path: str) -> str:
     else:
         raise NotImplementedError(f"Cannot get a GDAL/OGR compliant path from {path}")
 
-
-def size_path(path: str) -> int:
+def size_path(path: str) -> int :
     """Return the size of the path given (or, for the CEPH, the sum of the size of each object of the .list)
 
     Args:
@@ -1005,14 +1088,15 @@ def size_path(path: str) -> int:
     Raises:
         StorageError: Unhandled link or link issue
         MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
 
     Returns:
         int: size of the path
     """
-    storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
+    storage_type, unprefixed_path, tray_name, base_name  = get_infos_from_path(path)
 
     if storage_type == StorageType.FILE:
-        try:
+        try :
             total = 0
             with os.scandir(unprefixed_path) as it:
                 for entry in it:
@@ -1027,11 +1111,12 @@ def size_path(path: str) -> int:
     elif storage_type == StorageType.S3:
         s3_client, bucket_name = __get_s3_client(tray_name)
 
-        try:
+
+        try :
             paginator = s3_client["client"].get_paginator("list_objects_v2")
             pages = paginator.paginate(
                 Bucket=bucket_name,
-                Prefix=base_name + "/",
+                Prefix=base_name+"/",
                 PaginationConfig={
                     "PageSize": 10000,
                 },
@@ -1044,9 +1129,9 @@ def size_path(path: str) -> int:
         except Exception as e:
             raise StorageError("S3", e)
 
-    elif storage_type == StorageType.CEPH:
-        raise NotImplementedError
     else:
-        raise StorageError("UNKNOWN", "Unhandled storage type to calculate size")
+        raise NotImplementedError(
+            f"Cannot get prefix path size for storage type {storage_type.name}"
+        )
 
     return total

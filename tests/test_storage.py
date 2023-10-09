@@ -4,12 +4,10 @@ from unittest.mock import *
 
 import botocore.exceptions
 import pytest
-from rados import ObjectNotFound
 
 from rok4.enums import StorageType
 from rok4.exceptions import *
 from rok4.storage import *
-
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @patch("builtins.open", new_callable=mock_open, read_data=b"data")
@@ -20,7 +18,6 @@ def test_hash_file_ok(mock_file):
         assert md5 == "8d777f385d3dfec8815d20f7496026dc"
     except Exception as exc:
         assert False, f"FILE md5 sum raises an exception: {exc}"
-
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_get_infos_from_path():
@@ -119,7 +116,6 @@ def test_s3_read_nok(mocked_s3_client):
     with pytest.raises(StorageError):
         data = get_data_str("s3://bucket/path/to/object")
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -162,9 +158,8 @@ def test_ceph_read_ok(mocked_rados_client):
     except Exception as exc:
         assert False, f"CEPH read raises an exception: {exc}"
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("requests.get", side_effect={"status_code": 404})
+@mock.patch("requests.get", side_effect={"status_code":404})
 def test_http_read_error(mock_http):
     with pytest.raises(StorageError):
         requests_instance = MagicMock()
@@ -175,19 +170,18 @@ def test_http_read_error(mock_http):
 
     mock_http.assert_called_with("http://path/to/file.ext", stream=True)
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_http_read_range_error():
     with pytest.raises(NotImplementedError):
-        data = get_data_binary("http://path/to/file.ext", (0, 100))
-
+        data = get_data_binary("http://path/to/file.ext", (0,100))
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("requests.get")
 def test_http_read_ok(mock_http):
-    try:
+
+    try :
         requests_instance = MagicMock()
-        requests_instance.content = b"data"
+        requests_instance.content = b'data'
         mock_http.return_value = requests_instance
 
         data = get_data_str("http://path/to/file.ext")
@@ -198,7 +192,6 @@ def test_http_read_ok(mock_http):
 
 
 ############ put_data_str
-
 
 @mock.patch.dict(
     os.environ,
@@ -231,7 +224,6 @@ def test_s3_write_ok(mocked_s3_client):
         put_data_str("data", "s3://bucket/path/to/object")
     except Exception as exc:
         assert False, f"S3 write raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -310,7 +302,6 @@ def test_copy_s3_file_nok(mock_hash_file, mock_makedirs, mocked_s3_client):
         copy("s3://bucket/source.ext", "file:///path/to/destination.ext", "toto")
         mock_makedirs.assert_called_once_with("/path/to", exist_ok=True)
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -329,7 +320,6 @@ def test_copy_file_s3_ok(mocked_s3_client):
     except Exception as exc:
         assert False, f"FILE -> S3 copy raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -347,7 +337,6 @@ def test_copy_s3_s3_ok(mocked_s3_client):
         copy("s3://bucket/source.ext", "s3://bucket/destination.ext", "toto")
     except Exception as exc:
         assert False, f"S3 -> S3 copy raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -410,7 +399,6 @@ def test_copy_ceph_file_ok(mock_file, mock_makedirs, mocked_rados_client):
         mock_makedirs.assert_called_once_with("/path/to", exist_ok=True)
     except Exception as exc:
         assert False, f"CEPH -> FILE copy raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -501,14 +489,14 @@ def test_copy_ceph_s3_ok(mock_file, mocked_s3_client, mocked_rados_client):
     except Exception as exc:
         assert False, f"CEPH -> S3 copy raises an exception: {exc}"
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("requests.get")
-@patch("builtins.open", new_callable=mock_open)
+@mock.patch('requests.get')
+@patch('builtins.open', new_callable=mock_open)
 def test_copy_http_file_ok(mock_open, mock_requests):
     try:
+
         http_instance = MagicMock()
-        http_instance.iter_content.return_value = ["data", "data2"]
+        http_instance.iter_content.return_value = ["data","data2"]
         mock_requests.return_value = http_instance
 
         copy("http://path/to/source.ext", "file:///path/to/destination.ext")
@@ -517,18 +505,14 @@ def test_copy_http_file_ok(mock_open, mock_requests):
     except Exception as exc:
         assert False, f"HTTP -> FILE copy raises an exception: {exc}"
 
-
-@mock.patch.dict(
-    os.environ,
-    {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"},
-    clear=True,
-)
-@mock.patch("rok4.storage.rados.Rados")
-@mock.patch("requests.get")
+@mock.patch.dict(os.environ, {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"}, clear=True)
+@mock.patch('rok4.storage.rados.Rados')
+@mock.patch('requests.get')
 def test_copy_http_ceph_ok(mock_requests, mocked_rados_client):
     try:
+
         http_instance = MagicMock()
-        http_instance.iter_content.return_value = ["data", "data2"]
+        http_instance.iter_content.return_value = ["data","data2"]
         mock_requests.return_value = http_instance
 
         disconnect_ceph_clients()
@@ -543,20 +527,16 @@ def test_copy_http_ceph_ok(mock_requests, mocked_rados_client):
     except Exception as exc:
         assert False, f"HTTP -> CEPH copy raises an exception: {exc}"
 
-
-@mock.patch.dict(
-    os.environ,
-    {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
-    clear=True,
-)
-@mock.patch("rok4.storage.boto3.client")
-@mock.patch("requests.get")
-@patch("tempfile.NamedTemporaryFile", new_callable=mock_open)
-@mock.patch("os.remove")
+@mock.patch.dict(os.environ, {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True)
+@mock.patch('rok4.storage.boto3.client')
+@mock.patch('requests.get')
+@patch('tempfile.NamedTemporaryFile', new_callable=mock_open)
+@mock.patch('os.remove')
 def test_copy_http_s3_ok(mock_remove, mock_tempfile, mock_requests, mocked_s3_client):
     try:
+
         http_instance = MagicMock()
-        http_instance.iter_content.return_value = ["data", "data2"]
+        http_instance.iter_content.return_value = ["data","data2"]
         mock_requests.return_value = http_instance
 
         disconnect_s3_clients()
@@ -603,7 +583,6 @@ def test_hlink_file_ok(mock_link):
         mock_link.assert_called_once_with("/path/to/target.ext", "/path/to/link.ext")
     except Exception as exc:
         assert False, f"FILE hard link raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -661,7 +640,6 @@ def test_link_s3_nok(mocked_s3_client):
 
 ############ get_size
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.stat")
 def test_size_file_ok(mock_stat):
@@ -671,7 +649,6 @@ def test_size_file_ok(mock_stat):
         assert size == 12
     except Exception as exc:
         assert False, f"FILE size raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -693,7 +670,6 @@ def test_size_ceph_ok(mocked_rados_client):
     except Exception as exc:
         assert False, f"CEPH size raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -712,12 +688,12 @@ def test_size_s3_ok(mocked_s3_client):
     except Exception as exc:
         assert False, f"S3 size raises an exception: {exc}"
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("requests.get")
+@mock.patch('requests.get')
 def test_size_http_ok(mock_requests):
+
     http_instance = MagicMock()
-    http_instance.headers = {"content-length": 12}
+    http_instance.headers = {"content-length":12}
     mock_requests.return_value = http_instance
 
     try:
@@ -743,7 +719,6 @@ def test_exists_file_ok(mock_exists):
         assert not exists("file:///path/to/file.ext")
     except Exception as exc:
         assert False, f"FILE not exists raises an exception: {exc}"
-
 
 @mock.patch.dict(
     os.environ,
@@ -796,10 +771,10 @@ def test_exists_s3_ok(mocked_s3_client):
     except Exception as exc:
         assert False, f"CEPH not exists raises an exception: {exc}"
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
-@mock.patch("requests.get")
+@mock.patch('requests.get')
 def test_exists_http_ok(mock_requests):
+
     http_instance = MagicMock()
     http_instance.status_code = 200
     mock_requests.return_value = http_instance
@@ -862,7 +837,6 @@ def test_remove_ceph_ok(mocked_rados_client):
     except Exception as exc:
         assert False, f"CEPH deletion (not found) raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -892,7 +866,6 @@ def test_get_osgeo_path_file_ok():
     except Exception as exc:
         assert False, f"FILE osgeo path raises an exception: {exc}"
 
-
 @mock.patch.dict(
     os.environ,
     {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
@@ -913,7 +886,6 @@ def test_get_osgeo_path_nok():
     with pytest.raises(NotImplementedError):
         get_osgeo_path("ceph://pool/data.ext")
 
-
 ############ size_path
 def test_size_path_file_ok():
     try:
@@ -924,29 +896,21 @@ def test_size_path_file_ok():
 
 
 def test_size_file_nok():
-    with pytest.raises(StorageError):
+    with pytest.raises(StorageError) :
         size = size_path("file://tests/fixtures/TIFF_PBF_M")
 
-
-@mock.patch.dict(
-    os.environ,
-    {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"},
-    clear=True,
-)
+@mock.patch.dict(os.environ, {"ROK4_CEPH_CONFFILE": "a", "ROK4_CEPH_CLUSTERNAME": "b", "ROK4_CEPH_USERNAME": "c"}, clear=True)
 def test_size_path_ceph_nok():
+
     with pytest.raises(NotImplementedError):
         size = size_path("ceph://pool/path")
 
-
-@mock.patch.dict(
-    os.environ,
-    {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
-    clear=True,
-)
-@mock.patch("rok4.storage.boto3.client")
+@mock.patch.dict(os.environ, {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"}, clear=True)
+@mock.patch('rok4.storage.boto3.client')
 def test_size_path_s3_ok(mocked_s3_client):
+
     disconnect_s3_clients()
-    pages = [{"Contents": [{"Size": 10}, {"Size": 20}]}, {"Contents": [{"Size": 50}]}]
+    pages = [{"Contents" : [{"Size" : 10},{"Size" : 20}]}, {"Contents" : [{"Size" : 50}]}]
     paginator = MagicMock()
     paginator.paginate.return_value = pages
     client = MagicMock()
@@ -958,3 +922,4 @@ def test_size_path_s3_ok(mocked_s3_client):
         assert size == 80
     except Exception as exc:
         assert False, f"S3 size of the path raises an exception: {exc}"
+

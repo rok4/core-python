@@ -9,15 +9,20 @@ Loading a tile matrix set requires environment variables :
 - ROK4_TMS_DIRECTORY
 """
 
+# -- IMPORTS --
+
+# standard library
 import json
 import os
 from json.decoder import JSONDecodeError
 from typing import Dict, List, Tuple
 
-from rok4.exceptions import *
+# package
+from rok4.exceptions import FormatError, MissingAttributeError, MissingEnvironmentError
 from rok4.storage import get_data_str
-from rok4.utils import *
+from rok4.utils import srs_to_spatialreference
 
+# -- GLOBALS --
 
 class TileMatrix:
     """A tile matrix is a tile matrix set's level.
@@ -220,8 +225,8 @@ class TileMatrixSet:
             self.srs = data["crs"]
             self.sr = srs_to_spatialreference(self.srs)
             self.levels = {}
-            for l in data["tileMatrices"]:
-                lev = TileMatrix(l, self)
+            for level in data["tileMatrices"]:
+                lev = TileMatrix(level, self)
                 self.levels[lev.id] = lev
 
             if len(self.levels.keys()) == 0:
@@ -240,7 +245,7 @@ class TileMatrixSet:
 
         except RuntimeError as e:
             raise Exception(
-                f"Wrong attribute 'crs' ('{self.srs}') in '{self.path}', not recognize by OSR"
+                f"Wrong attribute 'crs' ('{self.srs}') in '{self.path}', not recognize by OSR. Trace : {e}"
             )
 
     def get_level(self, level_id: str) -> "TileMatrix":
@@ -257,4 +262,4 @@ class TileMatrixSet:
 
     @property
     def sorted_levels(self) -> List[TileMatrix]:
-        return sorted(self.levels.values(), key=lambda l: l.resolution)
+        return sorted(self.levels.values(), key=lambda level: level.resolution)

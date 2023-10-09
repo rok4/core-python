@@ -6,17 +6,22 @@ The module contains the following class :
 
 """
 
+# -- IMPORTS --
+
+# standard library
 import os
 import tempfile
 
+# 3rd party
 from osgeo import ogr
+
+# package
+from rok4.storage import copy, get_osgeo_path
+
+# -- GLOBALS --
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
-
-from rok4.exceptions import *
-from rok4.storage import copy, get_osgeo_path
-
 
 class Vector:
     """A data vector
@@ -137,7 +142,7 @@ class Vector:
                         vrt_file += "<SrcDataSource>" + tmp_path + ".csv</SrcDataSource>\n"
                         vrt_file += "<SrcLayer>" + name_fich + "</SrcLayer>\n"
                         vrt_file += "<LayerSRS>" + srs + "</LayerSRS>\n"
-                        if column_wkt == None:
+                        if column_wkt is None:
                             vrt_file += (
                                 '<GeometryField encoding="PointFromColumns" x="'
                                 + column_x
@@ -184,7 +189,7 @@ class Vector:
                 attributes += [(fieldName, fieldType)]
             for feature in layer:
                 geom = feature.GetGeometryRef()
-                if geom != None:
+                if geom is not None:
                     multipolygon.AddGeometry(geom)
             layers += [(name, count, attributes)]
 

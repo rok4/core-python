@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: monthly
+      time: "17:00"
+      timezone: Europe/Paris
+    labels:
+      - dependencies
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: monthly
+      time: "22:00"
+      timezone: Europe/Paris
+    labels:
+      - ci-cd
