@@ -1,0 +1,28 @@
+site_name: "Projet ROK4 - Librairies python"
+site_url: https://rok4.github.io/core-python
+
+nav:
+    - Accueil: README.md
+    - Documentation technique: documentation.md
+    - Rapport des tests unitaires: unit-tests.md
+    - Historique des versions: CHANGELOG.md
+    - Contribuer: CONTRIBUTING.md
+
+theme:
+    logo: https://rok4.github.io/assets/images/rok4-carre.png
+    favicon: https://rok4.github.io/assets/images/rok4-carre.png
+    name: material
+    features:
+        - navigation.tabs
+        - navigation.tabs.sticky
+    language: fr
+    custom_dir: overrides
+
+extra_css:
+    - assets/style.css
+
+extra:
+    homepage: https://rok4.github.io
+    version:
+        provider: mike
+        default: latest
