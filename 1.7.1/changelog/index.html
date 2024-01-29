@@ -1,0 +1,1181 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://rok4.github.io/core-python/1.7.1/changelog/">
+      
+      
+        <link rel="prev" href="../documentation/">
+      
+      
+      
+      <link rel="icon" href="https://rok4.github.io/assets/images/rok4-carre.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.6">
+    
+    
+      
+        <title>Historique des versions - Projet ROK4 - Librairies python</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#171" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href="https://rok4.github.io" title="Projet ROK4 - Librairies python" class="md-header__button md-logo" aria-label="Projet ROK4 - Librairies python" data-md-component="logo">
+      
+  <img src="https://rok4.github.io/assets/images/rok4-carre.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Projet ROK4 - Librairies python
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Historique des versions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Onglets" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+    
+  
+  Accueil
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../documentation/" class="md-tabs__link">
+        
+  
+    
+  
+  Documentation développeur
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Historique des versions
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://rok4.github.io" title="Projet ROK4 - Librairies python" class="md-nav__button md-logo" aria-label="Projet ROK4 - Librairies python" data-md-component="logo">
+      
+  <img src="https://rok4.github.io/assets/images/rok4-carre.png" alt="logo">
+
+    </a>
+    Projet ROK4 - Librairies python
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Accueil
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation développeur
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Historique des versions
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Historique des versions
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#171" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.7.1
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.7.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Fixed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#160" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.6.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.6.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Fixed]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Removed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#150" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.5.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#144" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4.4
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.4.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#130" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#120" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#110" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#171" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.7.1
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.7.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Fixed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#160" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.6.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.6.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Fixed]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removed" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Removed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#150" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.5.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.5.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#144" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.4.4
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.4.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Changed]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#130" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.3.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#120" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.2.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#110" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.1.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#100" class="md-nav__link">
+    <span class="md-ellipsis">
+      1.0.0
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      [Added]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  <h1>Historique des versions</h1>
+
+<h2 id="171">1.7.1</h2>
+<h3 id="added">[Added]</h3>
+<ul>
+<li>
+<p>Raster</p>
+<ul>
+<li>Classe RasterSet, réprésentant une collection d'objets de la classe Raster, avec des informations supplémentaires</li>
+<li>Méthodes d'import et export des informations extraites par une instance RasterSet, au travers d'un descripteur (fichier ou objet json, voire sortie standard)</li>
+<li>Documentation interne</li>
+<li>Tests unitaires pour la classe RasterSet</li>
+<li>Classe Raster : constructeur à partir des paramètres</li>
+</ul>
+</li>
+<li>
+<p>Pyramid</p>
+<ul>
+<li>Fonction de calcul de la taille d'une pyramide</li>
+<li>Générateur de lecture de la liste du contenu</li>
+</ul>
+</li>
+<li>
+<p>Storage</p>
+<ul>
+<li>Fonction de calcul de la taille des fichiers d'un chemin selon le stockage</li>
+<li>Ajout de la copie de HTTP vers FILE/S3/CEPH</li>
+<li>Ajout de la fonction de lecture d'un fichier HTTP, de l'existence d'un fichier HTTP et du calcul de taille d'un fichier HTTP</li>
+</ul>
+</li>
+</ul>
+<h3 id="changed">[Changed]</h3>
+<ul>
+<li>Raster<ul>
+<li>Homogénéisation du code</li>
+<li>Mise en conformité PEP-8</li>
+</ul>
+</li>
+<li>test_Raster<ul>
+<li>Homogénéisation du code</li>
+<li>Mise en conformité PEP-8</li>
+</ul>
+</li>
+<li>Utils<ul>
+<li>Mise en conformité PEP-8 des fonctions <code>compute_bbox</code> et <code>compute_format</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="fixed">[Fixed]</h3>
+<ul>
+<li>Utils<ul>
+<li>Correction d'un nom de variable dans la fonction <code>compute_format</code>, qui écrasait une fonction du noyau python.</li>
+</ul>
+</li>
+</ul>
+<h2 id="160">1.6.0</h2>
+<p>Lecture par système de fichier virtuel avec GDAL</p>
+<h3 id="added_1">[Added]</h3>
+<ul>
+<li>Storage<ul>
+<li>Fonction <code>get_osgeo_path</code> permettant de configurer le bon sytème de fichier virtuel en fonction du chemin fourni, et retourne celui à utiliser dans le Open de gdal ou ogr</li>
+</ul>
+</li>
+</ul>
+<h3 id="changed_1">[Changed]</h3>
+<ul>
+<li>Storage<ul>
+<li>la récupération d'un client S3 (<code>__get_s3_client</code>) permet de récupérer le client, l'hôte, les clés d'accès et secrète, ainsi que le nom du bucket sans l'éventuel hôte du cluster</li>
+</ul>
+</li>
+</ul>
+<h3 id="fixed_1">[Fixed]</h3>
+<ul>
+<li>Storage<ul>
+<li>Lecture binaire S3 : mauvaise configuration du nom du bucket et de l'objet et mauvaise lecture partielle</li>
+</ul>
+</li>
+</ul>
+<h3 id="removed">[Removed]</h3>
+<ul>
+<li>Exceptions<ul>
+<li><code>NotImplementedError</code> est une exceptions native</li>
+</ul>
+</li>
+</ul>
+<h2 id="150">1.5.0</h2>
+<h3 id="added_2">[Added]</h3>
+<ul>
+<li>Level<ul>
+<li>Fonction de test d'une tuile <code>is_in_limits</code> : ses indices sont ils dans les limites du niveau ?</li>
+</ul>
+</li>
+<li>Pyramid<ul>
+<li>La lecture d'une tuile vérifie avant que les indices sont bien dans les limites du niveau</li>
+<li>Les exceptions levées lors du décodage de la tuile raster emettent une exception <code>FormatError</code></li>
+<li><code>get_tile_indices</code> accepte en entrée un système de coordonnées : c'est celui des coordonnées fournies et permet de faire une reprojection si celui ci n'est pas le même que celui des données dans la pyramide</li>
+</ul>
+</li>
+<li>Utils<ul>
+<li>Meilleure gestion de reprojection par <code>reproject_bbox</code> : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul</li>
+<li>Ajout de la fonction de reprojection d'un point <code>reproject_point</code> : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul</li>
+</ul>
+</li>
+</ul>
+<h3 id="changed_2">[Changed]</h3>
+<ul>
+<li>Utils :<ul>
+<li><code>bbox_to_geometry</code> : on ne fournit plus de système de coordonnées, la fonction se content de créer la géométrie OGR à partir de la bbox, avec éventuellement une densification en points des bords</li>
+</ul>
+</li>
+<li>Pyramid :<ul>
+<li>Renommage de fonction : <code>update_limits</code> -&gt; <code>set_limits_from_bbox</code>. Le but est d'être plus explicite sur le fonctionnement de la fonction (on écrase les limites, on ne les met pas juste à jour par union avec la bbox fournie)</li>
+</ul>
+</li>
+</ul>
+<h2 id="144">1.4.4</h2>
+<p>Ajout de fonctionnalités de lecture de donnée d'une pyramide et suivi des recommandations PyPA pour la gestion du projet.</p>
+<h3 id="added_3">[Added]</h3>
+<ul>
+<li>TileMatrix :<ul>
+<li>Fonction de calcul des indices de tuile et de pixel dans la tuile à partir d'un point dans le système de coordonnées du TMS</li>
+</ul>
+</li>
+<li>Pyramid :<ul>
+<li>Fonction de calcul des indices de tuile et de pixel dans la tuile à partir d'un point dans le système de coordonnées du TMS et éventuellement un niveau</li>
+<li>Fonctions de lecture d'une tuile : au format binaire source ou au format tableau à 3 dimensions pour les tuiles raster</li>
+</ul>
+</li>
+<li>Storage :<ul>
+<li>Fonction de lecture binaire, complète ou partielle, d'un fichier ou objet S3 ou CEPH</li>
+</ul>
+</li>
+<li>
+<p>Exceptions : NotImplementedError permet de préciser qu'une fonctionnalité n'a pas été implémentée pour tous les cas. Ici, on ne gère pas la décompression des données raster pour les compressions packbit et LZW</p>
+</li>
+<li>
+<p>Ajout de la publication PyPI dans la CI GitHub </p>
+</li>
+</ul>
+<h3 id="changed_3">[Changed]</h3>
+<ul>
+<li>Storage :<ul>
+<li>La lecture sous forme de chaîne s'appuie sur la lecture complète binaire. Aucun changement à l'usage.</li>
+</ul>
+</li>
+<li>
+<p>TileMatrixSet : quelque soit le système de coordonnées, on ne gère que un ordre des axes X,Y ou Lon,Lat. Cependant, les fonctions de calcul de ou à partir de bbox respectent l'ordre du système dans ces dernières.</p>
+</li>
+<li>
+<p>Passage de la configuration du projet dans le fichier <code>pyproject.toml</code></p>
+</li>
+</ul>
+<h2 id="130">1.3.0</h2>
+<p>Ajout de la librairie de lecture de données vecteur, de tests unitaires et ajout de fonctionnalité pour le stockage. Amélioration de la gestion du projet et de l'intégration continue.</p>
+<h3 id="added_4">[Added]</h3>
+<ul>
+<li>Librairie de lecture de données vecteur :</li>
+<li>Chargement de données vecteur pour des fichiers shapefile, Geopackage, CSV et GeoJSON</li>
+<li>Ecriture des tests unitaires</li>
+<li>Librairie Pyramid : complétion des tests unitaires</li>
+<li>Librairie Storage : prise en charge de la copie CEPH -&gt; S3</li>
+<li>Gestion du projet (compilations, dépendances...) via poetry</li>
+<li>Injection de la version dans le fichier <code>pyproject.toml</code> et <code>__init__.py</code> (définition de la variable <code>__version__</code>)</li>
+<li>Évolution de la CI github<ul>
+<li>Vérification des installations et tests unitaires sous ubuntu 20.04 python 3.8 et ubuntu 22.04 python 3.10</li>
+<li>Publication de l'artefact avec les résultats des tests unitaires</li>
+<li>Nettoyage de la release en cas d'erreur</li>
+<li>Compilation de la documentation et publication sur la branche gh-pages</li>
+</ul>
+</li>
+</ul>
+<h2 id="120">1.2.0</h2>
+<p>Ajout des librairies pour l'utilitaire make-layer.py</p>
+<h3 id="added_5">[Added]</h3>
+<ul>
+<li>
+<p>Librairie Storage : complétion des tests unitaires</p>
+</li>
+<li>
+<p>Librairie Pyramid :</p>
+</li>
+<li>
+<p>Ajout de getter sur les niveaux du haut et du bas</p>
+</li>
+<li>
+<p>Ajout de la librairie de gestion d'une couche Layer :</p>
+</li>
+<li>Chargement d'une couche depuis des paramètres</li>
+<li>Chargement d'une couche depuis un descripteur</li>
+<li>Écriture du descripteur au format attendu par le serveur</li>
+<li>
+<p>Écriture des tests unitaires</p>
+</li>
+<li>
+<p>Ajout d'une librairie d'utilitaires Utils</p>
+</li>
+<li>Conversion d'un SRS en objet OSR SpatialReference</li>
+<li>Conversion d'une bbox en objet OGR Geometry</li>
+<li>Reprojection d'une bbox avec densification des côtés et reprojection partielle</li>
+<li>
+<p>Écriture des tests unitaires</p>
+</li>
+<li>
+<p>Configuration de l'outil coverage pour voir la couverture des tests unitaires</p>
+</li>
+</ul>
+<h2 id="110">1.1.0</h2>
+<p>Prise en charge de plusieurs clusters S3 de stockage.</p>
+<h3 id="added_6">[Added]</h3>
+<ul>
+<li>Librairie d'abstraction du stockage :</li>
+<li>Prise en charge de plusieurs clusters S3. Les variables d'environnement pour le stockage S3 précisent plusieurs valeurs séparées par des virgules, et les noms des buckets peuvent être suffixés par "@{S3 cluster host}". Par défaut, le premier cluster défini est utilisé. L'hôte du cluster n'est jamais écrit dans le descripteur de pyramide ou le fichier liste (puisque stockés sur le cluster, on sait sur lequel sont les objets). Les objets symboliques ne le précisent pas non plus et ne peuvent être qu'au sein d'un cluster S3</li>
+</ul>
+<h2 id="100">1.0.0</h2>
+<p>Initialisation des librairies Python utilisées par les outils python à venir du dépôt <a href="https://github.com/rok4/pytools">pytools</a>.</p>
+<h3 id="added_7">[Added]</h3>
+<ul>
+<li>Librairie d'abstraction du stockage (S3, CEPH ou FILE)</li>
+<li>récupération du contenu sous forme de string</li>
+<li>écriture d'un contenu string</li>
+<li>création d'un lien symbolique</li>
+<li>copie fichier/objet &lt;-&gt; fichier/objet</li>
+<li>Librairie de chargement d'un Tile Matrix Set</li>
+<li>Librairie de gestion d'un descripteur de pyramide</li>
+<li>chargement depuis un descripteur ou par clone (avec changement de stockage)</li>
+<li>écriture du descripteur</li>
+<li>Tests unitaires couvrant ces librairies</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e1c3ead8.min.js"></script>
+      
+    
+  </body>
+</html>
