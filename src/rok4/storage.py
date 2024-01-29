@@ -1003,9 +1003,6 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
     if hard and target_type != StorageType.FILE:
         raise StorageError(target_type.name, "Hard link is available only for FILE storage")
 
-    if exists(link_path):
-        remove(link_path)
-
     # Réalisation du lien, selon les types de stockage
     if target_type == StorageType.S3:
         target_s3_client, target_bucket = __get_s3_client(target_tray)
@@ -1038,6 +1035,10 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
             to_tray = get_infos_from_path(link_path)[2]
             if to_tray != "":
                 os.makedirs(to_tray, exist_ok=True)
+
+            if exists(link_path):
+                remove(link_path)
+
             if hard:
                 os.link(target_path, link_path)
             else:
@@ -1085,7 +1086,7 @@ def get_osgeo_path(path: str) -> str:
         raise NotImplementedError(f"Cannot get a GDAL/OGR compliant path from {path}")
 
 def size_path(path: str) -> int :
-    """Return the size of the path given (or, for the CEPH, the sum of the size of each object of the .list)
+    """Return the size of the given path (or, for the CEPH, the sum of the size of each object of the .list)
 
     Args:
         path (str): Source path
