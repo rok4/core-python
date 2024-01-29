@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://rok4.github.io/core-python/1.7.1/unit-tests/">
+        <link rel="canonical" href="https://rok4.github.io/core-python/1.7.1/CONTRIBUTING/">
       
       
       
@@ -18,7 +18,7 @@
     
     
       
-        <title>Rapport des tests unitaires - Projet ROK4 - Librairies python</title>
+        <title>Directives de contribution - Projet ROK4 - Librairies python</title>
       
     
     
@@ -62,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#rapport-des-tests-unitaires" class="md-skip">
+        <a href="#directives-de-contribution" class="md-skip">
           Aller au contenu
         </a>
       
@@ -101,7 +101,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Rapport des tests unitaires
+              Directives de contribution
             
           </span>
         </div>
@@ -227,9 +227,7 @@
           
             
               
-                
-              
-              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -318,9 +316,7 @@
             
             
               
-                
-              
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
                 <div class="md-sidebar__scrollwrap">
                   <div class="md-sidebar__inner">
                     
@@ -331,6 +327,32 @@
   
     
   
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#git-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git hooks
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pull-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pull request
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -345,8 +367,39 @@
                   
 
 
-<h1 id="rapport-des-tests-unitaires">Rapport des tests unitaires</h1>
-<iframe src="../tests/index.html"></iframe>
+<h1 id="directives-de-contribution">Directives de contribution</h1>
+<p>Merci d'envisager de contribuer à ce projet !</p>
+<h2 id="git-hooks">Git hooks</h2>
+<p>Nous utilisons les git hooks via <a href="https://pre-commit.com/">pre-commit</a> pour appliquer et vérifier automatiquement certaines "règles". Veuillez l'installer avant de pousser un commit.</p>
+<p>Voir le fichier de configuration correspondant : <code>.pre-commit-config.yaml</code>.</p>
+<h2 id="pull-request">Pull request</h2>
+<p>Le titre de la PR est utilisé pour constituer automatiquement les notes de release. Vous pouvez préciser en commentaire de votre PR des détails qui seront ajoutés dans le fichier <code>CHANGELOG.md</code> par les mainteneurs du projet.</p>
+<p>Le formalisme du changelog est le suivant, en markdown :</p>
+<pre><code class="language-md">### [Added]
+
+Liste de nouvelles fonctionnalités.
+
+### [Changed]
+
+Liste de fonctionnalités existantes modifiées.
+
+### [Deprecated]
+
+Liste de fonctionnalités dépréciées.
+
+### [Removed]
+
+Liste de foncitonnalités retirées.
+
+### [Fixed]
+
+Liste de corrections fonctionnelles.
+
+### [Security]
+
+Liste de corrections de sécurité.
+</code></pre>
+<p>Les parties vides, sans élément à lister, peuvent être ignorées.</p>
 
 
 
@@ -354,13 +407,8 @@
 
 
 
-  
-  
 
 
-
-
-  
 
 
 

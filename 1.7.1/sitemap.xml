@@ -6,7 +6,12 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://rok4.github.io/core-python/1.7.1/changelog/</loc>
+         <loc>https://rok4.github.io/core-python/1.7.1/CHANGELOG/</loc>
+         <lastmod>2024-01-29</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://rok4.github.io/core-python/1.7.1/CONTRIBUTING/</loc>
          <lastmod>2024-01-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
