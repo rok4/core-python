@@ -24,6 +24,7 @@ from rok4.utils import srs_to_spatialreference
 
 # -- GLOBALS --
 
+
 class TileMatrix:
     """A tile matrix is a tile matrix set's level.
 

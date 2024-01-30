@@ -44,6 +44,7 @@ import time
 from functools import lru_cache
 from shutil import copyfile
 from typing import Dict, Tuple, Union
+
 import boto3
 import botocore.exceptions
 import requests
@@ -407,22 +408,22 @@ def __get_cached_data_binary(path: str, ttl_hash: int, range: Tuple[int, int] = 
             raise StorageError("FILE", e)
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
-
-        if range is None :
+        if range is None:
             try:
                 reponse = requests.get(f"{storage_type.value}{path}", stream=True)
                 data = reponse.content
-                if reponse.status_code == 404 :
+                if reponse.status_code == 404:
                     raise FileNotFoundError(f"{storage_type.value}{path}")
             except Exception as e:
                 raise StorageError(storage_type.name, e)
-        else :
+        else:
             raise NotImplementedError("Cannot get partial data for storage type HTTP(S)")
 
     else:
         raise NotImplementedError(f"Cannot get data for storage type {storage_type.name}")
 
     return data
+
 
 def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     """Load data into a binary string
@@ -443,6 +444,7 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
         str: Data binary content
     """
     return __get_cached_data_binary(path, __get_ttl_hash(), range)
+
 
 def put_data_str(data: str, path: str) -> None:
     """Store string data into a file or an object
@@ -536,7 +538,6 @@ def get_size(path: str) -> int:
             raise StorageError("FILE", e)
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
-
         try:
             # Le stream=True permet de ne télécharger que le header initialement
             reponse = requests.get(storage_type.value + path, stream=True).headers["content-length"]
@@ -592,12 +593,11 @@ def exists(path: str) -> bool:
         return os.path.exists(path)
 
     elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
-
         try:
             response = requests.get(storage_type.value + path, stream=True)
-            if response.status_code == 200 :
+            if response.status_code == 200:
                 return True
-            else :
+            else:
                 return False
         except Exception as e:
             raise StorageError(storage_type.name, e)
@@ -910,12 +910,10 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
     elif (
         from_type == StorageType.HTTP or from_type == StorageType.HTTPS
     ) and to_type == StorageType.FILE:
-
         try:
-            response = requests.get(from_type.value + from_path, stream = True)
+            response = requests.get(from_type.value + from_path, stream=True)
             with open(to_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=65536) :
-
+                for chunk in response.iter_content(chunk_size=65536):
                     if chunk:
                         f.write(chunk)
 
@@ -930,13 +928,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
         and to_type == StorageType.CEPH
         and CEPH_RADOS_AVAILABLE
     ):
-
         to_ioctx = __get_ceph_ioctx(to_tray)
 
         try:
-            response = requests.get(from_type.value + from_path, stream = True)
+            response = requests.get(from_type.value + from_path, stream=True)
             offset = 0
-            for chunk in response.iter_content(chunk_size=65536) :
+            for chunk in response.iter_content(chunk_size=65536):
                 if chunk:
                     size = len(chunk)
                     to_ioctx.write(to_base_name, chunk, offset)
@@ -951,15 +948,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
     elif (
         from_type == StorageType.HTTP or from_type == StorageType.HTTPS
     ) and to_type == StorageType.S3:
-
         to_s3_client, to_bucket = __get_s3_client(to_tray)
 
         try:
-            response = requests.get(from_type.value + from_path, stream = True)
-            with tempfile.NamedTemporaryFile("w+b",delete=False) as f:
+            response = requests.get(from_type.value + from_path, stream=True)
+            with tempfile.NamedTemporaryFile("w+b", delete=False) as f:
                 name_fich = f.name
-                for chunk in response.iter_content(chunk_size=65536) :
-
+                for chunk in response.iter_content(chunk_size=65536):
                     if chunk:
                         f.write(chunk)
 
@@ -972,7 +967,6 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 "HTTP(S) and S3",
                 f"Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}",
             )
-
 
     else:
         raise NotImplementedError(
@@ -1088,7 +1082,8 @@ def get_osgeo_path(path: str) -> str:
     else:
         raise NotImplementedError(f"Cannot get a GDAL/OGR compliant path from {path}")
 
-def size_path(path: str) -> int :
+
+def size_path(path: str) -> int:
     """Return the size of the given path (or, for the CEPH, the sum of the size of each object of the .list)
 
     Args:
@@ -1102,10 +1097,10 @@ def size_path(path: str) -> int :
     Returns:
         int: size of the path
     """
-    storage_type, unprefixed_path, tray_name, base_name  = get_infos_from_path(path)
+    storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
 
     if storage_type == StorageType.FILE:
-        try :
+        try:
             total = 0
             with os.scandir(unprefixed_path) as it:
                 for entry in it:
@@ -1120,12 +1115,11 @@ def size_path(path: str) -> int :
     elif storage_type == StorageType.S3:
         s3_client, bucket_name = __get_s3_client(tray_name)
 
-
-        try :
+        try:
             paginator = s3_client["client"].get_paginator("list_objects_v2")
             pages = paginator.paginate(
                 Bucket=bucket_name,
-                Prefix=base_name+"/",
+                Prefix=base_name + "/",
                 PaginationConfig={
                     "PageSize": 10000,
                 },

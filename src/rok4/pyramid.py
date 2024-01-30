@@ -330,6 +330,7 @@ class Level:
     @property
     def slab_height(self) -> int:
         return self.__slab_size[1]
+
     @property
     def tile_limits(self) -> Dict[str, int]:
         return self.__tile_limits
@@ -559,11 +560,8 @@ class Pyramid:
         Returns:
             Dict: descriptor structured object description
         """
-        
-        serialization = {
-            "tile_matrix_set": self.__tms.name,
-            "format": self.__format
-        }
+
+        serialization = {"tile_matrix_set": self.__tms.name, "format": self.__format}
 
         serialization["levels"] = []
         sorted_levels = sorted(
@@ -677,13 +675,13 @@ class Pyramid:
     @property
     def format(self) -> str:
         return self.__format
+
     @property
     def channels(self) -> str:
         return self.raster_specifications["channels"]
 
     @property
     def tile_extension(self) -> str:
-
         if self.__format in [
             "TIFF_RAW_UINT8",
             "TIFF_LZW_UINT8",
@@ -763,7 +761,7 @@ class Pyramid:
             S3 stored descriptor
 
                 from rok4.pyramid import Pyramid
-                
+
                 try:
                     pyramid = Pyramid.from_descriptor("s3://bucket_name/path/to/descriptor.json")
 
@@ -787,14 +785,14 @@ class Pyramid:
                         'slab': 'DATA_18_5424_7526'
                     }
                 )
-                
+
         Raises:
             StorageError: Unhandled pyramid storage to copy list
             MissingEnvironmentError: Missing object storage informations
         """
         if self.__content["loaded"]:
             for slab, infos in self.__content["cache"].items():
-                if level_id != None:
+                if level_id is not None:
                     if slab[1] == level_id:
                         yield slab, infos
                 else:
@@ -846,7 +844,7 @@ class Pyramid:
                         "md5": slab_md5,
                     }
 
-                    if level_id != None:
+                    if level_id is not None:
                         if level == level_id:
                             yield ((slab_type, level, column, row), infos)
                     else:
@@ -1209,7 +1207,6 @@ class Pyramid:
         level_object = self.get_level(level)
 
         if self.__format == "TIFF_JPG_UINT8" or self.__format == "TIFF_JPG90_UINT8":
-
             try:
                 img = Image.open(io.BytesIO(binary_tile))
             except Exception as e:
@@ -1411,7 +1408,7 @@ class Pyramid:
 
         try:
             del self.__levels[level_id]
-        except Exception as e:
+        except Exception:
             raise Exception(f"The level {level_id} don't exist in the pyramid")
 
     def add_level(
@@ -1469,10 +1466,10 @@ class Pyramid:
         Returns:
             int: size of the pyramid
         """
-        
+
         if not hasattr(self, "_Pyramid__size"):
             self.__size = size_path(
                 get_path_from_infos(self.__storage["type"], self.__storage["root"], self.__name)
             )
-      
+
         return self.__size

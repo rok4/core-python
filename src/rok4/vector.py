@@ -23,6 +23,7 @@ from rok4.storage import copy, get_osgeo_path
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
+
 class Vector:
     """A data vector
 
