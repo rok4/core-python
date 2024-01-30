@@ -331,6 +331,10 @@ class Level:
     def slab_height(self) -> int:
         return self.__slab_size[1]
 
+    @property
+    def tile_limits(self) -> Dict[str, int]:
+        return self.__tile_limits
+
     def is_in_limits(self, column: int, row: int) -> bool:
         """Is the tile indices in limits ?
 
@@ -475,13 +479,14 @@ class Pyramid:
         return pyramid
 
     @classmethod
-    def from_other(cls, other: "Pyramid", name: str, storage: Dict) -> "Pyramid":
+    def from_other(cls, other: "Pyramid", name: str, storage: Dict, **kwargs) -> "Pyramid":
         """Create a pyramid from another one
 
         Args:
             other (Pyramid): pyramid to clone
             name (str): new pyramid's name
             storage (Dict[str, Union[str, int]]): new pyramid's storage informations
+            **mask (bool) : Presence or not of mask (only for RASTER)
 
         Raises:
             FormatError: Provided path or the TMS is not a well formed JSON
@@ -493,7 +498,8 @@ class Pyramid:
         """
         try:
             # On convertit le type de stockage selon l'énumération
-            storage["type"] = StorageType[storage["type"]]
+            if type(storage["type"]) is str:
+                storage["type"] = StorageType[storage["type"]]
 
             if storage["type"] == StorageType.FILE and name.find("/") != -1:
                 raise Exception(f"A FILE stored pyramid's name cannot contain '/' : '{name}'")
@@ -519,7 +525,9 @@ class Pyramid:
 
             # Attributs d'une pyramide raster
             if pyramid.type == PyramidType.RASTER:
-                if other.own_masks:
+                if "mask" in kwargs:
+                    pyramid.__masks = kwargs["mask"]
+                elif other.own_masks:
                     pyramid.__masks = True
                 else:
                     pyramid.__masks = False
@@ -669,6 +677,10 @@ class Pyramid:
         return self.__format
 
     @property
+    def channels(self) -> str:
+        return self.raster_specifications["channels"]
+
+    @property
     def tile_extension(self) -> str:
         if self.__format in [
             "TIFF_RAW_UINT8",
@@ -735,10 +747,14 @@ class Pyramid:
 
         self.__content["loaded"] = True
 
-    def list_generator(self) -> Iterator[Tuple[Tuple[SlabType, str, int, int], Dict]]:
+    def list_generator(
+        self, level_id: str = None
+    ) -> Iterator[Tuple[Tuple[SlabType, str, int, int], Dict]]:
         """Get list content
 
         List is copied as temporary file, roots are read and informations about each slab is returned. If list is already loaded, we yield the cached content
+        Args :
+            level_id (str) : id of the level for load only one level
 
         Examples:
 
@@ -776,7 +792,11 @@ class Pyramid:
         """
         if self.__content["loaded"]:
             for slab, infos in self.__content["cache"].items():
-                yield slab, infos
+                if level_id is not None:
+                    if slab[1] == level_id:
+                        yield slab, infos
+                else:
+                    yield slab, infos
         else:
             # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
             list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
@@ -824,7 +844,11 @@ class Pyramid:
                         "md5": slab_md5,
                     }
 
-                    yield ((slab_type, level, column, row), infos)
+                    if level_id is not None:
+                        if level == level_id:
+                            yield ((slab_type, level, column, row), infos)
+                    else:
+                        yield ((slab_type, level, column, row), infos)
 
             remove(f"file://{list_file}")
 
@@ -1371,6 +1395,58 @@ class Pyramid:
             x, y = reproject_point((x, y), sr, self.__tms.sr)
 
         return (level_object.id,) + level_object.tile_matrix.point_to_indices(x, y)
+
+    def delete_level(self, level_id: str) -> None:
+        """Delete the given level in the description of the pyramid
+
+        Args:
+            level_id: Level identifier
+
+        Raises:
+            Exception: Cannot find level
+        """
+
+        try:
+            del self.__levels[level_id]
+        except Exception:
+            raise Exception(f"The level {level_id} don't exist in the pyramid")
+
+    def add_level(
+        self,
+        level_id: str,
+        tiles_per_width: int,
+        tiles_per_height: int,
+        tile_limits: Dict[str, int],
+    ) -> None:
+        """Add a level in the description of the pyramid
+
+        Args:
+            level_id: Level identifier
+            tiles_per_width : Number of tiles in width by slab
+            tiles_per_height : Number of tiles in height by slab
+            tile_limits : Minimum and maximum tiles' columns and rows of pyramid's content
+        """
+
+        data = {
+            "id": level_id,
+            "tile_limits": tile_limits,
+            "tiles_per_width": tiles_per_width,
+            "tiles_per_height": tiles_per_height,
+            "storage": {"type": self.storage_type.name},
+        }
+        if self.own_masks:
+            data["storage"]["mask_prefix"] = True
+        if self.storage_type == StorageType.FILE:
+            data["storage"]["path_depth"] = self.storage_depth
+
+        lev = Level.from_descriptor(data, self)
+
+        if self.__tms.get_level(lev.id) is None:
+            raise Exception(
+                f"Pyramid {self.name} owns a level with the ID '{lev.id}', not defined in the TMS '{self.tms.name}'"
+            )
+        else:
+            self.__levels[lev.id] = lev
 
     @property
     def size(self) -> int:

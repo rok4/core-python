@@ -1,8 +1,9 @@
 import os
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import *
 
 from rok4.enums import PyramidType
+from rok4.exceptions import *
 from rok4.layer import Layer
 
 

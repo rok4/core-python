@@ -1,5 +1,6 @@
 """Provide functions to manipulate OGR / OSR entities
 """
+
 # -- IMPORTS --
 
 # standard library

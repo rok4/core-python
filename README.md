@@ -29,12 +29,14 @@ except Exception as exc:
 
 Plus d'exemple dans la documentation développeur.
 
+
 ## Contribuer
 
 * Installer les dépendances de développement :
 
     ```sh
     python3 -m pip install -e .[dev]
+    pre-commit install
     ```
 
 * Consulter les [directives de contribution](./CONTRIBUTING.md)
@@ -46,7 +48,7 @@ apt install python3-venv python3-rados python3-gdal
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade build bump2version
-bump2version --allow-dirty --current-version 0.0.0 --new-version x.y.z patch pyproject.toml src/rok4/__init__.py
+bump2version --current-version 0.0.0 --new-version x.y.z patch
 
 # Run unit tests
 python3 -m pip install -e .[test]
