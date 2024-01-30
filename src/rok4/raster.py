@@ -12,6 +12,7 @@ The module contains the following class :
 import copy
 import json
 import re
+
 from typing import Dict, Tuple
 
 # 3rd party
@@ -21,9 +22,7 @@ from osgeo import gdal, ogr
 from rok4.enums import ColorFormat
 from rok4.storage import exists, get_osgeo_path, put_data_str
 from rok4.utils import compute_bbox, compute_format
-
 # -- GLOBALS --
-
 
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()

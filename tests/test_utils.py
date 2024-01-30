@@ -1,14 +1,21 @@
 import math
 import os
 import random
-from unittest import mock
-from unittest.mock import *
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from osgeo import gdal, osr
 
-from rok4.exceptions import *
-from rok4.utils import *
+# from rok4.exceptions import *
+from rok4.utils import (
+    ColorFormat,
+    bbox_to_geometry,
+    compute_bbox,
+    compute_format,
+    reproject_bbox,
+    reproject_point,
+    srs_to_spatialreference,
+)
 
 
 def test_srs_to_spatialreference_ignf_ok():
@@ -218,10 +225,10 @@ def test_compute_bbox_no_srs_ok():
 # Tests for the rok4.utils.compute_format function.
 
 
-@mock.patch("rok4.utils.gdal.Info")
-@mock.patch("rok4.utils.gdal.GetColorInterpretationName", return_value="Palette")
-@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=8)
-@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="Byte")
+@patch("rok4.utils.gdal.Info")
+@patch("rok4.utils.gdal.GetColorInterpretationName", return_value="Palette")
+@patch("rok4.utils.gdal.GetDataTypeSize", return_value=8)
+@patch("rok4.utils.gdal.GetDataTypeName", return_value="Byte")
 def test_compute_format_bit_ok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -247,10 +254,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.utils.gdal.Info")
-@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=8)
-@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="Byte")
+@patch("rok4.utils.gdal.Info")
+@patch("rok4.utils.gdal.GetColorInterpretationName")
+@patch("rok4.utils.gdal.GetDataTypeSize", return_value=8)
+@patch("rok4.utils.gdal.GetDataTypeName", return_value="Byte")
 def test_compute_format_uint8_ok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -284,10 +291,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.utils.gdal.Info")
-@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=32)
-@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="Float32")
+@patch("rok4.utils.gdal.Info")
+@patch("rok4.utils.gdal.GetColorInterpretationName")
+@patch("rok4.utils.gdal.GetDataTypeSize", return_value=32)
+@patch("rok4.utils.gdal.GetDataTypeName", return_value="Float32")
 def test_compute_format_float32_ok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -321,10 +328,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.utils.gdal.Info")
-@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=16)
-@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="UInt16")
+@patch("rok4.utils.gdal.Info")
+@patch("rok4.utils.gdal.GetColorInterpretationName")
+@patch("rok4.utils.gdal.GetDataTypeSize", return_value=16)
+@patch("rok4.utils.gdal.GetDataTypeName", return_value="UInt16")
 def test_compute_format_unsupported_nok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):
@@ -358,10 +365,10 @@ Image Structure Metadata:
         assert False, f"Color format computation raises an exception: {exc}"
 
 
-@mock.patch("rok4.utils.gdal.Info")
-@mock.patch("rok4.utils.gdal.GetColorInterpretationName")
-@mock.patch("rok4.utils.gdal.GetDataTypeSize", return_value=16)
-@mock.patch("rok4.utils.gdal.GetDataTypeName", return_value="UInt16")
+@patch("rok4.utils.gdal.Info")
+@patch("rok4.utils.gdal.GetColorInterpretationName")
+@patch("rok4.utils.gdal.GetDataTypeSize", return_value=16)
+@patch("rok4.utils.gdal.GetDataTypeName", return_value="UInt16")
 def test_compute_format_no_band_nok(
     mocked_GetDataTypeName, mocked_GetDataTypeSize, mocked_GetColorInterpretationName, mocked_Info
 ):

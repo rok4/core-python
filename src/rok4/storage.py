@@ -38,7 +38,6 @@ import time
 from functools import lru_cache
 from shutil import copyfile
 from typing import Dict, Tuple, Union
-
 import boto3
 import botocore.exceptions
 import requests
@@ -438,7 +437,6 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
         str: Data binary content
     """
     return __get_cached_data_binary(path, __get_ttl_hash(), range)
-
 
 def put_data_str(data: str, path: str) -> None:
     """Store string data into a file or an object
@@ -944,7 +942,6 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                 f"Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}",
             )
 
-
     elif (
         from_type == StorageType.HTTP or from_type == StorageType.HTTPS
     ) and to_type == StorageType.S3:
@@ -1025,6 +1022,7 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
     elif target_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
         ioctx = __get_ceph_ioctx(link_tray)
+
         try:
             ioctx.write_full(link_base_name, f"{__OBJECT_SYMLINK_SIGNATURE}{target_path}".encode())
         except Exception as e:
@@ -1038,7 +1036,6 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
             if exists(link_path):
                 remove(link_path)
-
             if hard:
                 os.link(target_path, link_path)
             else:

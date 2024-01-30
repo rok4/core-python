@@ -677,7 +677,6 @@ class Pyramid:
     @property
     def format(self) -> str:
         return self.__format
-
     @property
     def channels(self) -> str:
         return self.raster_specifications["channels"]
@@ -799,7 +798,7 @@ class Pyramid:
                     if slab[1] == level_id:
                         yield slab, infos
                 else:
-                    yield slab, infos
+                yield slab, infos
         else:
             # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
             list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
@@ -851,7 +850,7 @@ class Pyramid:
                         if level == level_id:
                             yield ((slab_type, level, column, row), infos)
                     else:
-                        yield ((slab_type, level, column, row), infos)
+                    yield ((slab_type, level, column, row), infos)
 
             remove(f"file://{list_file}")
 
@@ -1330,6 +1329,8 @@ class Pyramid:
 
         if binary_tile is None:
             return None
+
+        self.get_level(level)
 
         if self.__format == "TIFF_PBF_MVT":
             try:
