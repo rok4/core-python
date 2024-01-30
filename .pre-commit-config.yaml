@@ -52,4 +52,3 @@ ci:
   autofix_prs: true
   autoupdate_commit_msg: "[pre-commit.ci] Mise à jour des git hooks."
   autoupdate_schedule: quarterly
-
