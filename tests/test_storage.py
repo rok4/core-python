@@ -603,9 +603,11 @@ def test_link_hard_nok():
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.symlink", return_value=None)
-def test_link_file_ok(mock_link):
+@mock.patch("os.makedirs", return_value=None)
+def test_link_file_ok(mock_makedirs, mock_link):
     try:
         link("file:///path/to/target.ext", "file:///path/to/link.ext")
+        mock_makedirs.assert_called_once_with("/path/to", exist_ok=True)
         mock_link.assert_called_once_with("/path/to/target.ext", "/path/to/link.ext")
     except Exception as exc:
         assert False, f"FILE link raises an exception: {exc}"
@@ -613,9 +615,11 @@ def test_link_file_ok(mock_link):
 
 @mock.patch.dict(os.environ, {}, clear=True)
 @mock.patch("os.link", return_value=None)
-def test_hlink_file_ok(mock_link):
+@mock.patch("os.makedirs", return_value=None)
+def test_hlink_file_ok(mock_makedirs, mock_link):
     try:
         link("file:///path/to/target.ext", "file:///path/to/link.ext", True)
+        mock_makedirs.assert_called_once_with("/path/to", exist_ok=True)
         mock_link.assert_called_once_with("/path/to/target.ext", "/path/to/link.ext")
     except Exception as exc:
         assert False, f"FILE hard link raises an exception: {exc}"

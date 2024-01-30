@@ -798,7 +798,7 @@ class Pyramid:
                     if slab[1] == level_id:
                         yield slab, infos
                 else:
-                yield slab, infos
+                    yield slab, infos
         else:
             # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
             list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
@@ -850,7 +850,7 @@ class Pyramid:
                         if level == level_id:
                             yield ((slab_type, level, column, row), infos)
                     else:
-                    yield ((slab_type, level, column, row), infos)
+                        yield ((slab_type, level, column, row), infos)
 
             remove(f"file://{list_file}")
 
