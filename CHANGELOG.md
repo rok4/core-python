@@ -1,3 +1,19 @@
+## 2.1.0
+
+### [Added]
+
+* Pyramid
+    * Ajout de fonctions pour récupérer la tile_limits et le nombre de canaux de cette pyramide
+    * Ajout de fonctions pour ajouter ou supprimer des niveaux dans une pyramide
+* TileMatrixSet
+    * Ajout de fonctions pour récupérer la hauteur et la largeur de tuiles d'un TileMatrixSet
+
+### [Changed]
+
+* Pyramid
+    * Ajout d'un paramètre optionnel "mask" pour le constructeur from other afin de pouvoir conserver ou non les masques de la pyramide servant de base à la nouvellle
+* Gestion des documentations des différentes versions avec l'outil [mike](https://github.com/jimporter/mike)
+
 ## 2.0.1
 
 ### [Added]
