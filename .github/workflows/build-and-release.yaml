@@ -100,7 +100,6 @@ jobs:
           pdoc3 --html --output-dir target/docs/ rok4
           cp docs/mkdocs.yml target/mkdocs.yml
           cp -r docs/overrides target/
-          cp -r docs/assets target/docs/
           cp docs/unit-tests.md target/docs/unit-tests.md
           cp docs/documentation.md target/docs/documentation.md
           cp docs/README.hdr.md target/docs/README.md

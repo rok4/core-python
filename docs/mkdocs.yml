@@ -19,7 +19,7 @@ theme:
     custom_dir: overrides
 
 extra_css:
-    - assets/style.css
+    - https://rok4.github.io/assets/css/commun.css
 
 extra:
     homepage: https://rok4.github.io
