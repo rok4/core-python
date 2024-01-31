@@ -11,9 +11,9 @@ According to functions, all storage types are not necessarily available.
 
 Readings uses a LRU cache system with a TTL. It's possible to configure it with environment variables :
 - ROK4_READING_LRU_CACHE_SIZE : Number of cached element. Default 64. Set 0 or a negative integer to configure a cache without bound. A power of two make cache more efficient.
-- ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to disable time validity.
+- ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to get cache without expiration date.
 
-To disable cache, set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 0.
+To disable cache (always read data on storage), set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 1.
 
 Using CEPH storage requires environment variables :
 - ROK4_CEPH_CONFFILE
@@ -24,7 +24,6 @@ Using S3 storage requires environment variables :
 - ROK4_S3_KEY
 - ROK4_S3_SECRETKEY
 - ROK4_S3_URL
-- ROK4_SSL_NO_VERIFY (optionnal) with a non empty value disables certificate check.. Define PYTHONWARNINGS to "ignore:Unverified HTTPS request" to disable warnings logs
 
 To use several S3 clusters, each environment variable have to contain a list (comma-separated), with the same number of elements
 
@@ -74,7 +73,6 @@ __CEPH_IOCTXS = {}
 __OBJECT_SYMLINK_SIGNATURE = "SYMLINK#"
 __S3_CLIENTS = {}
 __S3_DEFAULT_CLIENT = None
-
 __LRU_SIZE = 64
 __LRU_TTL = 300
 
@@ -97,10 +95,10 @@ except KeyError:
     pass
 
 
-def __get_ttl_hash():
+def __get_ttl_hash() -> int:
     """Return the time string rounded according to time-to-live value"""
     if __LRU_TTL == 0:
-        return time.time()
+        return 0
     else:
         return round(time.time() / __LRU_TTL)
 
@@ -127,7 +125,6 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
         verify = True
         if "ROK4_SSL_NO_VERIFY" in os.environ and os.environ["ROK4_SSL_NO_VERIFY"] != "":
             verify = False
-
         # C'est la première fois qu'on cherche à utiliser le stockage S3, chargeons les informations depuis les variables d'environnement
         try:
             keys = os.environ["ROK4_S3_KEY"].split(",")
@@ -1033,6 +1030,12 @@ def link(target_path: str, link_path: str, hard: bool = False) -> None:
 
     elif target_type == StorageType.FILE:
         try:
+            to_tray = get_infos_from_path(link_path)[2]
+            if to_tray != "":
+                os.makedirs(to_tray, exist_ok=True)
+
+            if exists(link_path):
+                remove(link_path)
             if hard:
                 os.link(target_path, link_path)
             else:
@@ -1081,7 +1084,7 @@ def get_osgeo_path(path: str) -> str:
 
 
 def size_path(path: str) -> int:
-    """Return the size of the path given (or, for the CEPH, the sum of the size of each object of the .list)
+    """Return the size of the given path (or, for the CEPH, the sum of the size of each object of the .list)
 
     Args:
         path (str): Source path

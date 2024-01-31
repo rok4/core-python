@@ -1,12 +1,14 @@
+# standard library
 import os
 from unittest import mock
-from unittest.mock import *
 
+# 3rd party
 import pytest
 
-from rok4.exceptions import *
+# package
+from rok4.exceptions import MissingEnvironmentError, StorageError
 from rok4.storage import disconnect_ceph_clients
-from rok4.vector import *
+from rok4.vector import Vector
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
