@@ -1,3 +1,9 @@
+## 2.1.3
+
+### [Fixed]
+
+* Storage : dans le cas d'une lecture ou d'un test existence sur un objet S3 absent, le code dans la réponse n'est pas 404 mais NoSuchKey
+
 ## 2.1.0
 
 ### [Added]
