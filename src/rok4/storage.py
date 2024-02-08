@@ -366,7 +366,7 @@ def __get_cached_data_binary(path: str, ttl_hash: int, range: Tuple[int, int] = 
                 )
 
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "404":
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 raise FileNotFoundError(f"{storage_type.value}{path}")
             else:
                 raise StorageError("S3", e)
@@ -443,6 +443,9 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     Returns:
         str: Data binary content
     """
+    print("########################################")
+    print(f"get_data_binary {path}")
+    print("########################################")
     return __get_cached_data_binary(path, __get_ttl_hash(), range)
 
 
@@ -573,7 +576,7 @@ def exists(path: str) -> bool:
             s3_client["client"].head_object(Bucket=bucket_name, Key=base_name)
             return True
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "404":
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 return False
             else:
                 raise StorageError("S3", e)
