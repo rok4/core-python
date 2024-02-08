@@ -1,0 +1,2424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>rok4.storage API documentation</title>
+<meta name="description" content="Provide functions to use read or write …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>rok4.storage</code></h1>
+</header>
+<section id="section-intro">
+<p>Provide functions to use read or write</p>
+<p>Available storage types are :
+- S3 (path are preffixed with <code>s3://</code>)
+- CEPH (path are prefixed with <code>ceph://</code>)
+- FILE (path are prefixed with <code>file://</code>, but it is the default paths' interpretation)
+- HTTP (path are prefixed with <code>http://</code>)
+- HTTPS (path are prefixed with <code>https://</code>)</p>
+<p>According to functions, all storage types are not necessarily available.</p>
+<p>Readings uses a LRU cache system with a TTL. It's possible to configure it with environment variables :
+- ROK4_READING_LRU_CACHE_SIZE : Number of cached element. Default 64. Set 0 or a negative integer to configure a cache without bound. A power of two make cache more efficient.
+- ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to get cache without expiration date.</p>
+<p>To disable cache (always read data on storage), set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 1.</p>
+<p>Using CEPH storage requires environment variables :
+- ROK4_CEPH_CONFFILE
+- ROK4_CEPH_USERNAME
+- ROK4_CEPH_CLUSTERNAME</p>
+<p>Using S3 storage requires environment variables :
+- ROK4_S3_KEY
+- ROK4_S3_SECRETKEY
+- ROK4_S3_URL</p>
+<p>To use several S3 clusters, each environment variable have to contain a list (comma-separated), with the same number of elements</p>
+<p>Example: work with 2 S3 clusters:</p>
+<ul>
+<li>ROK4_S3_KEY=KEY1,KEY2</li>
+<li>ROK4_S3_SECRETKEY=SKEY1,SKEY2</li>
+<li>ROK4_S3_URL=<a href="https://s3.storage.fr,https://s4.storage.fr">https://s3.storage.fr,https://s4.storage.fr</a></li>
+</ul>
+<p>To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Provide functions to use read or write
+
+Available storage types are :
+- S3 (path are preffixed with `s3://`)
+- CEPH (path are prefixed with `ceph://`)
+- FILE (path are prefixed with `file://`, but it is the default paths&#39; interpretation)
+- HTTP (path are prefixed with `http://`)
+- HTTPS (path are prefixed with `https://`)
+
+According to functions, all storage types are not necessarily available.
+
+Readings uses a LRU cache system with a TTL. It&#39;s possible to configure it with environment variables :
+- ROK4_READING_LRU_CACHE_SIZE : Number of cached element. Default 64. Set 0 or a negative integer to configure a cache without bound. A power of two make cache more efficient.
+- ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to get cache without expiration date.
+
+To disable cache (always read data on storage), set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 1.
+
+Using CEPH storage requires environment variables :
+- ROK4_CEPH_CONFFILE
+- ROK4_CEPH_USERNAME
+- ROK4_CEPH_CLUSTERNAME
+
+Using S3 storage requires environment variables :
+- ROK4_S3_KEY
+- ROK4_S3_SECRETKEY
+- ROK4_S3_URL
+
+To use several S3 clusters, each environment variable have to contain a list (comma-separated), with the same number of elements
+
+Example: work with 2 S3 clusters:
+
+- ROK4_S3_KEY=KEY1,KEY2
+- ROK4_S3_SECRETKEY=SKEY1,SKEY2
+- ROK4_S3_URL=https://s3.storage.fr,https://s4.storage.fr
+
+To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used
+&#34;&#34;&#34;
+
+import hashlib
+import os
+import re
+import tempfile
+import time
+from functools import lru_cache
+from shutil import copyfile
+from typing import Dict, Tuple, Union
+
+import boto3
+import botocore.exceptions
+import requests
+from osgeo import gdal
+
+# conditional import
+try:
+    import rados
+
+    CEPH_RADOS_AVAILABLE: bool = True
+except ImportError:
+    CEPH_RADOS_AVAILABLE: bool = False
+    rados = None
+
+# package
+from rok4.enums import StorageType
+from rok4.exceptions import MissingEnvironmentError, StorageError
+
+# -- GLOBALS --
+
+# Enable GDAL/OGR exceptions
+gdal.UseExceptions()
+
+__CEPH_CLIENT = None
+__CEPH_IOCTXS = {}
+__OBJECT_SYMLINK_SIGNATURE = &#34;SYMLINK#&#34;
+__S3_CLIENTS = {}
+__S3_DEFAULT_CLIENT = None
+__LRU_SIZE = 64
+__LRU_TTL = 300
+
+try:
+    __LRU_SIZE = int(os.environ[&#34;ROK4_READING_LRU_CACHE_SIZE&#34;])
+    if __LRU_SIZE &lt; 1:
+        __LRU_SIZE = None
+except ValueError:
+    pass
+except KeyError:
+    pass
+
+try:
+    __LRU_TTL = int(os.environ[&#34;ROK4_READING_LRU_CACHE_TTL&#34;])
+    if __LRU_TTL &lt; 0:
+        __LRU_TTL = 0
+except ValueError:
+    pass
+except KeyError:
+    pass
+
+
+def __get_ttl_hash() -&gt; int:
+    &#34;&#34;&#34;Return the time string rounded according to time-to-live value&#34;&#34;&#34;
+    if __LRU_TTL == 0:
+        return 0
+    else:
+        return round(time.time() / __LRU_TTL)
+
+
+def __get_s3_client(bucket_name: str) -&gt; Tuple[Dict[str, Union[&#34;boto3.client&#34;, str]], str, str]:
+    &#34;&#34;&#34;Get the S3 client
+
+    Create it if not already done
+
+    Args:
+        bucket_name (str): S3 bucket name. Could be just the bucket name, or &lt;bucket name&gt;@&lt;cluster host&gt;
+
+    Raises:
+        MissingEnvironmentError: Missing S3 storage informations
+        StorageError: S3 client configuration issue
+
+    Returns:
+        Tuple[Dict[str, Union[&#39;boto3.client&#39;,str]], str, str]: the S3 informations (client, host, key, secret) and the simple bucket name
+    &#34;&#34;&#34;
+
+    global __S3_CLIENTS, __S3_DEFAULT_CLIENT
+
+    if not __S3_CLIENTS:
+        verify = True
+        if &#34;ROK4_SSL_NO_VERIFY&#34; in os.environ and os.environ[&#34;ROK4_SSL_NO_VERIFY&#34;] != &#34;&#34;:
+            verify = False
+        # C&#39;est la première fois qu&#39;on cherche à utiliser le stockage S3, chargeons les informations depuis les variables d&#39;environnement
+        try:
+            keys = os.environ[&#34;ROK4_S3_KEY&#34;].split(&#34;,&#34;)
+            secret_keys = os.environ[&#34;ROK4_S3_SECRETKEY&#34;].split(&#34;,&#34;)
+            urls = os.environ[&#34;ROK4_S3_URL&#34;].split(&#34;,&#34;)
+
+            if len(keys) != len(secret_keys) or len(keys) != len(urls):
+                raise StorageError(
+                    &#34;S3&#34;,
+                    &#34;S3 informations in environment variables are inconsistent : same number of element in each list is required&#34;,
+                )
+
+            for i in range(len(keys)):
+                h = re.sub(&#34;https?://&#34;, &#34;&#34;, urls[i])
+
+                if h in __S3_CLIENTS:
+                    raise StorageError(&#34;S3&#34;, &#34;A S3 cluster is defined twice (based on URL)&#34;)
+
+                __S3_CLIENTS[h] = {
+                    &#34;client&#34;: boto3.client(
+                        &#34;s3&#34;,
+                        aws_access_key_id=keys[i],
+                        aws_secret_access_key=secret_keys[i],
+                        verify=verify,
+                        endpoint_url=urls[i],
+                        config=botocore.config.Config(tcp_keepalive=True, max_pool_connections=10),
+                    ),
+                    &#34;key&#34;: keys[i],
+                    &#34;secret_key&#34;: secret_keys[i],
+                    &#34;url&#34;: urls[i],
+                    &#34;host&#34;: h,
+                }
+
+                if i == 0:
+                    # Le premier cluster est celui par défaut
+                    __S3_DEFAULT_CLIENT = h
+
+        except KeyError as e:
+            raise MissingEnvironmentError(e)
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    try:
+        host = bucket_name.split(&#34;@&#34;)[1]
+    except IndexError:
+        host = __S3_DEFAULT_CLIENT
+
+    bucket_name = bucket_name.split(&#34;@&#34;)[0]
+
+    if host not in __S3_CLIENTS:
+        raise StorageError(&#34;S3&#34;, f&#34;Unknown S3 cluster, according to host &#39;{host}&#39;&#34;)
+
+    return __S3_CLIENTS[host], bucket_name
+
+
+def disconnect_s3_clients() -&gt; None:
+    &#34;&#34;&#34;Clean S3 clients&#34;&#34;&#34;
+
+    global __S3_CLIENTS, __S3_DEFAULT_CLIENT
+    __S3_CLIENTS = {}
+    __S3_DEFAULT_CLIENT = None
+
+
+def __get_ceph_ioctx(pool: str) -&gt; &#34;rados.Ioctx&#34;:
+    &#34;&#34;&#34;Get the CEPH IO context
+
+    Create it (client and context) if not already done
+
+    Args:
+        pool (str): CEPH pool&#39;s name
+
+    Raises:
+        MissingEnvironmentError: Missing CEPH storage informations
+        StorageError: CEPH IO context configuration issue
+
+    Returns:
+        rados.Ioctx: IO ceph context
+    &#34;&#34;&#34;
+    global __CEPH_CLIENT, __CEPH_IOCTXS
+
+    if __CEPH_CLIENT is None:
+        try:
+            __CEPH_CLIENT = rados.Rados(
+                conffile=os.environ[&#34;ROK4_CEPH_CONFFILE&#34;],
+                clustername=os.environ[&#34;ROK4_CEPH_CLUSTERNAME&#34;],
+                name=os.environ[&#34;ROK4_CEPH_USERNAME&#34;],
+            )
+
+            __CEPH_CLIENT.connect()
+
+        except KeyError as e:
+            raise MissingEnvironmentError(e)
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    if pool not in __CEPH_IOCTXS:
+        try:
+            __CEPH_IOCTXS[pool] = __CEPH_CLIENT.open_ioctx(pool)
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    return __CEPH_IOCTXS[pool]
+
+
+def disconnect_ceph_clients() -&gt; None:
+    &#34;&#34;&#34;Clean CEPH clients&#34;&#34;&#34;
+    global __CEPH_CLIENT, __CEPH_IOCTXS
+    __CEPH_CLIENT = None
+    __CEPH_IOCTXS = {}
+
+
+def get_infos_from_path(path: str) -&gt; Tuple[StorageType, str, str, str]:
+    &#34;&#34;&#34;Extract storage type, the unprefixed path, the container and the basename from path (Default: FILE storage)
+
+    For a FILE storage, the tray is the directory and the basename is the file name.
+
+    For an object storage (CEPH or S3), the tray is the bucket or the pool and the basename is the object name.
+    For a S3 bucket, format can be &lt;bucket name&gt;@&lt;cluster name&gt; to use several clusters. Cluster name is the host (without protocol)
+
+    Args:
+        path (str): path to analyse
+
+    Returns:
+        Tuple[StorageType, str, str, str]: storage type, unprefixed path, the container and the basename
+    &#34;&#34;&#34;
+
+    if path.startswith(&#34;s3://&#34;):
+        bucket_name, object_name = path[5:].split(&#34;/&#34;, 1)
+        return StorageType.S3, path[5:], bucket_name, object_name
+    elif path.startswith(&#34;ceph://&#34;):
+        pool_name, object_name = path[7:].split(&#34;/&#34;, 1)
+        return StorageType.CEPH, path[7:], pool_name, object_name
+    elif path.startswith(&#34;file://&#34;):
+        return StorageType.FILE, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
+    elif path.startswith(&#34;http://&#34;):
+        return StorageType.HTTP, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
+    elif path.startswith(&#34;https://&#34;):
+        return StorageType.HTTPS, path[8:], os.path.dirname(path[8:]), os.path.basename(path[8:])
+    else:
+        return StorageType.FILE, path, os.path.dirname(path), os.path.basename(path)
+
+
+def get_path_from_infos(storage_type: StorageType, *args) -&gt; str:
+    &#34;&#34;&#34;Write full path from elements
+
+    Prefixed wih storage&#39;s type, elements are joined with a slash
+
+    Args:
+        storage_type (StorageType): Storage&#39;s type for path
+
+    Returns:
+        str: Full path
+    &#34;&#34;&#34;
+    return f&#34;{storage_type.value}{os.path.join(*args)}&#34;
+
+
+def hash_file(path: str) -&gt; str:
+    &#34;&#34;&#34;Process MD5 sum of the provided file
+
+    Args:
+        path (str): path to file
+
+    Returns:
+        str: hexadeimal MD5 sum
+    &#34;&#34;&#34;
+
+    checker = hashlib.md5()
+
+    with open(path, &#34;rb&#34;) as file:
+        chunk = 0
+        while chunk != b&#34;&#34;:
+            chunk = file.read(65536)
+            checker.update(chunk)
+
+    return checker.hexdigest()
+
+
+def get_data_str(path: str) -&gt; str:
+    &#34;&#34;&#34;Load full data into a string
+
+    Args:
+        path (str): path to data
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: Data content
+    &#34;&#34;&#34;
+
+    return get_data_binary(path).decode(&#34;utf-8&#34;)
+
+
+@lru_cache(maxsize=__LRU_SIZE)
+def __get_cached_data_binary(path: str, ttl_hash: int, range: Tuple[int, int] = None) -&gt; str:
+    &#34;&#34;&#34;Load data into a binary string, using a LRU cache
+
+    Args:
+        path (str): path to data
+        ttl_hash (int): time hash, to invalid cache
+        range (Tuple[int, int], optional): offset and size, to make a partial read. Defaults to None.
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: Data binary content
+    &#34;&#34;&#34;
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            if range is None:
+                data = (
+                    s3_client[&#34;client&#34;]
+                    .get_object(
+                        Bucket=bucket_name,
+                        Key=base_name,
+                    )[&#34;Body&#34;]
+                    .read()
+                )
+            else:
+                data = (
+                    s3_client[&#34;client&#34;]
+                    .get_object(
+                        Bucket=bucket_name,
+                        Key=base_name,
+                        Range=f&#34;bytes={range[0]}-{range[0] + range[1] - 1}&#34;,
+                    )[&#34;Body&#34;]
+                    .read()
+                )
+
+        except botocore.exceptions.ClientError as e:
+            if e.response[&#34;Error&#34;][&#34;Code&#34;] == &#34;NoSuchKey&#34;:
+                raise FileNotFoundError(f&#34;{storage_type.value}{path}&#34;)
+            else:
+                raise StorageError(&#34;S3&#34;, e)
+
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            if range is None:
+                size, mtime = ioctx.stat(base_name)
+                data = ioctx.read(base_name, size)
+            else:
+                data = ioctx.read(base_name, range[1], range[0])
+
+        except rados.ObjectNotFound:
+            raise FileNotFoundError(f&#34;{storage_type.value}{path}&#34;)
+
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            f = open(path, &#34;rb&#34;)
+            if range is None:
+                data = f.read()
+            else:
+                f.seek(range[0])
+                data = f.read(range[1])
+
+            f.close()
+
+        except FileNotFoundError:
+            raise FileNotFoundError(f&#34;{storage_type.value}{path}&#34;)
+
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+        if range is None:
+            try:
+                reponse = requests.get(f&#34;{storage_type.value}{path}&#34;, stream=True)
+                data = reponse.content
+                if reponse.status_code == 404:
+                    raise FileNotFoundError(f&#34;{storage_type.value}{path}&#34;)
+            except Exception as e:
+                raise StorageError(storage_type.name, e)
+        else:
+            raise NotImplementedError(&#34;Cannot get partial data for storage type HTTP(S)&#34;)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot get data for storage type {storage_type.name}&#34;)
+
+    return data
+
+
+def get_data_binary(path: str, range: Tuple[int, int] = None) -&gt; str:
+    &#34;&#34;&#34;Load data into a binary string
+
+    This function uses a LRU cache, with a TTL of 5 minutes
+
+    Args:
+        path (str): path to data
+        range (Tuple[int, int], optional): offset and size, to make a partial read. Defaults to None.
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: Data binary content
+    &#34;&#34;&#34;
+    print(&#34;########################################&#34;)
+    print(f&#34;get_data_binary {path}&#34;)
+    print(&#34;########################################&#34;)
+    return __get_cached_data_binary(path, __get_ttl_hash(), range)
+
+
+def put_data_str(data: str, path: str) -&gt; None:
+    &#34;&#34;&#34;Store string data into a file or an object
+
+    UTF-8 encoding is used for bytes conversion
+
+    Args:
+        data (str): data to write
+        path (str): destination path, where to write data
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage write issue
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            s3_client[&#34;client&#34;].put_object(
+                Body=data.encode(&#34;utf-8&#34;), Bucket=bucket_name, Key=base_name
+            )
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.write_full(base_name, data.encode(&#34;utf-8&#34;))
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            f = open(path, &#34;w&#34;)
+            f.write(data)
+            f.close()
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot write data for storage type {storage_type.name}&#34;)
+
+
+def get_size(path: str) -&gt; int:
+    &#34;&#34;&#34;Get size of file or object
+
+    Args:
+        path (str): path of file/object whom size is asked
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        int: file/object size, in bytes
+    &#34;&#34;&#34;
+
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            size = s3_client[&#34;client&#34;].head_object(Bucket=bucket_name, Key=base_name)[
+                &#34;ContentLength&#34;
+            ]
+            return int(size)
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            size, mtime = ioctx.stat(base_name)
+            return size
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            file_stats = os.stat(path)
+            return file_stats.st_size
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+        try:
+            # Le stream=True permet de ne télécharger que le header initialement
+            reponse = requests.get(storage_type.value + path, stream=True).headers[&#34;content-length&#34;]
+            return reponse
+        except Exception as e:
+            raise StorageError(storage_type.name, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot get size for storage type {storage_type.name}&#34;)
+
+
+def exists(path: str) -&gt; bool:
+    &#34;&#34;&#34;Do the file or object exist ?
+
+    Args:
+        path (str): path of file/object to test
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        bool: file/object existing status
+    &#34;&#34;&#34;
+
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            s3_client[&#34;client&#34;].head_object(Bucket=bucket_name, Key=base_name)
+            return True
+        except botocore.exceptions.ClientError as e:
+            if e.response[&#34;Error&#34;][&#34;Code&#34;] == &#34;NoSuchKey&#34;:
+                return False
+            else:
+                raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.stat(base_name)
+            return True
+        except rados.ObjectNotFound:
+            return False
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        return os.path.exists(path)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+        try:
+            response = requests.get(storage_type.value + path, stream=True)
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except Exception as e:
+            raise StorageError(storage_type.name, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot test existence for storage type {storage_type.name}&#34;)
+
+
+def remove(path: str) -&gt; None:
+    &#34;&#34;&#34;Remove the file/object
+
+    Args:
+        path (str): path of file/object to remove
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage removal issue
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            s3_client[&#34;client&#34;].delete_object(Bucket=bucket_name, Key=base_name)
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.remove_object(base_name)
+        except rados.ObjectNotFound:
+            pass
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot remove data for storage type {storage_type.name}&#34;)
+
+
+def copy(from_path: str, to_path: str, from_md5: str = None) -&gt; None:
+    &#34;&#34;&#34;Copy a file or object to a file or object place. If MD5 sum is provided, it is compared to sum after the copy.
+
+    Args:
+        from_path (str): source file/object path, to copy
+        to_path (str): destination file/object path
+        from_md5 (str, optional): MD5 sum, re-processed after copy and controlled. Defaults to None.
+
+    Raises:
+        StorageError: Copy issue
+        MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+
+    from_type, from_path, from_tray, from_base_name = get_infos_from_path(from_path)
+    to_type, to_path, to_tray, to_base_name = get_infos_from_path(to_path)
+
+    # Réalisation de la copie, selon les types de stockage
+    if from_type == StorageType.FILE and to_type == StorageType.FILE:
+        try:
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+
+            copyfile(from_path, to_path)
+
+            if from_md5 is not None:
+                to_md5 = hash_file(to_path)
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;FILE&#34;,
+                        f&#34;Invalid MD5 sum control for copy file {from_path} to {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, f&#34;Cannot copy file {from_path} to {to_path} : {e}&#34;)
+
+    elif from_type == StorageType.S3 and to_type == StorageType.FILE:
+        s3_client, from_bucket = __get_s3_client(from_tray)
+
+        try:
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+
+            s3_client[&#34;client&#34;].download_file(from_bucket, from_base_name, to_path)
+
+            if from_md5 is not None:
+                to_md5 = hash_file(to_path)
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;S3 and FILE&#34;,
+                        f&#34;Invalid MD5 sum control for copy S3 object {from_path} to file {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;S3 and FILE&#34;, f&#34;Cannot copy S3 object {from_path} to file {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.FILE and to_type == StorageType.S3:
+        s3_client, to_bucket = __get_s3_client(to_tray)
+
+        try:
+            s3_client[&#34;client&#34;].upload_file(from_path, to_bucket, to_base_name)
+
+            if from_md5 is not None:
+                to_md5 = (
+                    s3_client[&#34;client&#34;]
+                    .head_object(Bucket=to_bucket, Key=to_base_name)[&#34;ETag&#34;]
+                    .strip(&#39;&#34;&#39;)
+                )
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;FILE and S3&#34;,
+                        f&#34;Invalid MD5 sum control for copy file {from_path} to S3 object {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+        except Exception as e:
+            raise StorageError(
+                &#34;FILE and S3&#34;, f&#34;Cannot copy file {from_path} to S3 object {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.S3 and to_type == StorageType.S3:
+        from_s3_client, from_bucket = __get_s3_client(from_tray)
+        to_s3_client, to_bucket = __get_s3_client(to_tray)
+
+        try:
+            if to_s3_client[&#34;host&#34;] == from_s3_client[&#34;host&#34;]:
+                to_s3_client[&#34;client&#34;].copy(
+                    {&#34;Bucket&#34;: from_bucket, &#34;Key&#34;: from_base_name}, to_bucket, to_base_name
+                )
+            else:
+                with tempfile.NamedTemporaryFile(&#34;w+b&#34;) as f:
+                    from_s3_client[&#34;client&#34;].download_fileobj(from_bucket, from_base_name, f)
+                    to_s3_client[&#34;client&#34;].upload_file(f.name, to_bucket, to_base_name)
+
+            if from_md5 is not None:
+                to_md5 = (
+                    to_s3_client[&#34;client&#34;]
+                    .head_object(Bucket=to_bucket, Key=to_base_name)[&#34;ETag&#34;]
+                    .strip(&#39;&#34;&#39;)
+                )
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;S3&#34;,
+                        f&#34;Invalid MD5 sum control for copy S3 object {from_path} to {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, f&#34;Cannot copy S3 object {from_path} to {to_path} : {e}&#34;)
+
+    elif from_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE and to_type == StorageType.FILE:
+        ioctx = __get_ceph_ioctx(from_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+            f = open(to_path, &#34;wb&#34;)
+
+            offset = 0
+            size = 0
+
+            while True:
+                chunk = ioctx.read(from_base_name, 65536, offset)
+                size = len(chunk)
+                offset += size
+                f.write(chunk)
+
+                if from_md5 is not None:
+                    checker.update(chunk)
+
+                if size &lt; 65536:
+                    break
+
+            f.close()
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;CEPH and FILE&#34;,
+                    f&#34;Invalid MD5 sum control for copy CEPH object {from_path} to file {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;CEPH and FILE&#34;, f&#34;Cannot copy CEPH object {from_path} to file {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.FILE and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            f = open(from_path, &#34;rb&#34;)
+
+            offset = 0
+            size = 0
+
+            while True:
+                chunk = f.read(65536)
+                size = len(chunk)
+                ioctx.write(to_base_name, chunk, offset)
+                offset += size
+
+                if from_md5 is not None:
+                    checker.update(chunk)
+
+                if size &lt; 65536:
+                    break
+
+            f.close()
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;FILE and CEPH&#34;,
+                    f&#34;Invalid MD5 sum control for copy file {from_path} to CEPH object {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;FILE and CEPH&#34;, f&#34;Cannot copy file {from_path} to CEPH object {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.CEPH and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        from_ioctx = __get_ceph_ioctx(from_tray)
+        to_ioctx = __get_ceph_ioctx(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            offset = 0
+            size = 0
+
+            while True:
+                chunk = from_ioctx.read(from_base_name, 65536, offset)
+                size = len(chunk)
+                to_ioctx.write(to_base_name, chunk, offset)
+                offset += size
+
+                if from_md5 is not None:
+                    checker.update(chunk)
+
+                if size &lt; 65536:
+                    break
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;FILE and CEPH&#34;,
+                    f&#34;Invalid MD5 sum control for copy CEPH object {from_path} to {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, f&#34;Cannot copy CEPH object {from_path} to {to_path} : {e}&#34;)
+
+    elif from_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE and to_type == StorageType.S3:
+        from_ioctx = __get_ceph_ioctx(from_tray)
+
+        s3_client, to_bucket = __get_s3_client(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            offset = 0
+            size = 0
+
+            with tempfile.NamedTemporaryFile(&#34;w+b&#34;, delete=False) as f:
+                name_tmp = f.name
+                while True:
+                    chunk = from_ioctx.read(from_base_name, 65536, offset)
+                    size = len(chunk)
+                    offset += size
+                    f.write(chunk)
+
+                    if from_md5 is not None:
+                        checker.update(chunk)
+
+                    if size &lt; 65536:
+                        break
+
+            s3_client[&#34;client&#34;].upload_file(name_tmp, to_bucket, to_base_name)
+
+            os.remove(name_tmp)
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;CEPH and S3&#34;,
+                    f&#34;Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;CEPH and S3&#34;, f&#34;Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}&#34;
+            )
+
+    elif (
+        from_type == StorageType.HTTP or from_type == StorageType.HTTPS
+    ) and to_type == StorageType.FILE:
+        try:
+            response = requests.get(from_type.value + from_path, stream=True)
+            with open(to_path, &#34;wb&#34;) as f:
+                for chunk in response.iter_content(chunk_size=65536):
+                    if chunk:
+                        f.write(chunk)
+
+        except Exception as e:
+            raise StorageError(
+                &#34;HTTP(S) and FILE&#34;,
+                f&#34;Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}&#34;,
+            )
+
+    elif (
+        (from_type == StorageType.HTTP or from_type == StorageType.HTTPS)
+        and to_type == StorageType.CEPH
+        and CEPH_RADOS_AVAILABLE
+    ):
+        to_ioctx = __get_ceph_ioctx(to_tray)
+
+        try:
+            response = requests.get(from_type.value + from_path, stream=True)
+            offset = 0
+            for chunk in response.iter_content(chunk_size=65536):
+                if chunk:
+                    size = len(chunk)
+                    to_ioctx.write(to_base_name, chunk, offset)
+                    offset += size
+
+        except Exception as e:
+            raise StorageError(
+                &#34;HTTP(S) and CEPH&#34;,
+                f&#34;Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}&#34;,
+            )
+
+    elif (
+        from_type == StorageType.HTTP or from_type == StorageType.HTTPS
+    ) and to_type == StorageType.S3:
+        to_s3_client, to_bucket = __get_s3_client(to_tray)
+
+        try:
+            response = requests.get(from_type.value + from_path, stream=True)
+            with tempfile.NamedTemporaryFile(&#34;w+b&#34;, delete=False) as f:
+                name_fich = f.name
+                for chunk in response.iter_content(chunk_size=65536):
+                    if chunk:
+                        f.write(chunk)
+
+            to_s3_client[&#34;client&#34;].upload_file(name_fich, to_tray, to_base_name)
+
+            os.remove(name_fich)
+
+        except Exception as e:
+            raise StorageError(
+                &#34;HTTP(S) and S3&#34;,
+                f&#34;Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}&#34;,
+            )
+
+    else:
+        raise NotImplementedError(
+            f&#34;Cannot copy data from storage type {from_type.name} to storage type {to_type.name}&#34;
+        )
+
+
+def link(target_path: str, link_path: str, hard: bool = False) -&gt; None:
+    &#34;&#34;&#34;Create a symbolic link
+
+    Args:
+        target_path (str): file/object to link
+        link_path (str): link to create
+        hard (bool, optional): hard link rather than symbolic. Only for FILE storage. Defaults to False.
+
+    Raises:
+        StorageError: link issue
+        MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+
+    target_type, target_path, target_tray, target_base_name = get_infos_from_path(target_path)
+    link_type, link_path, link_tray, link_base_name = get_infos_from_path(link_path)
+
+    if target_type != link_type:
+        raise StorageError(
+            f&#34;{target_type.name} and {link_type.name}&#34;,
+            &#34;Cannot make link between two different storage types&#34;,
+        )
+
+    if hard and target_type != StorageType.FILE:
+        raise StorageError(target_type.name, &#34;Hard link is available only for FILE storage&#34;)
+
+    # Réalisation du lien, selon les types de stockage
+    if target_type == StorageType.S3:
+        target_s3_client, target_bucket = __get_s3_client(target_tray)
+        link_s3_client, link_bucket = __get_s3_client(link_tray)
+
+        if target_s3_client[&#34;host&#34;] != link_s3_client[&#34;host&#34;]:
+            raise StorageError(
+                &#34;S3&#34;,
+                f&#34;Cannot make link {link_path} -&gt; {target_path} : link works only on the same S3 cluster&#34;,
+            )
+
+        try:
+            target_s3_client[&#34;client&#34;].put_object(
+                Body=f&#34;{__OBJECT_SYMLINK_SIGNATURE}{target_bucket}/{target_base_name}&#34;.encode(),
+                Bucket=link_bucket,
+                Key=link_base_name,
+            )
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif target_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(link_tray)
+
+        try:
+            ioctx.write_full(link_base_name, f&#34;{__OBJECT_SYMLINK_SIGNATURE}{target_path}&#34;.encode())
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif target_type == StorageType.FILE:
+        try:
+            to_tray = get_infos_from_path(link_path)[2]
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+
+            if exists(link_path):
+                remove(link_path)
+            if hard:
+                os.link(target_path, link_path)
+            else:
+                os.symlink(target_path, link_path)
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot make link for storage type {target_type.name}&#34;)
+
+
+def get_osgeo_path(path: str) -&gt; str:
+    &#34;&#34;&#34;Return GDAL/OGR Open compliant path and configure storage access
+
+    For a S3 input path, endpoint, access and secret keys are set and path is built with &#34;/vsis3&#34; root.
+
+    For a FILE input path, only storage prefix is removed
+
+    Args:
+        path (str): Source path
+
+    Raises:
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: GDAL/OGR Open compliant path
+    &#34;&#34;&#34;
+
+    storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        gdal.SetConfigOption(&#34;AWS_SECRET_ACCESS_KEY&#34;, s3_client[&#34;secret_key&#34;])
+        gdal.SetConfigOption(&#34;AWS_ACCESS_KEY_ID&#34;, s3_client[&#34;key&#34;])
+        gdal.SetConfigOption(&#34;AWS_S3_ENDPOINT&#34;, s3_client[&#34;host&#34;])
+        gdal.SetConfigOption(&#34;AWS_VIRTUAL_HOSTING&#34;, &#34;FALSE&#34;)
+
+        return f&#34;/vsis3/{bucket_name}/{base_name}&#34;
+
+    elif storage_type == StorageType.FILE:
+        return unprefixed_path
+
+    else:
+        raise NotImplementedError(f&#34;Cannot get a GDAL/OGR compliant path from {path}&#34;)
+
+
+def size_path(path: str) -&gt; int:
+    &#34;&#34;&#34;Return the size of the given path (or, for the CEPH, the sum of the size of each object of the .list)
+
+    Args:
+        path (str): Source path
+
+    Raises:
+        StorageError: Unhandled link or link issue
+        MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        int: size of the path
+    &#34;&#34;&#34;
+    storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.FILE:
+        try:
+            total = 0
+            with os.scandir(unprefixed_path) as it:
+                for entry in it:
+                    if entry.is_file():
+                        total += entry.stat().st_size
+                    elif entry.is_dir():
+                        total += size_path(entry.path)
+
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    elif storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            paginator = s3_client[&#34;client&#34;].get_paginator(&#34;list_objects_v2&#34;)
+            pages = paginator.paginate(
+                Bucket=bucket_name,
+                Prefix=base_name + &#34;/&#34;,
+                PaginationConfig={
+                    &#34;PageSize&#34;: 10000,
+                },
+            )
+            total = 0
+            for page in pages:
+                for key in page[&#34;Contents&#34;]:
+                    total += key[&#34;Size&#34;]
+
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    else:
+        raise NotImplementedError(
+            f&#34;Cannot get prefix path size for storage type {storage_type.name}&#34;
+        )
+
+    return total</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="rok4.storage.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>from_path: str, to_path: str, from_md5: str = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Copy a file or object to a file or object place. If MD5 sum is provided, it is compared to sum after the copy.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>from_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>source file/object path, to copy</dd>
+<dt><strong><code>to_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>destination file/object path</dd>
+<dt><strong><code>from_md5</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>MD5 sum, re-processed after copy and controlled. Defaults to None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>StorageError</code></dt>
+<dd>Copy issue</dd>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def copy(from_path: str, to_path: str, from_md5: str = None) -&gt; None:
+    &#34;&#34;&#34;Copy a file or object to a file or object place. If MD5 sum is provided, it is compared to sum after the copy.
+
+    Args:
+        from_path (str): source file/object path, to copy
+        to_path (str): destination file/object path
+        from_md5 (str, optional): MD5 sum, re-processed after copy and controlled. Defaults to None.
+
+    Raises:
+        StorageError: Copy issue
+        MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+
+    from_type, from_path, from_tray, from_base_name = get_infos_from_path(from_path)
+    to_type, to_path, to_tray, to_base_name = get_infos_from_path(to_path)
+
+    # Réalisation de la copie, selon les types de stockage
+    if from_type == StorageType.FILE and to_type == StorageType.FILE:
+        try:
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+
+            copyfile(from_path, to_path)
+
+            if from_md5 is not None:
+                to_md5 = hash_file(to_path)
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;FILE&#34;,
+                        f&#34;Invalid MD5 sum control for copy file {from_path} to {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, f&#34;Cannot copy file {from_path} to {to_path} : {e}&#34;)
+
+    elif from_type == StorageType.S3 and to_type == StorageType.FILE:
+        s3_client, from_bucket = __get_s3_client(from_tray)
+
+        try:
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+
+            s3_client[&#34;client&#34;].download_file(from_bucket, from_base_name, to_path)
+
+            if from_md5 is not None:
+                to_md5 = hash_file(to_path)
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;S3 and FILE&#34;,
+                        f&#34;Invalid MD5 sum control for copy S3 object {from_path} to file {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;S3 and FILE&#34;, f&#34;Cannot copy S3 object {from_path} to file {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.FILE and to_type == StorageType.S3:
+        s3_client, to_bucket = __get_s3_client(to_tray)
+
+        try:
+            s3_client[&#34;client&#34;].upload_file(from_path, to_bucket, to_base_name)
+
+            if from_md5 is not None:
+                to_md5 = (
+                    s3_client[&#34;client&#34;]
+                    .head_object(Bucket=to_bucket, Key=to_base_name)[&#34;ETag&#34;]
+                    .strip(&#39;&#34;&#39;)
+                )
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;FILE and S3&#34;,
+                        f&#34;Invalid MD5 sum control for copy file {from_path} to S3 object {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+        except Exception as e:
+            raise StorageError(
+                &#34;FILE and S3&#34;, f&#34;Cannot copy file {from_path} to S3 object {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.S3 and to_type == StorageType.S3:
+        from_s3_client, from_bucket = __get_s3_client(from_tray)
+        to_s3_client, to_bucket = __get_s3_client(to_tray)
+
+        try:
+            if to_s3_client[&#34;host&#34;] == from_s3_client[&#34;host&#34;]:
+                to_s3_client[&#34;client&#34;].copy(
+                    {&#34;Bucket&#34;: from_bucket, &#34;Key&#34;: from_base_name}, to_bucket, to_base_name
+                )
+            else:
+                with tempfile.NamedTemporaryFile(&#34;w+b&#34;) as f:
+                    from_s3_client[&#34;client&#34;].download_fileobj(from_bucket, from_base_name, f)
+                    to_s3_client[&#34;client&#34;].upload_file(f.name, to_bucket, to_base_name)
+
+            if from_md5 is not None:
+                to_md5 = (
+                    to_s3_client[&#34;client&#34;]
+                    .head_object(Bucket=to_bucket, Key=to_base_name)[&#34;ETag&#34;]
+                    .strip(&#39;&#34;&#39;)
+                )
+                if to_md5 != from_md5:
+                    raise StorageError(
+                        &#34;S3&#34;,
+                        f&#34;Invalid MD5 sum control for copy S3 object {from_path} to {to_path} : {from_md5} != {to_md5}&#34;,
+                    )
+
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, f&#34;Cannot copy S3 object {from_path} to {to_path} : {e}&#34;)
+
+    elif from_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE and to_type == StorageType.FILE:
+        ioctx = __get_ceph_ioctx(from_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+            f = open(to_path, &#34;wb&#34;)
+
+            offset = 0
+            size = 0
+
+            while True:
+                chunk = ioctx.read(from_base_name, 65536, offset)
+                size = len(chunk)
+                offset += size
+                f.write(chunk)
+
+                if from_md5 is not None:
+                    checker.update(chunk)
+
+                if size &lt; 65536:
+                    break
+
+            f.close()
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;CEPH and FILE&#34;,
+                    f&#34;Invalid MD5 sum control for copy CEPH object {from_path} to file {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;CEPH and FILE&#34;, f&#34;Cannot copy CEPH object {from_path} to file {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.FILE and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            f = open(from_path, &#34;rb&#34;)
+
+            offset = 0
+            size = 0
+
+            while True:
+                chunk = f.read(65536)
+                size = len(chunk)
+                ioctx.write(to_base_name, chunk, offset)
+                offset += size
+
+                if from_md5 is not None:
+                    checker.update(chunk)
+
+                if size &lt; 65536:
+                    break
+
+            f.close()
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;FILE and CEPH&#34;,
+                    f&#34;Invalid MD5 sum control for copy file {from_path} to CEPH object {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;FILE and CEPH&#34;, f&#34;Cannot copy file {from_path} to CEPH object {to_path} : {e}&#34;
+            )
+
+    elif from_type == StorageType.CEPH and to_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        from_ioctx = __get_ceph_ioctx(from_tray)
+        to_ioctx = __get_ceph_ioctx(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            offset = 0
+            size = 0
+
+            while True:
+                chunk = from_ioctx.read(from_base_name, 65536, offset)
+                size = len(chunk)
+                to_ioctx.write(to_base_name, chunk, offset)
+                offset += size
+
+                if from_md5 is not None:
+                    checker.update(chunk)
+
+                if size &lt; 65536:
+                    break
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;FILE and CEPH&#34;,
+                    f&#34;Invalid MD5 sum control for copy CEPH object {from_path} to {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, f&#34;Cannot copy CEPH object {from_path} to {to_path} : {e}&#34;)
+
+    elif from_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE and to_type == StorageType.S3:
+        from_ioctx = __get_ceph_ioctx(from_tray)
+
+        s3_client, to_bucket = __get_s3_client(to_tray)
+
+        if from_md5 is not None:
+            checker = hashlib.md5()
+
+        try:
+            offset = 0
+            size = 0
+
+            with tempfile.NamedTemporaryFile(&#34;w+b&#34;, delete=False) as f:
+                name_tmp = f.name
+                while True:
+                    chunk = from_ioctx.read(from_base_name, 65536, offset)
+                    size = len(chunk)
+                    offset += size
+                    f.write(chunk)
+
+                    if from_md5 is not None:
+                        checker.update(chunk)
+
+                    if size &lt; 65536:
+                        break
+
+            s3_client[&#34;client&#34;].upload_file(name_tmp, to_bucket, to_base_name)
+
+            os.remove(name_tmp)
+
+            if from_md5 is not None and from_md5 != checker.hexdigest():
+                raise StorageError(
+                    &#34;CEPH and S3&#34;,
+                    f&#34;Invalid MD5 sum control for copy CEPH object {from_path} to S3 object {to_path} : {from_md5} != {checker.hexdigest()}&#34;,
+                )
+
+        except Exception as e:
+            raise StorageError(
+                &#34;CEPH and S3&#34;, f&#34;Cannot copy CEPH object {from_path} to S3 object {to_path} : {e}&#34;
+            )
+
+    elif (
+        from_type == StorageType.HTTP or from_type == StorageType.HTTPS
+    ) and to_type == StorageType.FILE:
+        try:
+            response = requests.get(from_type.value + from_path, stream=True)
+            with open(to_path, &#34;wb&#34;) as f:
+                for chunk in response.iter_content(chunk_size=65536):
+                    if chunk:
+                        f.write(chunk)
+
+        except Exception as e:
+            raise StorageError(
+                &#34;HTTP(S) and FILE&#34;,
+                f&#34;Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}&#34;,
+            )
+
+    elif (
+        (from_type == StorageType.HTTP or from_type == StorageType.HTTPS)
+        and to_type == StorageType.CEPH
+        and CEPH_RADOS_AVAILABLE
+    ):
+        to_ioctx = __get_ceph_ioctx(to_tray)
+
+        try:
+            response = requests.get(from_type.value + from_path, stream=True)
+            offset = 0
+            for chunk in response.iter_content(chunk_size=65536):
+                if chunk:
+                    size = len(chunk)
+                    to_ioctx.write(to_base_name, chunk, offset)
+                    offset += size
+
+        except Exception as e:
+            raise StorageError(
+                &#34;HTTP(S) and CEPH&#34;,
+                f&#34;Cannot copy HTTP(S) object {from_path} to CEPH object {to_path} : {e}&#34;,
+            )
+
+    elif (
+        from_type == StorageType.HTTP or from_type == StorageType.HTTPS
+    ) and to_type == StorageType.S3:
+        to_s3_client, to_bucket = __get_s3_client(to_tray)
+
+        try:
+            response = requests.get(from_type.value + from_path, stream=True)
+            with tempfile.NamedTemporaryFile(&#34;w+b&#34;, delete=False) as f:
+                name_fich = f.name
+                for chunk in response.iter_content(chunk_size=65536):
+                    if chunk:
+                        f.write(chunk)
+
+            to_s3_client[&#34;client&#34;].upload_file(name_fich, to_tray, to_base_name)
+
+            os.remove(name_fich)
+
+        except Exception as e:
+            raise StorageError(
+                &#34;HTTP(S) and S3&#34;,
+                f&#34;Cannot copy HTTP(S) object {from_path} to S3 object {to_path} : {e}&#34;,
+            )
+
+    else:
+        raise NotImplementedError(
+            f&#34;Cannot copy data from storage type {from_type.name} to storage type {to_type.name}&#34;
+        )</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.disconnect_ceph_clients"><code class="name flex">
+<span>def <span class="ident">disconnect_ceph_clients</span></span>(<span>) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Clean CEPH clients</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect_ceph_clients() -&gt; None:
+    &#34;&#34;&#34;Clean CEPH clients&#34;&#34;&#34;
+    global __CEPH_CLIENT, __CEPH_IOCTXS
+    __CEPH_CLIENT = None
+    __CEPH_IOCTXS = {}</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.disconnect_s3_clients"><code class="name flex">
+<span>def <span class="ident">disconnect_s3_clients</span></span>(<span>) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Clean S3 clients</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disconnect_s3_clients() -&gt; None:
+    &#34;&#34;&#34;Clean S3 clients&#34;&#34;&#34;
+
+    global __S3_CLIENTS, __S3_DEFAULT_CLIENT
+    __S3_CLIENTS = {}
+    __S3_DEFAULT_CLIENT = None</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.exists"><code class="name flex">
+<span>def <span class="ident">exists</span></span>(<span>path: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Do the file or object exist ?</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path of file/object to test</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage read issue</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>file/object existing status</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exists(path: str) -&gt; bool:
+    &#34;&#34;&#34;Do the file or object exist ?
+
+    Args:
+        path (str): path of file/object to test
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        bool: file/object existing status
+    &#34;&#34;&#34;
+
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            s3_client[&#34;client&#34;].head_object(Bucket=bucket_name, Key=base_name)
+            return True
+        except botocore.exceptions.ClientError as e:
+            if e.response[&#34;Error&#34;][&#34;Code&#34;] == &#34;NoSuchKey&#34;:
+                return False
+            else:
+                raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.stat(base_name)
+            return True
+        except rados.ObjectNotFound:
+            return False
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        return os.path.exists(path)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+        try:
+            response = requests.get(storage_type.value + path, stream=True)
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except Exception as e:
+            raise StorageError(storage_type.name, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot test existence for storage type {storage_type.name}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.get_data_binary"><code class="name flex">
+<span>def <span class="ident">get_data_binary</span></span>(<span>path: str, range: Tuple[int, int] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load data into a binary string</p>
+<p>This function uses a LRU cache, with a TTL of 5 minutes</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to data</dd>
+<dt><strong><code>range</code></strong> :&ensp;<code>Tuple[int, int]</code>, optional</dt>
+<dd>offset and size, to make a partial read. Defaults to None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage read issue</dd>
+<dt><code>FileNotFoundError</code></dt>
+<dd>File or object does not exist</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Data binary content</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_data_binary(path: str, range: Tuple[int, int] = None) -&gt; str:
+    &#34;&#34;&#34;Load data into a binary string
+
+    This function uses a LRU cache, with a TTL of 5 minutes
+
+    Args:
+        path (str): path to data
+        range (Tuple[int, int], optional): offset and size, to make a partial read. Defaults to None.
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: Data binary content
+    &#34;&#34;&#34;
+    print(&#34;########################################&#34;)
+    print(f&#34;get_data_binary {path}&#34;)
+    print(&#34;########################################&#34;)
+    return __get_cached_data_binary(path, __get_ttl_hash(), range)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.get_data_str"><code class="name flex">
+<span>def <span class="ident">get_data_str</span></span>(<span>path: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load full data into a string</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to data</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage read issue</dd>
+<dt><code>FileNotFoundError</code></dt>
+<dd>File or object does not exist</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Data content</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_data_str(path: str) -&gt; str:
+    &#34;&#34;&#34;Load full data into a string
+
+    Args:
+        path (str): path to data
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        FileNotFoundError: File or object does not exist
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: Data content
+    &#34;&#34;&#34;
+
+    return get_data_binary(path).decode(&#34;utf-8&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.get_infos_from_path"><code class="name flex">
+<span>def <span class="ident">get_infos_from_path</span></span>(<span>path: str) ‑> Tuple[<a title="rok4.enums.StorageType" href="enums.html#rok4.enums.StorageType">StorageType</a>, str, str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract storage type, the unprefixed path, the container and the basename from path (Default: FILE storage)</p>
+<p>For a FILE storage, the tray is the directory and the basename is the file name.</p>
+<p>For an object storage (CEPH or S3), the tray is the bucket or the pool and the basename is the object name.
+For a S3 bucket, format can be <bucket name>@<cluster name> to use several clusters. Cluster name is the host (without protocol)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to analyse</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[StorageType, str, str, str]</code></dt>
+<dd>storage type, unprefixed path, the container and the basename</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_infos_from_path(path: str) -&gt; Tuple[StorageType, str, str, str]:
+    &#34;&#34;&#34;Extract storage type, the unprefixed path, the container and the basename from path (Default: FILE storage)
+
+    For a FILE storage, the tray is the directory and the basename is the file name.
+
+    For an object storage (CEPH or S3), the tray is the bucket or the pool and the basename is the object name.
+    For a S3 bucket, format can be &lt;bucket name&gt;@&lt;cluster name&gt; to use several clusters. Cluster name is the host (without protocol)
+
+    Args:
+        path (str): path to analyse
+
+    Returns:
+        Tuple[StorageType, str, str, str]: storage type, unprefixed path, the container and the basename
+    &#34;&#34;&#34;
+
+    if path.startswith(&#34;s3://&#34;):
+        bucket_name, object_name = path[5:].split(&#34;/&#34;, 1)
+        return StorageType.S3, path[5:], bucket_name, object_name
+    elif path.startswith(&#34;ceph://&#34;):
+        pool_name, object_name = path[7:].split(&#34;/&#34;, 1)
+        return StorageType.CEPH, path[7:], pool_name, object_name
+    elif path.startswith(&#34;file://&#34;):
+        return StorageType.FILE, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
+    elif path.startswith(&#34;http://&#34;):
+        return StorageType.HTTP, path[7:], os.path.dirname(path[7:]), os.path.basename(path[7:])
+    elif path.startswith(&#34;https://&#34;):
+        return StorageType.HTTPS, path[8:], os.path.dirname(path[8:]), os.path.basename(path[8:])
+    else:
+        return StorageType.FILE, path, os.path.dirname(path), os.path.basename(path)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.get_osgeo_path"><code class="name flex">
+<span>def <span class="ident">get_osgeo_path</span></span>(<span>path: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return GDAL/OGR Open compliant path and configure storage access</p>
+<p>For a S3 input path, endpoint, access and secret keys are set and path is built with "/vsis3" root.</p>
+<p>For a FILE input path, only storage prefix is removed</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Source path</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>GDAL/OGR Open compliant path</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_osgeo_path(path: str) -&gt; str:
+    &#34;&#34;&#34;Return GDAL/OGR Open compliant path and configure storage access
+
+    For a S3 input path, endpoint, access and secret keys are set and path is built with &#34;/vsis3&#34; root.
+
+    For a FILE input path, only storage prefix is removed
+
+    Args:
+        path (str): Source path
+
+    Raises:
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        str: GDAL/OGR Open compliant path
+    &#34;&#34;&#34;
+
+    storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        gdal.SetConfigOption(&#34;AWS_SECRET_ACCESS_KEY&#34;, s3_client[&#34;secret_key&#34;])
+        gdal.SetConfigOption(&#34;AWS_ACCESS_KEY_ID&#34;, s3_client[&#34;key&#34;])
+        gdal.SetConfigOption(&#34;AWS_S3_ENDPOINT&#34;, s3_client[&#34;host&#34;])
+        gdal.SetConfigOption(&#34;AWS_VIRTUAL_HOSTING&#34;, &#34;FALSE&#34;)
+
+        return f&#34;/vsis3/{bucket_name}/{base_name}&#34;
+
+    elif storage_type == StorageType.FILE:
+        return unprefixed_path
+
+    else:
+        raise NotImplementedError(f&#34;Cannot get a GDAL/OGR compliant path from {path}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.get_path_from_infos"><code class="name flex">
+<span>def <span class="ident">get_path_from_infos</span></span>(<span>storage_type: <a title="rok4.enums.StorageType" href="enums.html#rok4.enums.StorageType">StorageType</a>, *args) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Write full path from elements</p>
+<p>Prefixed wih storage's type, elements are joined with a slash</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>storage_type</code></strong> :&ensp;<code>StorageType</code></dt>
+<dd>Storage's type for path</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Full path</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_path_from_infos(storage_type: StorageType, *args) -&gt; str:
+    &#34;&#34;&#34;Write full path from elements
+
+    Prefixed wih storage&#39;s type, elements are joined with a slash
+
+    Args:
+        storage_type (StorageType): Storage&#39;s type for path
+
+    Returns:
+        str: Full path
+    &#34;&#34;&#34;
+    return f&#34;{storage_type.value}{os.path.join(*args)}&#34;</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.get_size"><code class="name flex">
+<span>def <span class="ident">get_size</span></span>(<span>path: str) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get size of file or object</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path of file/object whom size is asked</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage read issue</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>file/object size, in bytes</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_size(path: str) -&gt; int:
+    &#34;&#34;&#34;Get size of file or object
+
+    Args:
+        path (str): path of file/object whom size is asked
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage read issue
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        int: file/object size, in bytes
+    &#34;&#34;&#34;
+
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            size = s3_client[&#34;client&#34;].head_object(Bucket=bucket_name, Key=base_name)[
+                &#34;ContentLength&#34;
+            ]
+            return int(size)
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            size, mtime = ioctx.stat(base_name)
+            return size
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            file_stats = os.stat(path)
+            return file_stats.st_size
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    elif storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS:
+        try:
+            # Le stream=True permet de ne télécharger que le header initialement
+            reponse = requests.get(storage_type.value + path, stream=True).headers[&#34;content-length&#34;]
+            return reponse
+        except Exception as e:
+            raise StorageError(storage_type.name, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot get size for storage type {storage_type.name}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.hash_file"><code class="name flex">
+<span>def <span class="ident">hash_file</span></span>(<span>path: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Process MD5 sum of the provided file</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to file</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>hexadeimal MD5 sum</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hash_file(path: str) -&gt; str:
+    &#34;&#34;&#34;Process MD5 sum of the provided file
+
+    Args:
+        path (str): path to file
+
+    Returns:
+        str: hexadeimal MD5 sum
+    &#34;&#34;&#34;
+
+    checker = hashlib.md5()
+
+    with open(path, &#34;rb&#34;) as file:
+        chunk = 0
+        while chunk != b&#34;&#34;:
+            chunk = file.read(65536)
+            checker.update(chunk)
+
+    return checker.hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.link"><code class="name flex">
+<span>def <span class="ident">link</span></span>(<span>target_path: str, link_path: str, hard: bool = False) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a symbolic link</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>file/object to link</dd>
+<dt><strong><code>link_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>link to create</dd>
+<dt><strong><code>hard</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>hard link rather than symbolic. Only for FILE storage. Defaults to False.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>StorageError</code></dt>
+<dd>link issue</dd>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def link(target_path: str, link_path: str, hard: bool = False) -&gt; None:
+    &#34;&#34;&#34;Create a symbolic link
+
+    Args:
+        target_path (str): file/object to link
+        link_path (str): link to create
+        hard (bool, optional): hard link rather than symbolic. Only for FILE storage. Defaults to False.
+
+    Raises:
+        StorageError: link issue
+        MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+
+    target_type, target_path, target_tray, target_base_name = get_infos_from_path(target_path)
+    link_type, link_path, link_tray, link_base_name = get_infos_from_path(link_path)
+
+    if target_type != link_type:
+        raise StorageError(
+            f&#34;{target_type.name} and {link_type.name}&#34;,
+            &#34;Cannot make link between two different storage types&#34;,
+        )
+
+    if hard and target_type != StorageType.FILE:
+        raise StorageError(target_type.name, &#34;Hard link is available only for FILE storage&#34;)
+
+    # Réalisation du lien, selon les types de stockage
+    if target_type == StorageType.S3:
+        target_s3_client, target_bucket = __get_s3_client(target_tray)
+        link_s3_client, link_bucket = __get_s3_client(link_tray)
+
+        if target_s3_client[&#34;host&#34;] != link_s3_client[&#34;host&#34;]:
+            raise StorageError(
+                &#34;S3&#34;,
+                f&#34;Cannot make link {link_path} -&gt; {target_path} : link works only on the same S3 cluster&#34;,
+            )
+
+        try:
+            target_s3_client[&#34;client&#34;].put_object(
+                Body=f&#34;{__OBJECT_SYMLINK_SIGNATURE}{target_bucket}/{target_base_name}&#34;.encode(),
+                Bucket=link_bucket,
+                Key=link_base_name,
+            )
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif target_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(link_tray)
+
+        try:
+            ioctx.write_full(link_base_name, f&#34;{__OBJECT_SYMLINK_SIGNATURE}{target_path}&#34;.encode())
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif target_type == StorageType.FILE:
+        try:
+            to_tray = get_infos_from_path(link_path)[2]
+            if to_tray != &#34;&#34;:
+                os.makedirs(to_tray, exist_ok=True)
+
+            if exists(link_path):
+                remove(link_path)
+            if hard:
+                os.link(target_path, link_path)
+            else:
+                os.symlink(target_path, link_path)
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot make link for storage type {target_type.name}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.put_data_str"><code class="name flex">
+<span>def <span class="ident">put_data_str</span></span>(<span>data: str, path: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Store string data into a file or an object</p>
+<p>UTF-8 encoding is used for bytes conversion</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>str</code></dt>
+<dd>data to write</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>destination path, where to write data</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage write issue</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def put_data_str(data: str, path: str) -&gt; None:
+    &#34;&#34;&#34;Store string data into a file or an object
+
+    UTF-8 encoding is used for bytes conversion
+
+    Args:
+        data (str): data to write
+        path (str): destination path, where to write data
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage write issue
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            s3_client[&#34;client&#34;].put_object(
+                Body=data.encode(&#34;utf-8&#34;), Bucket=bucket_name, Key=base_name
+            )
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.write_full(base_name, data.encode(&#34;utf-8&#34;))
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            f = open(path, &#34;w&#34;)
+            f.write(data)
+            f.close()
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot write data for storage type {storage_type.name}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.remove"><code class="name flex">
+<span>def <span class="ident">remove</span></span>(<span>path: str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove the file/object</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path of file/object to remove</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage removal issue</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove(path: str) -&gt; None:
+    &#34;&#34;&#34;Remove the file/object
+
+    Args:
+        path (str): path of file/object to remove
+
+    Raises:
+        MissingEnvironmentError: Missing object storage informations
+        StorageError: Storage removal issue
+        NotImplementedError: Storage type not handled
+    &#34;&#34;&#34;
+    storage_type, path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            s3_client[&#34;client&#34;].delete_object(Bucket=bucket_name, Key=base_name)
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    elif storage_type == StorageType.CEPH and CEPH_RADOS_AVAILABLE:
+        ioctx = __get_ceph_ioctx(tray_name)
+
+        try:
+            ioctx.remove_object(base_name)
+        except rados.ObjectNotFound:
+            pass
+        except Exception as e:
+            raise StorageError(&#34;CEPH&#34;, e)
+
+    elif storage_type == StorageType.FILE:
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    else:
+        raise NotImplementedError(f&#34;Cannot remove data for storage type {storage_type.name}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="rok4.storage.size_path"><code class="name flex">
+<span>def <span class="ident">size_path</span></span>(<span>path: str) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the size of the given path (or, for the CEPH, the sum of the size of each object of the .list)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Source path</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>StorageError</code></dt>
+<dd>Unhandled link or link issue</dd>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>Storage type not handled</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>size of the path</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def size_path(path: str) -&gt; int:
+    &#34;&#34;&#34;Return the size of the given path (or, for the CEPH, the sum of the size of each object of the .list)
+
+    Args:
+        path (str): Source path
+
+    Raises:
+        StorageError: Unhandled link or link issue
+        MissingEnvironmentError: Missing object storage informations
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        int: size of the path
+    &#34;&#34;&#34;
+    storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
+
+    if storage_type == StorageType.FILE:
+        try:
+            total = 0
+            with os.scandir(unprefixed_path) as it:
+                for entry in it:
+                    if entry.is_file():
+                        total += entry.stat().st_size
+                    elif entry.is_dir():
+                        total += size_path(entry.path)
+
+        except Exception as e:
+            raise StorageError(&#34;FILE&#34;, e)
+
+    elif storage_type == StorageType.S3:
+        s3_client, bucket_name = __get_s3_client(tray_name)
+
+        try:
+            paginator = s3_client[&#34;client&#34;].get_paginator(&#34;list_objects_v2&#34;)
+            pages = paginator.paginate(
+                Bucket=bucket_name,
+                Prefix=base_name + &#34;/&#34;,
+                PaginationConfig={
+                    &#34;PageSize&#34;: 10000,
+                },
+            )
+            total = 0
+            for page in pages:
+                for key in page[&#34;Contents&#34;]:
+                    total += key[&#34;Size&#34;]
+
+        except Exception as e:
+            raise StorageError(&#34;S3&#34;, e)
+
+    else:
+        raise NotImplementedError(
+            f&#34;Cannot get prefix path size for storage type {storage_type.name}&#34;
+        )
+
+    return total</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="rok4" href="index.html">rok4</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="rok4.storage.copy" href="#rok4.storage.copy">copy</a></code></li>
+<li><code><a title="rok4.storage.disconnect_ceph_clients" href="#rok4.storage.disconnect_ceph_clients">disconnect_ceph_clients</a></code></li>
+<li><code><a title="rok4.storage.disconnect_s3_clients" href="#rok4.storage.disconnect_s3_clients">disconnect_s3_clients</a></code></li>
+<li><code><a title="rok4.storage.exists" href="#rok4.storage.exists">exists</a></code></li>
+<li><code><a title="rok4.storage.get_data_binary" href="#rok4.storage.get_data_binary">get_data_binary</a></code></li>
+<li><code><a title="rok4.storage.get_data_str" href="#rok4.storage.get_data_str">get_data_str</a></code></li>
+<li><code><a title="rok4.storage.get_infos_from_path" href="#rok4.storage.get_infos_from_path">get_infos_from_path</a></code></li>
+<li><code><a title="rok4.storage.get_osgeo_path" href="#rok4.storage.get_osgeo_path">get_osgeo_path</a></code></li>
+<li><code><a title="rok4.storage.get_path_from_infos" href="#rok4.storage.get_path_from_infos">get_path_from_infos</a></code></li>
+<li><code><a title="rok4.storage.get_size" href="#rok4.storage.get_size">get_size</a></code></li>
+<li><code><a title="rok4.storage.hash_file" href="#rok4.storage.hash_file">hash_file</a></code></li>
+<li><code><a title="rok4.storage.link" href="#rok4.storage.link">link</a></code></li>
+<li><code><a title="rok4.storage.put_data_str" href="#rok4.storage.put_data_str">put_data_str</a></code></li>
+<li><code><a title="rok4.storage.remove" href="#rok4.storage.remove">remove</a></code></li>
+<li><code><a title="rok4.storage.size_path" href="#rok4.storage.size_path">size_path</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
