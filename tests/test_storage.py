@@ -809,7 +809,7 @@ def test_exists_s3_ok(mocked_s3_client):
         assert False, f"S3 exists raises an exception: {exc}"
 
     s3_instance.head_object.side_effect = botocore.exceptions.ClientError(
-        operation_name="InvalidKeyPair.Duplicate", error_response={"Error": {"Code": "404"}}
+        operation_name="InvalidKeyPair.Duplicate", error_response={"Error": {"Code": "NoSuchKey"}}
     )
     try:
         assert not exists("s3://bucket/object.ext")
