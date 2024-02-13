@@ -27,7 +27,7 @@ Using S3 storage requires environment variables :
 
 To use several S3 clusters, each environment variable have to contain a list (comma-separated), with the same number of elements
 
-Example: work with 2 S3 clusters:
+Example, work with 2 S3 clusters:
 
 - ROK4_S3_KEY=KEY1,KEY2
 - ROK4_S3_SECRETKEY=SKEY1,SKEY2
@@ -156,7 +156,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
                     "secret_key": secret_keys[i],
                     "url": urls[i],
                     "host": h,
-                    "secure": urls[i].startswith("https://")
+                    "secure": urls[i].startswith("https://"),
                 }
 
                 if i == 0:
