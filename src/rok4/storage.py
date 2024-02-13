@@ -156,7 +156,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
                     "secret_key": secret_keys[i],
                     "url": urls[i],
                     "host": h,
-                    "secure": urls[i].startswith("https://")
+                    "secure": urls[i].startswith("https://"),
                 }
 
                 if i == 0:

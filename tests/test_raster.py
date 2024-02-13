@@ -351,7 +351,7 @@ class TestRasterSetFromDescriptor(TestCase):
 
     @mock.patch("rok4.raster.get_data_str")
     @mock.patch("rok4.raster.Raster.from_parameters")
-    def test_simple_ok(self, m_from_parameters,m_get_data_str):
+    def test_simple_ok(self, m_from_parameters, m_get_data_str):
         serial_in = {
             "bbox": [550000.000, 6210000.000, 570000.000, 6230000.000],
             "colors": [{"bands": 3, "format": "UINT8"}],

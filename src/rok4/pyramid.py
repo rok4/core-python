@@ -602,7 +602,7 @@ class Pyramid:
         Example:
 
             RGB pyramid with red nodata
-            
+
                 {
                     "channels": 3,
                     "nodata": "255,0,0",

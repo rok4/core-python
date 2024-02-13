@@ -8,12 +8,13 @@ The module contains the following class :
 
 # -- IMPORTS --
 
-# standard library
-from copy import deepcopy
 import json
 import re
-from json.decoder import JSONDecodeError
 import tempfile
+
+# standard library
+from copy import deepcopy
+from json.decoder import JSONDecodeError
 from typing import Dict, Tuple
 
 # 3rd party
@@ -21,7 +22,14 @@ from osgeo import gdal, ogr
 
 # package
 from rok4.enums import ColorFormat
-from rok4.storage import exists, get_osgeo_path, put_data_str, copy, remove, get_data_str
+from rok4.storage import (
+    copy,
+    exists,
+    get_data_str,
+    get_osgeo_path,
+    put_data_str,
+    remove,
+)
 from rok4.utils import compute_bbox, compute_format
 
 # -- GLOBALS --
@@ -37,9 +45,9 @@ class Raster:
     Attributes:
         path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/path/to/image.tif)
         bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
-        bands (int): number of color bands (or channels) format (ColorFormat). Numeric variable format for color values. Bit depth, as bits per channel, 
+        bands (int): number of color bands (or channels) format (ColorFormat). Numeric variable format for color values. Bit depth, as bits per channel,
             can be derived from it.
-        mask (str): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format. 
+        mask (str): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format.
             Ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
         dimensions (Tuple[int, int]): image width and height, in pixels
     """
@@ -130,7 +138,7 @@ class Raster:
             bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
             dimensions (Tuple[int, int]): image width and height expressed in pixels
             format (ColorFormat): numeric format for color values. Bit depth, as bits per channel, can be derived from it.
-            mask (str, optionnal): path to the associated mask, if any, or None (same path as the image, but with a ".msk" 
+            mask (str, optionnal): path to the associated mask, if any, or None (same path as the image, but with a ".msk"
                 extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/image.msk)
 
         Examples:
@@ -310,7 +318,7 @@ class RasterSet:
         self.bbox = tuple(serialization["bbox"])
         for color_dict in serialization["colors"]:
             self.colors.add((color_dict["bands"], ColorFormat[color_dict["format"]]))
-            
+
         return self
 
     @property
