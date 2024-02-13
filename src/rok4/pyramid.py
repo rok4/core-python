@@ -382,7 +382,7 @@ class Pyramid:
         __tms (rok4.tile_matrix_set.TileMatrixSet): Used grid
         __levels (Dict[str, Level]): Pyramid's levels
         __format (str): Data format
-        __storage (Dict[str, Union[rok4.storage.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
+        __storage (Dict[str, Union[rok4.enums.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
         __raster_specifications (Dict): If raster pyramid, raster specifications
         __content (Dict): Loading status (loaded) and list content (cache).
 
@@ -600,12 +600,15 @@ class Pyramid:
         """Get raster specifications for a RASTER pyramid
 
         Example:
-            {
-                "channels": 3,
-                "nodata": "255,0,0",
-                "photometric": "rgb",
-                "interpolation": "bicubic"
-            }
+
+            RGB pyramid with red nodata
+            
+                {
+                    "channels": 3,
+                    "nodata": "255,0,0",
+                    "photometric": "rgb",
+                    "interpolation": "bicubic"
+                }
 
         Returns:
             Dict: Raster specifications, None if VECTOR pyramid

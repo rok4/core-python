@@ -262,7 +262,7 @@ class TestRasterSetInit(TestCase):
             and len(rasterset.bbox) == 4
             and all(coordinate is None for coordinate in rasterset.bbox)
         )
-        assert isinstance(rasterset.colors, list) and not rasterset.colors
+        assert isinstance(rasterset.colors, set) and not rasterset.colors
         assert isinstance(rasterset.raster_list, list) and not rasterset.raster_list
         assert rasterset.srs is None
 
@@ -270,9 +270,9 @@ class TestRasterSetInit(TestCase):
 class TestRasterSetFromList(TestCase):
     """rok4.raster.RasterSet.from_list(path, srs) class constructor."""
 
-    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.copy")
     @mock.patch("rok4.raster.Raster.from_file")
-    def test_ok_at_least_3_files(self, m_from_file, m_get_osgeo_path):
+    def test_ok_at_least_3_files(self, m_from_file, m_copy):
         """List of 3 or more valid image files"""
         file_number = random.randint(3, 100)
         file_list = []
@@ -282,9 +282,8 @@ class TestRasterSetFromList(TestCase):
         m_open = mock_open(read_data=file_list_string)
         list_path = "s3://test_bucket/raster_set.list"
         list_local_path = "/tmp/raster_set.list"
-        m_get_osgeo_path.return_value = list_local_path
         raster_list = []
-        colors = []
+        colors = set()
         serial_in = {"raster_list": [], "colors": []}
         for n in range(0, file_number, 1):
             raster = MagicMock(Raster)
@@ -305,9 +304,8 @@ class TestRasterSetFromList(TestCase):
             else:
                 raster.mask = None
             color_dict = {"bands": raster.bands, "format": raster.format}
-            if color_dict not in colors:
-                colors.append(color_dict)
-                serial_in["colors"].append({"bands": raster.bands, "format": raster.format.name})
+            if (raster.bands, raster.format) not in colors:
+                colors.add((raster.bands, raster.format))
             raster.dimensions = (5000, 5000)
             raster_list.append(raster)
             raster_serial = {
@@ -320,6 +318,8 @@ class TestRasterSetFromList(TestCase):
             if raster.mask:
                 raster_serial["mask"] = raster.mask
             serial_in["raster_list"].append(raster_serial)
+        for c in colors:
+            serial_in["colors"].append({"bands": c[0], "format": c[1].name})
         m_from_file.side_effect = raster_list
         srs = "EPSG:4326"
         serial_in["srs"] = srs
@@ -331,8 +331,8 @@ class TestRasterSetFromList(TestCase):
 
         serial_out = rasterset.serializable
         assert rasterset.srs == srs
-        m_get_osgeo_path.assert_called_once_with(list_path)
-        m_open.assert_called_once_with(file=list_local_path)
+        m_copy.assert_called_once()
+        m_open.assert_called_once()
         assert rasterset.raster_list == raster_list
         assert isinstance(serial_out["bbox"], list)
         for i in range(0, 4, 1):
@@ -349,9 +349,9 @@ class TestRasterSetFromList(TestCase):
 class TestRasterSetFromDescriptor(TestCase):
     """rok4.raster.RasterSet.from_descriptor(path) class constructor."""
 
-    @mock.patch("rok4.raster.get_osgeo_path")
+    @mock.patch("rok4.raster.get_data_str")
     @mock.patch("rok4.raster.Raster.from_parameters")
-    def test_simple_ok(self, m_from_parameters, m_get_osgeo_path):
+    def test_simple_ok(self, m_from_parameters,m_get_data_str):
         serial_in = {
             "bbox": [550000.000, 6210000.000, 570000.000, 6230000.000],
             "colors": [{"bands": 3, "format": "UINT8"}],
@@ -398,14 +398,10 @@ class TestRasterSetFromDescriptor(TestCase):
             raster_list.append(raster)
             raster_args_list.append(raster_properties)
         m_from_parameters.side_effect = raster_list
-        m_get_osgeo_path.return_value = local_path
-        m_open = mock_open(read_data=desc_content)
+        m_get_data_str.return_value = desc_content
 
-        with mock.patch("rok4.raster.open", m_open):
-            rasterset = RasterSet.from_descriptor(desc_path)
+        rasterset = RasterSet.from_descriptor(desc_path)
 
-        m_get_osgeo_path.assert_called_once_with(desc_path)
-        m_open.assert_called_once_with(file=local_path)
         assert rasterset.srs == serial_in["srs"]
         m_from_parameters.assert_called()
         assert m_from_parameters.call_count == 3
@@ -413,11 +409,11 @@ class TestRasterSetFromDescriptor(TestCase):
             assert m_from_parameters.call_args_list[i] == call(**raster_args_list[i])
         assert rasterset.raster_list == raster_list
         assert isinstance(rasterset.bbox, tuple) and len(rasterset.bbox) == 4
-        assert isinstance(rasterset.colors, list) and rasterset.colors
+        assert isinstance(rasterset.colors, set) and rasterset.colors
         for i in range(0, len(serial_in["colors"]), 1):
             expected_color = copy.deepcopy(serial_in["colors"][i])
             expected_color["format"] = ColorFormat[serial_in["colors"][i]["format"]]
-            assert rasterset.colors[i] == expected_color
+            assert (expected_color["bands"], expected_color["format"]) in rasterset.colors
         serial_out = rasterset.serializable
         assert isinstance(serial_out["bbox"], list) and len(serial_out["bbox"]) == 4
         for i in range(0, 4, 1):
@@ -469,11 +465,9 @@ class TestRasterSetWriteDescriptor(TestCase):
         rasterset = RasterSet()
         rasterset.bbox = tuple(serial_in["bbox"])
         rasterset.srs = serial_in["srs"]
-        rasterset.colors = []
+        rasterset.colors = set()
         for color_dict in serial_in["colors"]:
-            rasterset.colors.append(
-                {"bands": color_dict["bands"], "format": ColorFormat[color_dict["format"]]}
-            )
+            rasterset.colors.add((color_dict["bands"], ColorFormat[color_dict["format"]]))
         rasterset.raster_list = []
         for raster_dict in serial_in["raster_list"]:
             raster_args = copy.deepcopy(raster_dict)
@@ -526,11 +520,9 @@ class TestRasterSetWriteDescriptor(TestCase):
         rasterset = RasterSet()
         rasterset.bbox = tuple(serial_in["bbox"])
         rasterset.srs = serial_in["srs"]
-        rasterset.colors = []
+        rasterset.colors = set()
         for color_dict in serial_in["colors"]:
-            rasterset.colors.append(
-                {"bands": color_dict["bands"], "format": ColorFormat[color_dict["format"]]}
-            )
+            rasterset.colors.add((color_dict["bands"], ColorFormat[color_dict["format"]]))
         rasterset.raster_list = []
         for raster_dict in serial_in["raster_list"]:
             raster_args = copy.deepcopy(raster_dict)
