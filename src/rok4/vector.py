@@ -2,8 +2,7 @@
 
 The module contains the following class :
 
-    - 'Vector' - Data Vector
-
+- `Vector` - Data Vector
 """
 
 # -- IMPORTS --

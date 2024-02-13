@@ -265,7 +265,7 @@ def test_list_read(mocked_tms_class):
     try:
         pyramid = Pyramid.from_descriptor("file://tests/fixtures/TIFF_PBF_MVT.json")
         pyramid.load_list()
-        pyramid.load_list()  # on passe par la détection d'une liste déjà chrargée ainsi
+        pyramid.load_list()  # on passe par la détection d'une liste déjà chargée ainsi
         for (slab_type, level, column, row), infos in pyramid.list_generator():
             assert slab_type == SlabType.DATA
             assert level == "4"

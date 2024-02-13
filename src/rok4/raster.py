@@ -2,16 +2,19 @@
 
 The module contains the following class :
 
-    - Raster - Structure describing raster data.
-    - RasterSet - Structure describing a set of raster data.
+- `Raster` - Structure describing raster data.
+- `RasterSet` - Structure describing a set of raster data.
 """
 
 # -- IMPORTS --
 
-# standard library
-import copy
 import json
 import re
+import tempfile
+
+# standard library
+from copy import deepcopy
+from json.decoder import JSONDecodeError
 from typing import Dict, Tuple
 
 # 3rd party
@@ -19,7 +22,14 @@ from osgeo import gdal, ogr
 
 # package
 from rok4.enums import ColorFormat
-from rok4.storage import exists, get_osgeo_path, put_data_str
+from rok4.storage import (
+    copy,
+    exists,
+    get_data_str,
+    get_osgeo_path,
+    put_data_str,
+    remove,
+)
 from rok4.utils import compute_bbox, compute_format
 
 # -- GLOBALS --
@@ -32,18 +42,13 @@ gdal.UseExceptions()
 class Raster:
     """A structure describing raster data
 
-    Attributes :
-        path (str): path to the file/object (ex:
-          file:///path/to/image.tif or s3://bucket/path/to/image.tif)
-        bbox (Tuple[float, float, float, float]): bounding rectange
-          in the data projection
-        bands (int): number of color bands (or channels)
-        format (ColorFormat): numeric variable format for color values.
-          Bit depth, as bits per channel, can be derived from it.
-        mask (str): path to the associated mask file or object, if any,
-          or None (same path as the image, but with a ".msk" extension
-          and TIFF format. ex:
-          file:///path/to/image.msk or s3://bucket/path/to/image.msk)
+    Attributes:
+        path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/path/to/image.tif)
+        bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
+        bands (int): number of color bands (or channels) format (ColorFormat). Numeric variable format for color values. Bit depth, as bits per channel,
+            can be derived from it.
+        mask (str): path to the associated mask file or object, if any, or None (same path as the image, but with a ".msk" extension and TIFF format.
+            Ex: file:///path/to/image.msk or s3://bucket/path/to/image.msk)
         dimensions (Tuple[int, int]): image width and height, in pixels
     """
 
@@ -77,14 +82,16 @@ class Raster:
                     print(f"Cannot load information from image : {e}")
 
         Raises:
+            FormatError: MASK file is not a TIFF
             RuntimeError: raised by OGR/GDAL if anything goes wrong
             NotImplementedError: Storage type not handled
+            FileNotFoundError: File or object does not exists
 
         Returns:
             Raster: a Raster instance
         """
         if not exists(path):
-            raise Exception(f"No file or object found at path '{path}'.")
+            raise FileNotFoundError(f"No file or object found at path '{path}'.")
 
         self = cls()
 
@@ -100,11 +107,8 @@ class Raster:
             work_mask_path = get_osgeo_path(mask_path)
             mask_driver = gdal.IdentifyDriver(work_mask_path).ShortName
             if "GTiff" != mask_driver:
-                message = (
-                    f"Mask file '{mask_path}' is not a TIFF image."
-                    + f" (GDAL driver : '{mask_driver}'"
-                )
-                raise Exception(message)
+                message = f"Mask file '{mask_path}' use GDAL driver : '{mask_driver}'"
+                raise FormatError("TIFF", mask_path, message)
             self.mask = mask_path
         else:
             self.mask = None
@@ -129,19 +133,13 @@ class Raster:
         """Creates a Raster object from parameters
 
         Args:
-            path (str): path to the file/object (ex:
-              file:///path/to/image.tif or s3://bucket/image.tif)
+            path (str): path to the file/object (ex: file:///path/to/image.tif or s3://bucket/image.tif)
             bands (int): number of color bands (or channels)
-            bbox (Tuple[float, float, float, float]): bounding rectange
-              in the data projection
-            dimensions (Tuple[int, int]): image width and height
-              expressed in pixels
-            format (ColorFormat): numeric format for color values.
-              Bit depth, as bits per channel, can be derived from it.
-            mask (str, optionnal): path to the associated mask, if any,
-              or None (same path as the image, but with a
-              ".msk" extension and TIFF format. ex:
-              file:///path/to/image.msk or s3://bucket/image.msk)
+            bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
+            dimensions (Tuple[int, int]): image width and height expressed in pixels
+            format (ColorFormat): numeric format for color values. Bit depth, as bits per channel, can be derived from it.
+            mask (str, optionnal): path to the associated mask, if any, or None (same path as the image, but with a ".msk"
+                extension and TIFF format. ex: file:///path/to/image.msk or s3://bucket/image.msk)
 
         Examples:
 
@@ -152,13 +150,12 @@ class Raster:
 
                 try:
                     raster = Raster.from_parameters(
-                      path="file:///data/SC1000/_0040_6150_L93.tif",
-                      mask="file:///data/SC1000/0040_6150_L93.msk",
-                      bands=3,
-                      format=ColorFormat.UINT8,
-                      dimensions=(2000, 2000),
-                      bbox=(40000.000, 5950000.000,
-                            240000.000, 6150000.000)
+                        path="file:///data/SC1000/_0040_6150_L93.tif",
+                        mask="file:///data/SC1000/0040_6150_L93.msk",
+                        bands=3,
+                        format=ColorFormat.UINT8,
+                        dimensions=(2000, 2000),
+                        bbox=(40000.000, 5950000.000, 240000.000, 6150000.000)
                     )
 
                 except Exception as e:
@@ -186,24 +183,16 @@ class Raster:
 class RasterSet:
     """A structure describing a set of raster data
 
-    Attributes :
+    Attributes:
         raster_list (List[Raster]): List of Raster instances in the set
-        colors (List[Dict]): List of color properties for each raster
-              instance. Contains only one element if
-              the set is homogenous.
-            Element properties:
-                bands (int): number of color bands (or channels)
-                format (ColorFormat): numeric variable format for
-                  color values. Bit depth, as bits per channel,
-                  can be derived from it.
+        colors (Set[Tuple[int, ColorFormat]]): Set (distinct values) of color properties (bands and format) found in the raster set.
         srs (str): Name of the set's spatial reference system
-        bbox (Tuple[float, float, float, float]): bounding rectange
-          in the data projection, enclosing the whole set
+        bbox (Tuple[float, float, float, float]): bounding rectange in the data projection, enclosing the whole set
     """
 
     def __init__(self) -> None:
         self.bbox = (None, None, None, None)
-        self.colors = []
+        self.colors = set()
         self.raster_list = []
         self.srs = None
 
@@ -212,9 +201,8 @@ class RasterSet:
         """Instanciate a RasterSet from an images list path and a srs
 
         Args:
-            path (str): path to the images list file or object
-              (each line in this list contains the path to
-              an image file or object in the set)
+            path (str): path to the images list file or object (each line in this list contains the path to an image file or object in the set)
+            srs (str): images' coordinates system
 
         Examples:
 
@@ -224,13 +212,13 @@ class RasterSet:
 
                 try:
                     raster_set = RasterSet.from_list(
-                      path="file:///data/SC1000.list",
-                      srs="EPSG:3857"
+                        path="file:///data/SC1000.list",
+                        srs="EPSG:3857"
                     )
 
                 except Exception as e:
                     print(
-                      f"Cannot load information from list file : {e}"
+                        f"Cannot load information from list file : {e}"
                     )
 
         Raises:
@@ -243,33 +231,42 @@ class RasterSet:
         self = cls()
         self.srs = srs
 
-        local_list_path = get_osgeo_path(path)
+        # Chargement de la liste des images (la liste peut être un fichier ou un objet)
+        list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
+        list_file = list_obj.name
+        copy(path, f"file://{list_file}")
+        list_obj.close()
         image_list = []
-        with open(file=local_list_path) as list_file:
-            for line in list_file:
+        with open(list_file) as listin:
+            for line in listin:
                 image_path = line.strip(" \t\n\r")
                 image_list.append(image_path)
 
-        temp_bbox = [None, None, None, None]
+        remove(f"file://{list_file}")
+
+        bbox = [None, None, None, None]
         for image_path in image_list:
             raster = Raster.from_file(image_path)
             self.raster_list.append(raster)
-            if temp_bbox == [None, None, None, None]:
-                for i in range(0, 4, 1):
-                    temp_bbox[i] = raster.bbox[i]
+
+            # Mise à jour de la bbox globale
+            if bbox == [None, None, None, None]:
+                bbox = list(raster.bbox)
             else:
-                if temp_bbox[0] > raster.bbox[0]:
-                    temp_bbox[0] = raster.bbox[0]
-                if temp_bbox[1] > raster.bbox[1]:
-                    temp_bbox[1] = raster.bbox[1]
-                if temp_bbox[2] < raster.bbox[2]:
-                    temp_bbox[2] = raster.bbox[2]
-                if temp_bbox[3] < raster.bbox[3]:
-                    temp_bbox[3] = raster.bbox[3]
-            color_dict = {"bands": raster.bands, "format": raster.format}
-            if color_dict not in self.colors:
-                self.colors.append(color_dict)
-        self.bbox = tuple(temp_bbox)
+                if bbox[0] > raster.bbox[0]:
+                    bbox[0] = raster.bbox[0]
+                if bbox[1] > raster.bbox[1]:
+                    bbox[1] = raster.bbox[1]
+                if bbox[2] < raster.bbox[2]:
+                    bbox[2] = raster.bbox[2]
+                if bbox[3] < raster.bbox[3]:
+                    bbox[3] = raster.bbox[3]
+
+            # Inventaire des colors distinctes
+            self.colors.add((raster.bands, raster.format))
+
+        self.bbox = tuple(bbox)
+
         return self
 
     @classmethod
@@ -287,12 +284,11 @@ class RasterSet:
 
                 try:
                     raster_set = RasterSet.from_descriptor(
-                      "file:///data/images/descriptor.json"
+                        "file:///data/images/descriptor.json"
                     )
 
                 except Exception as e:
-                    message = ("Cannot load information from "
-                              + f"descriptor file : {e}")
+                    message = ("Cannot load information from descriptor file : {e}")
                     print(message)
 
         Raises:
@@ -303,24 +299,26 @@ class RasterSet:
             RasterSet: a RasterSet instance
         """
         self = cls()
-        descriptor_path = get_osgeo_path(path)
-        with open(file=descriptor_path) as file_handle:
-            raw_content = file_handle.read()
-        serialization = json.loads(raw_content)
+
+        try:
+            serialization = json.loads(get_data_str(path))
+
+        except JSONDecodeError as e:
+            raise FormatError("JSON", path, e)
+
         self.srs = serialization["srs"]
         self.raster_list = []
         for raster_dict in serialization["raster_list"]:
-            parameters = copy.deepcopy(raster_dict)
+            parameters = deepcopy(raster_dict)
             parameters["bbox"] = tuple(raster_dict["bbox"])
             parameters["dimensions"] = tuple(raster_dict["dimensions"])
             parameters["format"] = ColorFormat[raster_dict["format"]]
             self.raster_list.append(Raster.from_parameters(**parameters))
+
         self.bbox = tuple(serialization["bbox"])
-        self.colors = []
         for color_dict in serialization["colors"]:
-            color_item = copy.deepcopy(color_dict)
-            color_item["format"] = ColorFormat[color_dict["format"]]
-            self.colors.append(color_item)
+            self.colors.add((color_dict["bands"], ColorFormat[color_dict["format"]]))
+
         return self
 
     @property
@@ -332,7 +330,7 @@ class RasterSet:
         """
         serialization = {"bbox": list(self.bbox), "srs": self.srs, "colors": [], "raster_list": []}
         for color in self.colors:
-            color_serial = {"bands": color["bands"], "format": color["format"].name}
+            color_serial = {"bands": color[0], "format": color[1].name}
             serialization["colors"].append(color_serial)
         for raster in self.raster_list:
             raster_dict = {
@@ -345,15 +343,14 @@ class RasterSet:
             if raster.mask is not None:
                 raster_dict["mask"] = raster.mask
             serialization["raster_list"].append(raster_dict)
+
         return serialization
 
     def write_descriptor(self, path: str = None) -> None:
         """Print raster set's descriptor as JSON
 
         Args:
-            path (str, optional): Complete path (file or object)
-              where to print the raster set's JSON. Defaults to None,
-              JSON is printed to standard output.
+            path (str, optional): Complete path (file or object) where to print the raster set's JSON. Defaults to None, JSON is printed to standard output.
         """
         content = json.dumps(self.serializable, sort_keys=True)
         if path is None:

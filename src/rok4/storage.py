@@ -27,7 +27,7 @@ Using S3 storage requires environment variables :
 
 To use several S3 clusters, each environment variable have to contain a list (comma-separated), with the same number of elements
 
-Example: work with 2 S3 clusters:
+Example, work with 2 S3 clusters:
 
 - ROK4_S3_KEY=KEY1,KEY2
 - ROK4_S3_SECRETKEY=SKEY1,SKEY2
@@ -116,7 +116,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
         StorageError: S3 client configuration issue
 
     Returns:
-        Tuple[Dict[str, Union['boto3.client',str]], str, str]: the S3 informations (client, host, key, secret) and the simple bucket name
+        Tuple[Dict[str, Union['boto3.client',str]], str]: the S3 informations (client, host, key, secret) and the simple bucket name
     """
 
     global __S3_CLIENTS, __S3_DEFAULT_CLIENT
@@ -156,6 +156,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
                     "secret_key": secret_keys[i],
                     "url": urls[i],
                     "host": h,
+                    "secure": urls[i].startswith("https://"),
                 }
 
                 if i == 0:
@@ -443,9 +444,6 @@ def get_data_binary(path: str, range: Tuple[int, int] = None) -> str:
     Returns:
         str: Data binary content
     """
-    print("########################################")
-    print(f"get_data_binary {path}")
-    print("########################################")
     return __get_cached_data_binary(path, __get_ttl_hash(), range)
 
 
@@ -576,7 +574,7 @@ def exists(path: str) -> bool:
             s3_client["client"].head_object(Bucket=bucket_name, Key=base_name)
             return True
         except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchKey":
+            if e.response["Error"]["Code"] == "404":
                 return False
             else:
                 raise StorageError("S3", e)
@@ -1076,6 +1074,8 @@ def get_osgeo_path(path: str) -> str:
         gdal.SetConfigOption("AWS_ACCESS_KEY_ID", s3_client["key"])
         gdal.SetConfigOption("AWS_S3_ENDPOINT", s3_client["host"])
         gdal.SetConfigOption("AWS_VIRTUAL_HOSTING", "FALSE")
+        if not s3_client["secure"]:
+            gdal.SetConfigOption("AWS_HTTPS", "NO")
 
         return f"/vsis3/{bucket_name}/{base_name}"
 
