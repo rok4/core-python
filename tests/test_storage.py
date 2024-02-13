@@ -27,7 +27,6 @@ from rok4.storage import (
 )
 
 
-
 @mock.patch.dict(os.environ, {}, clear=True)
 @patch("builtins.open", new_callable=mock_open, read_data=b"data")
 def test_hash_file_ok(mock_file):
