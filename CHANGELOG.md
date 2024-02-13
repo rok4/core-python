@@ -1,3 +1,9 @@
+## 2.1.4
+
+### [Fixed]
+
+* Storage : la réponse à un HEAD (test existence en S3) donne un code 404 et non NoSuchKey (confusion avec la lecture d'objet)
+
 ## 2.1.3
 
 ### [Fixed]

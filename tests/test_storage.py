@@ -27,6 +27,7 @@ from rok4.storage import (
 )
 
 
+
 @mock.patch.dict(os.environ, {}, clear=True)
 @patch("builtins.open", new_callable=mock_open, read_data=b"data")
 def test_hash_file_ok(mock_file):
@@ -70,6 +71,7 @@ def test_get_path_from_infos():
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_s3_missing_env():
+    disconnect_s3_clients()
     with pytest.raises(MissingEnvironmentError):
         get_data_str("s3://bucket/path/to/object")
 
@@ -809,7 +811,7 @@ def test_exists_s3_ok(mocked_s3_client):
         assert False, f"S3 exists raises an exception: {exc}"
 
     s3_instance.head_object.side_effect = botocore.exceptions.ClientError(
-        operation_name="InvalidKeyPair.Duplicate", error_response={"Error": {"Code": "NoSuchKey"}}
+        operation_name="InvalidKeyPair.Duplicate", error_response={"Error": {"Code": "404"}}
     )
     try:
         assert not exists("s3://bucket/object.ext")
