@@ -384,7 +384,7 @@ class Pyramid:
         __format (str): Data format
         __storage (Dict[str, Union[rok4.enums.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
         __raster_specifications (Dict): If raster pyramid, raster specifications
-        __content (Dict): Loading status (loaded) and list content (cache).
+        __content (Dict): Loading status (loaded), slab count (count) and list content (cache).
 
             Example (S3 storage):
 
@@ -397,6 +397,7 @@ class Pyramid:
                             'slab': 'DATA_18_5424_7526'
                         }
                     },
+                    'count': 1,
                     'loaded': True
                 }
     """
@@ -409,7 +410,7 @@ class Pyramid:
             descriptor (str): pyramid's descriptor path
 
         Raises:
-            FormatError: Provided path or the TMS is not a well formed JSON
+            FormatError: Provided path or the descriptor is not a well formed JSON
             Exception: Level issue : no one in the pyramid or the used TMS, or level ID not defined in the TMS
             MissingAttributeError: Attribute is missing in the content
             StorageError: Storage read issue (pyramid descriptor or TMS)
@@ -548,7 +549,7 @@ class Pyramid:
         self.__levels = {}
         self.__masks = None
 
-        self.__content = {"loaded": False, "cache": {}}
+        self.__content = {"loaded": False, "count": 0, "cache": {}}
 
     def __str__(self) -> str:
         return f"{self.type.name} pyramid '{self.__name}' ({self.__storage['type'].name} storage)"
@@ -737,18 +738,21 @@ class Pyramid:
         else:
             return PyramidType.RASTER
 
-    def load_list(self) -> None:
+    def load_list(self) -> int:
         """Load list content and cache it
 
         If list is already loaded, nothing done
         """
         if self.__content["loaded"]:
-            return
+            return self.__content["count"]
 
         for slab, infos in self.list_generator():
             self.__content["cache"][slab] = infos
+            self.__content["count"] += 1
 
         self.__content["loaded"] = True
+
+        return self.__content["count"]
 
     def list_generator(
         self, level_id: str = None
