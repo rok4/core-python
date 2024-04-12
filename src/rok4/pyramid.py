@@ -372,7 +372,6 @@ class Level:
 
 
 class Pyramid:
-
     """A data pyramid, raster or vector
 
     Attributes:
