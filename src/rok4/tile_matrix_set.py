@@ -6,6 +6,7 @@ The module contains the following classes:
 - `TileMatrix` - A tile matrix set level
 
 Loading a tile matrix set requires environment variables :
+
 - ROK4_TMS_DIRECTORY
 """
 
@@ -208,6 +209,7 @@ class TileMatrixSet:
             MissingEnvironmentError: Missing object storage informations
             Exception: No level in the TMS, CRS not recognized by OSR
             StorageError: Storage read issue
+            FileNotFoundError: TMS file or object does not exist
             FormatError: Provided path is not a well formed JSON
             MissingAttributeError: Attribute is missing in the content
         """

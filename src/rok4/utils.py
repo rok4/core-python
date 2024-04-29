@@ -162,7 +162,7 @@ def reproject_point(
     sr_dst_inv = sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting()
 
     if sr_src.IsSame(sr_dst) and sr_src_inv == sr_dst_inv:
-        # Les système sont vraiment les même, avec le même ordre des axes
+        # Les système sont vraiment les mêmes, avec le même ordre des axes
         return (point[0], point[1])
     elif sr_src.IsSame(sr_dst) and sr_src_inv != sr_dst_inv:
         # Les système sont les même pour OSR, mais l'ordre des axes est différent
