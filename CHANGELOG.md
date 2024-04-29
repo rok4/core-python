@@ -1,3 +1,9 @@
+## 2.1.5
+
+### [Changed]
+
+* Pyramid : la fonction de chargement de la liste en mémoire retourne le nombre de dalle
+
 ## 2.1.4
 
 ### [Fixed]

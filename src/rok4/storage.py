@@ -1,4 +1,4 @@
-"""Provide functions to use read or write
+"""Provide functions to read or write data
 
 Available storage types are :
 - S3 (path are preffixed with `s3://`)
