@@ -115,7 +115,7 @@ class Layer:
             name (str): layer's technical name
             **title (str): Layer's title (will be equal to name if not provided)
             **abstract (str): Layer's abstract (will be equal to name if not provided)
-            **styles (List[str]): Styles identifier to authorized for the layer
+            **styles (List[str]): Styles identifier to authorize for the layer
             **resampling (str): Interpolation to use for resampling
 
         Raises:
@@ -249,8 +249,8 @@ class Layer:
             "title": self.__title,
             "abstract": self.__abstract,
             "keywords": self.__keywords,
-            "wmts": {"authorized": True},
-            "tms": {"authorized": True},
+            "tms": {"enabled": True},
+            "tiles": {"enabled": True},
             "bbox": {
                 "south": self.__geobbox[0],
                 "west": self.__geobbox[1],
@@ -270,16 +270,24 @@ class Layer:
             )
 
         if self.type == PyramidType.RASTER:
-            serialization["wms"] = {
-                "authorized": True,
-                "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"],
+            serialization["wmts"] = {
+                "enabled": True
             }
-
-            if self.__tms.srs.upper() not in serialization["wms"]["crs"]:
-                serialization["wms"]["crs"].append(self.__tms.srs.upper())
+            serialization["wms"] = {
+                "enabled": True,
+                "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4326"],
+            }
 
             serialization["styles"] = self.__styles
             serialization["resampling"] = self.__resampling
+        else:
+            serialization["wmts"] = {
+                "enabled": False
+            }
+            serialization["wms"] = {
+                "enabled": False
+            }
+
 
         return serialization
 

@@ -42,7 +42,7 @@ def test_descriptor_ok(mocked_put_data_str, mocked_pyramid_class, mocked_get_dat
 
         layer.write_descriptor("s3://layers_backup/")
         mocked_put_data_str.assert_called_once_with(
-            '{"title": "SCAN1000", "abstract": "Diffusion de la donn\\u00e9e BDORTHO", "keywords": ["PM", "TIFF_JPG_UINT8"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 40.9798980696195, "west": -5.624999999999043, "north": 52.48278022207774, "east": 11.250000000000997}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "s3://pyramids/SCAN1000.json"}], "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal", "hypso"], "resampling": "linear"}',
+            '{"title": "SCAN1000", "abstract": "Diffusion de la donn\\u00e9e BDORTHO", "keywords": ["PM", "TIFF_JPG_UINT8"], "tms": {"enabled": true}, "tiles": {"enabled": true}, "bbox": {"south": 40.9798980696195, "west": -5.624999999999043, "north": 52.48278022207774, "east": 11.250000000000997}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "s3://pyramids/SCAN1000.json"}], "wmts": {"enabled": true}, "wms": {"enabled": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4326"]}, "styles": ["normal", "hypso"], "resampling": "linear"}',
             "s3://layers_backup/SCAN1000.json",
         )
     except Exception as exc:
@@ -87,7 +87,7 @@ def test_parameters_vector_ok(
         assert layer.geobbox == (0, 0, 100, 100)
         layer.write_descriptor("file:///home/ign/layers/")
         mocked_put_data_str.assert_called_once_with(
-            '{"title": "title", "abstract": "abstract", "keywords": ["VECTOR", "layername"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 0, "west": 0, "north": 100, "east": 100}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "file:///home/ign/pyramids/SCAN1000.json"}]}',
+            '{"title": "title", "abstract": "abstract", "keywords": ["VECTOR", "layername"], "tms": {"enabled": true}, "tiles": {"enabled": true}, "bbox": {"south": 0, "west": 0, "north": 100, "east": 100}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "file:///home/ign/pyramids/SCAN1000.json"}], "wmts": {"enabled": false}, "wms": {"enabled": false}}',
             "file:///home/ign/layers/layername.json",
         )
 
@@ -135,7 +135,7 @@ def test_parameters_raster_ok(
         assert layer.geobbox == (0, 0, 100, 100)
         layer.write_descriptor("file:///home/ign/layers/")
         mocked_put_data_str.assert_called_once_with(
-            '{"title": "title", "abstract": "abstract", "keywords": ["RASTER", "layername"], "wmts": {"authorized": true}, "tms": {"authorized": true}, "bbox": {"south": 0, "west": 0, "north": 100, "east": 100}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "file:///home/ign/pyramids/RGEALTI.json"}], "wms": {"authorized": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4258", "EPSG:4326"]}, "styles": ["normal"], "resampling": "nn"}',
+            '{"title": "title", "abstract": "abstract", "keywords": ["RASTER", "layername"], "tms": {"enabled": true}, "tiles": {"enabled": true}, "bbox": {"south": 0, "west": 0, "north": 100, "east": 100}, "pyramids": [{"bottom_level": "10", "top_level": "10", "path": "file:///home/ign/pyramids/RGEALTI.json"}], "wmts": {"enabled": true}, "wms": {"enabled": true, "crs": ["CRS:84", "IGNF:WGS84G", "EPSG:3857", "EPSG:4326"]}, "styles": ["normal"], "resampling": "nn"}',
             "file:///home/ign/layers/layername.json",
         )
 
