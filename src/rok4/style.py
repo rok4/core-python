@@ -14,16 +14,17 @@ Loading a style requires environment variables :
 # standard library
 import json
 import os
-import re
 from json.decoder import JSONDecodeError
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
+
+from rok4.enums import ColorFormat
 
 # package
 from rok4.exceptions import FormatError, MissingAttributeError, MissingEnvironmentError
-from rok4.storage import get_data_str, exists
-from rok4.enums import ColorFormat
+from rok4.storage import exists, get_data_str
 
 DEG_TO_RAD = 0.0174532925199432958
+
 
 class Colour:
     """A palette's RGBA colour.
@@ -65,31 +66,41 @@ class Colour:
 
             self.red = palette["red"]
             if self.red < 0 or self.red > 255:
-                raise Exception(f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)")
+                raise Exception(
+                    f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+                )
             self.green = palette["green"]
             if self.green < 0 or self.green > 255:
-                raise Exception(f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)")
+                raise Exception(
+                    f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+                )
             self.blue = palette["blue"]
             if self.blue < 0 or self.blue > 255:
-                raise Exception(f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)")
+                raise Exception(
+                    f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+                )
             self.alpha = palette["alpha"]
             if self.alpha < 0 or self.alpha > 255:
-                raise Exception(f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)")
+                raise Exception(
+                    f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+                )
 
         except KeyError as e:
             raise MissingAttributeError(style.path, f"palette.colours[].{e}")
 
-        except TypeError as e:
-            raise Exception(f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)")
+        except TypeError:
+            raise Exception(
+                f"In style '{style.path}', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+            )
 
     @property
-    def rgba(self) -> Tuple[int]:   
+    def rgba(self) -> Tuple[int]:
         return (self.red, self.green, self.blue, self.alpha)
 
     @property
-    def rgb(self) -> Tuple[int]:   
+    def rgb(self) -> Tuple[int]:
         return (self.red, self.green, self.blue)
-    
+
 
 class Palette:
     """A style's RGBA palette.
@@ -149,7 +160,9 @@ class Palette:
             for colour in palette["colours"]:
                 self.colours.append(Colour(colour, style))
                 if len(self.colours) >= 2 and self.colours[-1].value <= self.colours[-2].value:
-                    raise Exception(f"Style '{style.path}' palette colours hav eto be ordered input value ascending")
+                    raise Exception(
+                        f"Style '{style.path}' palette colours hav eto be ordered input value ascending"
+                    )
 
             if len(self.colours) == 0:
                 raise Exception(f"Style '{style.path}' palette has no colour")
@@ -174,13 +187,13 @@ class Palette:
             else:
                 return self.colours[-1].rgba
 
-        # On va maintenant chercher les deux couleurs entre lesquelles la valeur est 
+        # On va maintenant chercher les deux couleurs entre lesquelles la valeur est
         for i in range(1, len(self.colours)):
             if self.colours[i].value < value:
                 continue
 
             # on est sur la première couleur de valeur supérieure
-            colour_inf = self.colours[i-1]
+            colour_inf = self.colours[i - 1]
             colour_sup = self.colours[i]
             break
 
@@ -189,11 +202,11 @@ class Palette:
             pixel = (
                 colour_inf.red + ratio * (colour_sup.red - colour_inf.red),
                 colour_inf.green + ratio * (colour_sup.green - colour_inf.green),
-                colour_inf.blue + ratio * (colour_sup.blue - colour_inf.blue)
+                colour_inf.blue + ratio * (colour_sup.blue - colour_inf.blue),
             )
         else:
             pixel = (colour_inf.red, colour_inf.green, colour_inf.blue)
-        
+
         if self.no_alpha:
             return pixel
         else:
@@ -201,6 +214,7 @@ class Palette:
                 return pixel + (colour_inf.alpha + ratio * (colour_sup.alpha - colour_inf.alpha),)
             else:
                 return pixel + (colour_inf.alpha,)
+
 
 class Slope:
     """A style's slope parameters.
@@ -244,6 +258,7 @@ class Slope:
             self.slope_max = slope.get("slope_max", 90)
         except KeyError as e:
             raise MissingAttributeError(style.path, f"pente.{e}")
+
 
 class Exposition:
     """A style's exposition parameters.
@@ -318,13 +333,14 @@ class Estompage:
 
         try:
             # azimuth et azimuth sont converti en leur complémentaire en radian
-            self.zenith = (90. - estompage.get("zenith", 45)) * DEG_TO_RAD
-            self.azimuth = (360. - estompage.get("azimuth", 315)) * DEG_TO_RAD
+            self.zenith = (90.0 - estompage.get("zenith", 45)) * DEG_TO_RAD
+            self.azimuth = (360.0 - estompage.get("azimuth", 315)) * DEG_TO_RAD
             self.z_factor = estompage.get("z_factor", 1)
             self.image_nodata = estompage.get("image_nodata", -99999.0)
             self.estompage_nodata = estompage.get("estompage_nodata", 0.0)
         except KeyError as e:
             raise MissingAttributeError(style.path, f"estompage.{e}")
+
 
 class Legend:
     """A style's legend.
@@ -372,6 +388,7 @@ class Legend:
         except KeyError as e:
             raise MissingAttributeError(style.path, f"legend.{e}")
 
+
 class Style:
     """A raster data style
 
@@ -402,7 +419,7 @@ class Style:
         Raises:
             MissingEnvironmentError: Missing object storage informations
             StorageError: Storage read issue
-            FileNotFoundError: Style file or object does not exist, with or without extension 
+            FileNotFoundError: Style file or object does not exist, with or without extension
             FormatError: Provided path is not a well formed JSON
             MissingAttributeError: Attribute is missing in the content
             Exception: No colour in the palette or invalid colour
@@ -418,7 +435,6 @@ class Style:
                     raise FileNotFoundError(f"{self.path}, even without extension")
         except KeyError as e:
             raise MissingEnvironmentError(e)
-
 
         try:
             data = json.loads(get_data_str(self.path))
@@ -450,7 +466,6 @@ class Style:
             else:
                 self.exposition = None
 
-
         except JSONDecodeError as e:
             raise FormatError("JSON", self.path, e)
 
@@ -463,7 +478,7 @@ class Style:
 
         Returns:
             int: Bands count after style application, None if style is identity
-        """        
+        """
         if self.palette is not None:
             if self.palette.no_alpha:
                 return 3
@@ -482,7 +497,7 @@ class Style:
 
         Returns:
             ColorFormat: Bands format after style application, None if style is identity
-        """    
+        """
         if self.palette is not None:
             return ColorFormat.UINT8
 
@@ -498,7 +513,7 @@ class Style:
 
         Returns:
             float: Input nodata value, None if style is identity
-        """    
+        """
 
         if self.estompage is not None:
             return self.estompage.image_nodata
@@ -517,7 +532,11 @@ class Style:
 
         Returns:
             bool: Is style identity
-        """    
+        """
 
-        return self.estompage is None and self.exposition is None and self.slope is None and self.palette is None
-
+        return (
+            self.estompage is None
+            and self.exposition is None
+            and self.slope is None
+            and self.palette is None
+        )
