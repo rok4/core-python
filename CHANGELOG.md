@@ -1,3 +1,9 @@
+## 2.2.0
+
+### [Added]
+
+* Ajout de la librairie de gestion d'un style ROK4
+
 ## 2.1.5
 
 ### [Changed]

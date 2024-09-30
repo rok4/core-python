@@ -1,6 +1,7 @@
 """Provide functions to read or write data
 
 Available storage types are :
+
 - S3 (path are preffixed with `s3://`)
 - CEPH (path are prefixed with `ceph://`)
 - FILE (path are prefixed with `file://`, but it is the default paths' interpretation)
@@ -10,17 +11,20 @@ Available storage types are :
 According to functions, all storage types are not necessarily available.
 
 Readings uses a LRU cache system with a TTL. It's possible to configure it with environment variables :
+
 - ROK4_READING_LRU_CACHE_SIZE : Number of cached element. Default 64. Set 0 or a negative integer to configure a cache without bound. A power of two make cache more efficient.
 - ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to get cache without expiration date.
 
 To disable cache (always read data on storage), set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 1.
 
 Using CEPH storage requires environment variables :
+
 - ROK4_CEPH_CONFFILE
 - ROK4_CEPH_USERNAME
 - ROK4_CEPH_CLUSTERNAME
 
 Using S3 storage requires environment variables :
+
 - ROK4_S3_KEY
 - ROK4_S3_SECRETKEY
 - ROK4_S3_URL
