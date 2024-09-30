@@ -27,6 +27,33 @@ except Exception as exc:
     print(exc)
 ```
 
+Les variables d'environnement suivantes peuvent être nécessaires, par module :
+
+* `storage` : plus de détails dans la documentation technique du module
+    * `ROK4_READING_LRU_CACHE_SIZE` : Nombre d'élément dans le cache de lecture (0 pour ne pas avoir de limite)
+    * `ROK4_READING_LRU_CACHE_TTL` : Durée de validité d'un élément du cache, en seconde (0 pour ne pas avoir de limite)
+    * `ROK4_CEPH_CONFFILE` : Fichier de configuration du cluster Ceph
+    * `ROK4_CEPH_USERNAME` : Compte d'accès au cluster Ceph
+    * `ROK4_CEPH_CLUSTERNAME` : Nom du cluster Ceph
+    * `ROK4_S3_KEY` : Clé(s) de(s) serveur(s) S3
+    * `ROK4_S3_SECRETKEY` : Clé(s) secrète(s) de(s) serveur(s) S3
+    * `ROK4_S3_URL` : URL de(s) serveur(s) S3
+    * `ROK4_SSL_NO_VERIFY` : Désactivation de la vérification SSL pour les accès S3 (n'importe quelle valeur non vide)
+* `tile_matrix_set` :
+    * `ROK4_TMS_DIRECTORY` : Dossier racine (fichier ou objet) des tile matrix sets
+* `style` :
+    * `ROK4_STYLES_DIRECTORY` : Dossier racine (fichier ou objet) des styles
+
+Readings uses a LRU cache system with a TTL. It's possible to configure it with environment variables :
+- ROK4_READING_LRU_CACHE_SIZE : Number of cached element. Default 64. Set 0 or a negative integer to configure a cache without bound. A power of two make cache more efficient.
+- ROK4_READING_LRU_CACHE_TTL : Validity duration of cached element, in seconds. Default 300. 0 or negative integer to get cache without expiration date.
+
+To disable cache (always read data on storage), set ROK4_READING_LRU_CACHE_SIZE to 1 and ROK4_READING_LRU_CACHE_TTL to 1.
+
+Using CEPH storage requires environment variables :
+
+Using S3 storage requires environment variables :
+
 Plus d'exemple dans la documentation développeur.
 
 
