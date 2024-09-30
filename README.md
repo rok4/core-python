@@ -34,7 +34,7 @@ Les variables d'environnement suivantes peuvent être nécessaires, par module :
     * `ROK4_READING_LRU_CACHE_TTL` : Durée de validité d'un élément du cache, en seconde (0 pour ne pas avoir de limite)
     * `ROK4_CEPH_CONFFILE` : Fichier de configuration du cluster Ceph
     * `ROK4_CEPH_USERNAME` : Compte d'accès au cluster Ceph
-    * `ROK4_CEPH_CLUSTERNAME` : Nom du cluster Ceph 
+    * `ROK4_CEPH_CLUSTERNAME` : Nom du cluster Ceph
     * `ROK4_S3_KEY` : Clé(s) de(s) serveur(s) S3
     * `ROK4_S3_SECRETKEY` : Clé(s) secrète(s) de(s) serveur(s) S3
     * `ROK4_S3_URL` : URL de(s) serveur(s) S3

@@ -4,14 +4,9 @@ from unittest.mock import *
 
 import pytest
 
-from rok4.exceptions import (
-    FormatError,
-    MissingAttributeError,
-    MissingEnvironmentError,
-    StorageError,
-)
-from rok4.style import Style
 from rok4.enums import ColorFormat
+from rok4.exceptions import FormatError, MissingAttributeError, MissingEnvironmentError
+from rok4.style import Style
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -28,8 +23,10 @@ def test_missing_env():
 def test_wrong_file(mocked_exists):
     with pytest.raises(FileNotFoundError):
         Style("toto")
-    
-    mocked_exists.assert_has_calls([call("file:///path/to/toto"), call("file:///path/to/toto.json")])
+
+    mocked_exists.assert_has_calls(
+        [call("file:///path/to/toto"), call("file:///path/to/toto.json")]
+    )
 
 
 @mock.patch.dict(os.environ, {"ROK4_STYLES_DIRECTORY": "file:///path/to"}, clear=True)
@@ -67,7 +64,7 @@ def test_bad_json(mocked_get_data_str, mocked_exists):
             "min_scale_denominator": 0,
             "max_scale_denominator": 30
         }
-    }"""
+    }""",
 )
 def test_missing_identifier(mocked_get_data_str, mocked_exists):
     with pytest.raises(MissingAttributeError) as exc:
@@ -103,14 +100,13 @@ def test_missing_identifier(mocked_get_data_str, mocked_exists):
             "alpha_continuous": true,
             "colours": []
         }
-    }"""
+    }""",
 )
 def test_palette_without_colour(mocked_get_data_str, mocked_exists):
     with pytest.raises(Exception) as exc:
         Style("normal")
     assert str(exc.value) == "Style 'file:///path/to/normal' palette has no colour"
     mocked_get_data_str.assert_called_once_with("file:///path/to/normal")
-
 
 
 @mock.patch.dict(os.environ, {"ROK4_STYLES_DIRECTORY": "file:///path/to"}, clear=True)
@@ -142,12 +138,15 @@ def test_palette_without_colour(mocked_get_data_str, mocked_exists):
                 { "value": -99999, "red": 255, "green": 300, "blue": 255, "alpha": 0 }
             ]
         }
-    }"""
+    }""",
 )
 def test_palette_wrong_colour(mocked_get_data_str, mocked_exists):
     with pytest.raises(Exception) as exc:
         Style("normal")
-    assert str(exc.value) == "In style 'file:///path/to/normal', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+    assert (
+        str(exc.value)
+        == "In style 'file:///path/to/normal', a palette colour band has an invalid value (integer between 0 and 255 expected)"
+    )
     mocked_get_data_str.assert_called_once_with("file:///path/to/normal")
 
 
@@ -181,13 +180,17 @@ def test_palette_wrong_colour(mocked_get_data_str, mocked_exists):
                 { "value": -99999, "red": 255, "green": 255, "blue": 255, "alpha": 0 }
             ]
         }
-    }"""
+    }""",
 )
 def test_palette_wrong_colour_order(mocked_get_data_str, mocked_exists):
     with pytest.raises(Exception) as exc:
         Style("normal")
-    assert str(exc.value) == "Style 'file:///path/to/normal' palette colours hav eto be ordered input value ascending"
+    assert (
+        str(exc.value)
+        == "Style 'file:///path/to/normal' palette colours hav eto be ordered input value ascending"
+    )
     mocked_get_data_str.assert_called_once_with("file:///path/to/normal")
+
 
 @mock.patch.dict(os.environ, {"ROK4_STYLES_DIRECTORY": "file:///path/to"}, clear=True)
 @mock.patch(
@@ -218,7 +221,7 @@ def test_palette_wrong_colour_order(mocked_get_data_str, mocked_exists):
                 { "value": 42, "red": 255, "green": 255, "blue": 255, "alpha": 0 }
             ]
         }
-    }"""
+    }""",
 )
 def test_ok_only_palette(mocked_get_data_str, mocked_exists):
 
@@ -229,7 +232,7 @@ def test_ok_only_palette(mocked_get_data_str, mocked_exists):
         assert not style.is_identity
         assert style.bands == 4
         assert style.format == ColorFormat.UINT8
-        assert style.input_nodata == 42.
+        assert style.input_nodata == 42.0
 
     except Exception as exc:
         assert False, f"Style read raises an exception: {exc}"
@@ -264,7 +267,7 @@ def test_ok_only_palette(mocked_get_data_str, mocked_exists):
             "slope_nodata": 91,
             "slope_max": 90
         }
-    }"""
+    }""",
 )
 def test_ok_only_pente(mocked_get_data_str, mocked_exists):
 
@@ -330,7 +333,7 @@ def test_ok_only_pente(mocked_get_data_str, mocked_exists):
                 { "value": 42, "red": 255, "green": 255, "blue": 255, "alpha": 0 }
             ]
         }
-    }"""
+    }""",
 )
 def test_ok_all(mocked_get_data_str, mocked_exists):
 
@@ -368,7 +371,7 @@ def test_ok_all(mocked_get_data_str, mocked_exists):
             "min_scale_denominator": 0,
             "max_scale_denominator": 30
         }
-    }"""
+    }""",
 )
 def test_ok_identity(mocked_get_data_str, mocked_exists):
 
@@ -415,7 +418,7 @@ def test_ok_identity(mocked_get_data_str, mocked_exists):
                 { "value": 100, "red": 50, "green": 40, "blue": 10, "alpha": 100 }
             ]
         }
-    }"""
+    }""",
 )
 def test_ok_palette_convert_rgba_continuous(mocked_get_data_str, mocked_exists):
 
@@ -461,7 +464,7 @@ def test_ok_palette_convert_rgba_continuous(mocked_get_data_str, mocked_exists):
                 { "value": 100, "red": 50, "green": 40, "blue": 10, "alpha": 100 }
             ]
         }
-    }"""
+    }""",
 )
 def test_ok_palette_convert_rgb_no_alpha(mocked_get_data_str, mocked_exists):
 
