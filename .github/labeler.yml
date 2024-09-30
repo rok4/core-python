@@ -1,21 +1,33 @@
 ci-cd:
-  - .github/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - .github/**
 
 dependencies:
-  - requirements.txt
-  - requirements/*.txt
+- changed-files:
+  - any-glob-to-any-file:
+    - requirements.txt
+    - requirements/*.txt
 
 documentation:
-  - docs/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - docs/**
 
 enhancement:
-  - src/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - src/**
 
 quality:
-  - tests/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - tests/**
 
 tooling:
-  - .gitignore
-  - .pre-commit-config.yaml
-  - setup.cfg
-  - pyproject.toml
+- changed-files:
+  - any-glob-to-any-file:
+    - .gitignore
+    - .pre-commit-config.yaml
+    - setup.cfg
+    - pyproject.toml
