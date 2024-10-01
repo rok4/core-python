@@ -52,9 +52,23 @@ from typing import Dict, Tuple, Union
 import boto3
 import botocore.exceptions
 import requests
+
 from osgeo import gdal
 
 # conditional import
+
+try:
+    from osgeo import gdal
+
+    # Enable GDAL/OGR exceptions
+    gdal.UseExceptions()
+
+    GDAL_AVAILABLE: bool = True
+except ImportError:
+    GDAL_AVAILABLE: bool = False
+    gdal = None
+
+
 try:
     import rados
 
@@ -69,8 +83,6 @@ from rok4.exceptions import MissingEnvironmentError, StorageError
 
 # -- GLOBALS --
 
-# Enable GDAL/OGR exceptions
-gdal.UseExceptions()
 
 __CEPH_CLIENT = None
 __CEPH_IOCTXS = {}
@@ -1071,7 +1083,7 @@ def get_osgeo_path(path: str) -> str:
 
     storage_type, unprefixed_path, tray_name, base_name = get_infos_from_path(path)
 
-    if storage_type == StorageType.S3:
+    if storage_type == StorageType.S3 and GDAL_AVAILABLE:
         s3_client, bucket_name = __get_s3_client(tray_name)
 
         gdal.SetConfigOption("AWS_SECRET_ACCESS_KEY", s3_client["secret_key"])

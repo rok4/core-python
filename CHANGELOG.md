@@ -1,3 +1,9 @@
+## 2.2.1
+
+### [Changed]
+
+* Module `storage` : il est possible de l'utiliser sans avoir la librairie GDAL : seule la fonction `get_osgeo_path` pour du S3 ne sera pas disponible
+
 ## 2.2.0
 
 ### [Added]
