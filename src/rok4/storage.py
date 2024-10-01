@@ -53,8 +53,6 @@ import boto3
 import botocore.exceptions
 import requests
 
-from osgeo import gdal
-
 # conditional import
 
 try:
