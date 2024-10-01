@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.0">
+<title>rok4.tile_matrix_set API documentation</title>
+<meta name="description" content="Provide classes to use a tile matrix set …">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>rok4.tile_matrix_set</code></h1>
+</header>
+<section id="section-intro">
+<p>Provide classes to use a tile matrix set.</p>
+<p>The module contains the following classes:</p>
+<ul>
+<li><code><a title="rok4.tile_matrix_set.TileMatrixSet" href="#rok4.tile_matrix_set.TileMatrixSet">TileMatrixSet</a></code> - Multi level grid</li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix" href="#rok4.tile_matrix_set.TileMatrix">TileMatrix</a></code> - A tile matrix set level</li>
+</ul>
+<p>Loading a tile matrix set requires environment variables :</p>
+<ul>
+<li>ROK4_TMS_DIRECTORY</li>
+</ul>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="rok4.tile_matrix_set.TileMatrix"><code class="flex name class">
+<span>class <span class="ident">TileMatrix</span></span>
+<span>(</span><span>level: Dict[~KT, ~VT], tms: <a title="rok4.tile_matrix_set.TileMatrixSet" href="#rok4.tile_matrix_set.TileMatrixSet">TileMatrixSet</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A tile matrix is a tile matrix set's level.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>TM identifiant (no underscore).</dd>
+<dt><strong><code>tms</code></strong> :&ensp;<code><a title="rok4.tile_matrix_set.TileMatrixSet" href="#rok4.tile_matrix_set.TileMatrixSet">TileMatrixSet</a></code></dt>
+<dd>TMS to whom it belong</dd>
+<dt><strong><code>resolution</code></strong> :&ensp;<code>float</code></dt>
+<dd>Ground size of a pixel, using unity of the TMS's coordinate system.</dd>
+<dt><strong><code>origin</code></strong> :&ensp;<code>Tuple[float, float]</code></dt>
+<dd>X,Y coordinates of the upper left corner for the level, the grid's origin.</dd>
+<dt><strong><code>tile_size</code></strong> :&ensp;<code>Tuple[int, int]</code></dt>
+<dd>Pixel width and height of a tile.</dd>
+<dt><strong><code>matrix_size</code></strong> :&ensp;<code>Tuple[int, int]</code></dt>
+<dd>Number of tile in the level, widthwise and heightwise.</dd>
+</dl>
+<p>Constructor method</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>level</code></strong></dt>
+<dd>Level attributes, according to JSON structure</dd>
+<dt><strong><code>tms</code></strong></dt>
+<dd>TMS object containing the level to create</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingAttributeError</code></dt>
+<dd>Attribute is missing in the content</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TileMatrix:
+    &#34;&#34;&#34;A tile matrix is a tile matrix set&#39;s level.
+
+    Attributes:
+        id (str): TM identifiant (no underscore).
+        tms (TileMatrixSet): TMS to whom it belong
+        resolution (float): Ground size of a pixel, using unity of the TMS&#39;s coordinate system.
+        origin (Tuple[float, float]): X,Y coordinates of the upper left corner for the level, the grid&#39;s origin.
+        tile_size (Tuple[int, int]): Pixel width and height of a tile.
+        matrix_size (Tuple[int, int]): Number of tile in the level, widthwise and heightwise.
+    &#34;&#34;&#34;
+
+    def __init__(self, level: Dict, tms: &#34;TileMatrixSet&#34;) -&gt; None:
+        &#34;&#34;&#34;Constructor method
+
+        Args:
+            level: Level attributes, according to JSON structure
+            tms: TMS object containing the level to create
+
+        Raises:
+            MissingAttributeError: Attribute is missing in the content
+        &#34;&#34;&#34;
+
+        self.tms = tms
+        try:
+            self.id = level[&#34;id&#34;]
+            if self.id.find(&#34;_&#34;) != -1:
+                raise Exception(
+                    f&#34;TMS {tms.path} owns a level whom id contains an underscore ({self.id})&#34;
+                )
+            self.resolution = level[&#34;cellSize&#34;]
+            self.origin = (
+                level[&#34;pointOfOrigin&#34;][0],
+                level[&#34;pointOfOrigin&#34;][1],
+            )
+            self.tile_size = (
+                level[&#34;tileWidth&#34;],
+                level[&#34;tileHeight&#34;],
+            )
+            self.matrix_size = (
+                level[&#34;matrixWidth&#34;],
+                level[&#34;matrixHeight&#34;],
+            )
+            self.__latlon = (
+                self.tms.sr.EPSGTreatsAsLatLong() or self.tms.sr.EPSGTreatsAsNorthingEasting()
+            )
+        except KeyError as e:
+            raise MissingAttributeError(tms.path, f&#34;tileMatrices[].{e}&#34;)
+
+    def x_to_column(self, x: float) -&gt; int:
+        &#34;&#34;&#34;Convert west-east coordinate to tile&#39;s column
+
+        Args:
+            x (float): west-east coordinate (TMS coordinates system)
+
+        Returns:
+            int: tile&#39;s column
+        &#34;&#34;&#34;
+        return int((x - self.origin[0]) / (self.resolution * self.tile_size[0]))
+
+    def y_to_row(self, y: float) -&gt; int:
+        &#34;&#34;&#34;Convert north-south coordinate to tile&#39;s row
+
+        Args:
+            y (float): north-south coordinate (TMS coordinates system)
+
+        Returns:
+            int: tile&#39;s row
+        &#34;&#34;&#34;
+        return int((self.origin[1] - y) / (self.resolution * self.tile_size[1]))
+
+    def tile_to_bbox(self, tile_col: int, tile_row: int) -&gt; Tuple[float, float, float, float]:
+        &#34;&#34;&#34;Get tile terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
+
+        TMS spatial reference is Lat / Lon case is handled.
+
+        Args:
+            tile_col (int): column indice
+            tile_row (int): row indice
+
+        Returns:
+            Tuple[float, float, float, float]: terrain extent (xmin, ymin, xmax, ymax)
+        &#34;&#34;&#34;
+        if self.__latlon:
+            return (
+                self.origin[1] - self.resolution * (tile_row + 1) * self.tile_size[1],
+                self.origin[0] + self.resolution * tile_col * self.tile_size[0],
+                self.origin[1] - self.resolution * tile_row * self.tile_size[1],
+                self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0],
+            )
+        else:
+            return (
+                self.origin[0] + self.resolution * tile_col * self.tile_size[0],
+                self.origin[1] - self.resolution * (tile_row + 1) * self.tile_size[1],
+                self.origin[0] + self.resolution * (tile_col + 1) * self.tile_size[0],
+                self.origin[1] - self.resolution * tile_row * self.tile_size[1],
+            )
+
+    def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -&gt; Tuple[int, int, int, int]:
+        &#34;&#34;&#34;Get extrems tile columns and rows corresponding to provided bounding box
+
+        TMS spatial reference is Lat / Lon case is handled.
+
+        Args:
+            bbox (Tuple[float, float, float, float]): bounding box (xmin, ymin, xmax, ymax), in TMS coordinates system
+
+        Returns:
+            Tuple[int, int, int, int]: extrem tiles (col_min, row_min, col_max, row_max)
+        &#34;&#34;&#34;
+
+        if self.__latlon:
+            return (
+                self.x_to_column(bbox[1]),
+                self.y_to_row(bbox[2]),
+                self.x_to_column(bbox[3]),
+                self.y_to_row(bbox[0]),
+            )
+        else:
+            return (
+                self.x_to_column(bbox[0]),
+                self.y_to_row(bbox[3]),
+                self.x_to_column(bbox[2]),
+                self.y_to_row(bbox[1]),
+            )
+
+    def point_to_indices(self, x: float, y: float) -&gt; Tuple[int, int, int, int]:
+        &#34;&#34;&#34;Get pyramid&#39;s tile and pixel indices from point&#39;s coordinates
+
+        TMS spatial reference with Lat / Lon order is handled.
+
+        Args:
+            x (float): point&#39;s x
+            y (float): point&#39;s y
+
+        Returns:
+            Tuple[int, int, int, int]: tile&#39;s column, tile&#39;s row, pixel&#39;s (in the tile) column, pixel&#39;s row
+        &#34;&#34;&#34;
+
+        if self.__latlon:
+            absolute_pixel_column = int((y - self.origin[0]) / self.resolution)
+            absolute_pixel_row = int((self.origin[1] - x) / self.resolution)
+        else:
+            absolute_pixel_column = int((x - self.origin[0]) / self.resolution)
+            absolute_pixel_row = int((self.origin[1] - y) / self.resolution)
+
+        return (
+            absolute_pixel_column // self.tile_size[0],
+            absolute_pixel_row // self.tile_size[1],
+            absolute_pixel_column % self.tile_size[0],
+            absolute_pixel_row % self.tile_size[1],
+        )
+
+    @property
+    def tile_width(self) -&gt; int:
+        return self.tile_size[0]
+
+    @property
+    def tile_heigth(self) -&gt; int:
+        return self.tile_size[1]</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="rok4.tile_matrix_set.TileMatrix.tile_heigth"><code class="name">prop <span class="ident">tile_heigth</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def tile_heigth(self) -&gt; int:
+    return self.tile_size[1]</code></pre>
+</details>
+</dd>
+<dt id="rok4.tile_matrix_set.TileMatrix.tile_width"><code class="name">prop <span class="ident">tile_width</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def tile_width(self) -&gt; int:
+    return self.tile_size[0]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="rok4.tile_matrix_set.TileMatrix.bbox_to_tiles"><code class="name flex">
+<span>def <span class="ident">bbox_to_tiles</span></span>(<span>self, bbox: Tuple[float, float, float, float]) ‑> Tuple[int, int, int, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get extrems tile columns and rows corresponding to provided bounding box</p>
+<p>TMS spatial reference is Lat / Lon case is handled.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bbox</code></strong> :&ensp;<code>Tuple[float, float, float, float]</code></dt>
+<dd>bounding box (xmin, ymin, xmax, ymax), in TMS coordinates system</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[int, int, int, int]</code></dt>
+<dd>extrem tiles (col_min, row_min, col_max, row_max)</dd>
+</dl></div>
+</dd>
+<dt id="rok4.tile_matrix_set.TileMatrix.point_to_indices"><code class="name flex">
+<span>def <span class="ident">point_to_indices</span></span>(<span>self, x: float, y: float) ‑> Tuple[int, int, int, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get pyramid's tile and pixel indices from point's coordinates</p>
+<p>TMS spatial reference with Lat / Lon order is handled.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>float</code></dt>
+<dd>point's x</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>float</code></dt>
+<dd>point's y</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[int, int, int, int]</code></dt>
+<dd>tile's column, tile's row, pixel's (in the tile) column, pixel's row</dd>
+</dl></div>
+</dd>
+<dt id="rok4.tile_matrix_set.TileMatrix.tile_to_bbox"><code class="name flex">
+<span>def <span class="ident">tile_to_bbox</span></span>(<span>self, tile_col: int, tile_row: int) ‑> Tuple[float, float, float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get tile terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system</p>
+<p>TMS spatial reference is Lat / Lon case is handled.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>tile_col</code></strong> :&ensp;<code>int</code></dt>
+<dd>column indice</dd>
+<dt><strong><code>tile_row</code></strong> :&ensp;<code>int</code></dt>
+<dd>row indice</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[float, float, float, float]</code></dt>
+<dd>terrain extent (xmin, ymin, xmax, ymax)</dd>
+</dl></div>
+</dd>
+<dt id="rok4.tile_matrix_set.TileMatrix.x_to_column"><code class="name flex">
+<span>def <span class="ident">x_to_column</span></span>(<span>self, x: float) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert west-east coordinate to tile's column</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x</code></strong> :&ensp;<code>float</code></dt>
+<dd>west-east coordinate (TMS coordinates system)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>tile's column</dd>
+</dl></div>
+</dd>
+<dt id="rok4.tile_matrix_set.TileMatrix.y_to_row"><code class="name flex">
+<span>def <span class="ident">y_to_row</span></span>(<span>self, y: float) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert north-south coordinate to tile's row</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>y</code></strong> :&ensp;<code>float</code></dt>
+<dd>north-south coordinate (TMS coordinates system)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>tile's row</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+<dt id="rok4.tile_matrix_set.TileMatrixSet"><code class="flex name class">
+<span>class <span class="ident">TileMatrixSet</span></span>
+<span>(</span><span>name: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A tile matrix set is multi levels grid definition</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>TMS's name</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>TMS origin path (JSON)</dd>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>TMS identifier</dd>
+<dt><strong><code>srs</code></strong> :&ensp;<code>str</code></dt>
+<dd>TMS coordinates system</dd>
+<dt><strong><code>sr</code></strong> :&ensp;<code>osgeo.osr.SpatialReference</code></dt>
+<dd>TMS OSR spatial reference</dd>
+<dt><strong><code>levels</code></strong> :&ensp;<code>Dict[str, <a title="rok4.tile_matrix_set.TileMatrix" href="#rok4.tile_matrix_set.TileMatrix">TileMatrix</a>]</code></dt>
+<dd>TMS levels</dd>
+</dl>
+<p>Constructor method</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>TMS's name</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>MissingEnvironmentError</code></dt>
+<dd>Missing object storage informations</dd>
+<dt><code>Exception</code></dt>
+<dd>No level in the TMS, CRS not recognized by OSR</dd>
+<dt><code>StorageError</code></dt>
+<dd>Storage read issue</dd>
+<dt><code>FileNotFoundError</code></dt>
+<dd>TMS file or object does not exist</dd>
+<dt><code>FormatError</code></dt>
+<dd>Provided path is not a well formed JSON</dd>
+<dt><code>MissingAttributeError</code></dt>
+<dd>Attribute is missing in the content</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TileMatrixSet:
+    &#34;&#34;&#34;A tile matrix set is multi levels grid definition
+
+    Attributes:
+        name (str): TMS&#39;s name
+        path (str): TMS origin path (JSON)
+        id (str): TMS identifier
+        srs (str): TMS coordinates system
+        sr (osgeo.osr.SpatialReference): TMS OSR spatial reference
+        levels (Dict[str, TileMatrix]): TMS levels
+    &#34;&#34;&#34;
+
+    def __init__(self, name: str) -&gt; None:
+        &#34;&#34;&#34;Constructor method
+
+        Args:
+            name: TMS&#39;s name
+
+        Raises:
+            MissingEnvironmentError: Missing object storage informations
+            Exception: No level in the TMS, CRS not recognized by OSR
+            StorageError: Storage read issue
+            FileNotFoundError: TMS file or object does not exist
+            FormatError: Provided path is not a well formed JSON
+            MissingAttributeError: Attribute is missing in the content
+        &#34;&#34;&#34;
+
+        self.name = name
+
+        try:
+            self.path = os.path.join(os.environ[&#34;ROK4_TMS_DIRECTORY&#34;], f&#34;{self.name}.json&#34;)
+        except KeyError as e:
+            raise MissingEnvironmentError(e)
+
+        try:
+            data = json.loads(get_data_str(self.path))
+
+            self.id = data[&#34;id&#34;]
+            self.srs = data[&#34;crs&#34;]
+            self.sr = srs_to_spatialreference(self.srs)
+            self.levels = {}
+            for level in data[&#34;tileMatrices&#34;]:
+                lev = TileMatrix(level, self)
+                self.levels[lev.id] = lev
+
+            if len(self.levels.keys()) == 0:
+                raise Exception(f&#34;TMS &#39;{self.path}&#39; has no level&#34;)
+
+            if data[&#34;orderedAxes&#34;] != [&#34;X&#34;, &#34;Y&#34;] and data[&#34;orderedAxes&#34;] != [&#34;Lon&#34;, &#34;Lat&#34;]:
+                raise Exception(
+                    f&#34;TMS &#39;{self.path}&#39; own invalid axes order : only X/Y or Lon/Lat are handled&#34;
+                )
+
+        except JSONDecodeError as e:
+            raise FormatError(&#34;JSON&#34;, self.path, e)
+
+        except KeyError as e:
+            raise MissingAttributeError(self.path, e)
+
+        except RuntimeError as e:
+            raise Exception(
+                f&#34;Wrong attribute &#39;crs&#39; (&#39;{self.srs}&#39;) in &#39;{self.path}&#39;, not recognize by OSR. Trace : {e}&#34;
+            )
+
+    def get_level(self, level_id: str) -&gt; &#34;TileMatrix&#34;:
+        &#34;&#34;&#34;Get one level according to its identifier
+
+        Args:
+            level_id: Level identifier
+
+        Returns:
+            The corresponding tile matrix, None if not present
+        &#34;&#34;&#34;
+
+        return self.levels.get(level_id, None)
+
+    @property
+    def sorted_levels(self) -&gt; List[TileMatrix]:
+        return sorted(self.levels.values(), key=lambda level: level.resolution)</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="rok4.tile_matrix_set.TileMatrixSet.sorted_levels"><code class="name">prop <span class="ident">sorted_levels</span> : List[<a title="rok4.tile_matrix_set.TileMatrix" href="#rok4.tile_matrix_set.TileMatrix">TileMatrix</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def sorted_levels(self) -&gt; List[TileMatrix]:
+    return sorted(self.levels.values(), key=lambda level: level.resolution)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="rok4.tile_matrix_set.TileMatrixSet.get_level"><code class="name flex">
+<span>def <span class="ident">get_level</span></span>(<span>self, level_id: str) ‑> <a title="rok4.tile_matrix_set.TileMatrix" href="#rok4.tile_matrix_set.TileMatrix">TileMatrix</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get one level according to its identifier</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>level_id</code></strong></dt>
+<dd>Level identifier</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The corresponding tile matrix, None if not present</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="rok4" href="index.html">rok4</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="rok4.tile_matrix_set.TileMatrix" href="#rok4.tile_matrix_set.TileMatrix">TileMatrix</a></code></h4>
+<ul class="two-column">
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.bbox_to_tiles" href="#rok4.tile_matrix_set.TileMatrix.bbox_to_tiles">bbox_to_tiles</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.point_to_indices" href="#rok4.tile_matrix_set.TileMatrix.point_to_indices">point_to_indices</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.tile_heigth" href="#rok4.tile_matrix_set.TileMatrix.tile_heigth">tile_heigth</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.tile_to_bbox" href="#rok4.tile_matrix_set.TileMatrix.tile_to_bbox">tile_to_bbox</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.tile_width" href="#rok4.tile_matrix_set.TileMatrix.tile_width">tile_width</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.x_to_column" href="#rok4.tile_matrix_set.TileMatrix.x_to_column">x_to_column</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrix.y_to_row" href="#rok4.tile_matrix_set.TileMatrix.y_to_row">y_to_row</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="rok4.tile_matrix_set.TileMatrixSet" href="#rok4.tile_matrix_set.TileMatrixSet">TileMatrixSet</a></code></h4>
+<ul class="">
+<li><code><a title="rok4.tile_matrix_set.TileMatrixSet.get_level" href="#rok4.tile_matrix_set.TileMatrixSet.get_level">get_level</a></code></li>
+<li><code><a title="rok4.tile_matrix_set.TileMatrixSet.sorted_levels" href="#rok4.tile_matrix_set.TileMatrixSet.sorted_levels">sorted_levels</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.0</a>.</p>
+</footer>
+</body>
+</html>
