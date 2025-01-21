@@ -6,13 +6,14 @@
 # standard library
 import os
 import re
-from typing import Tuple
+from typing import List, Tuple
 
 # 3rd party
 from osgeo import gdal, ogr, osr
 
 # package
 from rok4.enums import ColorFormat
+from rok4.storage import get_data_str
 
 # -- GLOBALS --
 ogr.UseExceptions()
@@ -62,11 +63,8 @@ def bbox_to_geometry(
         bbox (Tuple[float, float, float, float]): bounding box (xmin, ymin, xmax, ymax)
         densification (int, optional): Number of point to add for each side of bounding box. Defaults to 0.
 
-    Raises:
-        RuntimeError: Provided SRS is invalid for OSR
-
     Returns:
-        osgeo.ogr.Geometry: Corresponding OGR geometry, with spatial reference if provided
+        osgeo.ogr.Geometry: Corresponding OGR geometry
     """
 
     ring = ogr.Geometry(ogr.wkbLinearRing)
@@ -97,6 +95,101 @@ def bbox_to_geometry(
     geom.SetCoordinateDimension(2)
 
     return geom
+
+
+def wkt_to_geometry(wkt: str) -> "osgeo.ogr.Geometry":
+    """Convert WKT string to OGR geometry
+
+    Args:
+        wkt (str): WKT geometry
+
+    Raises:
+        RuntimeError: OGR/GDAL issue
+
+    Returns:
+        osgeo.ogr.Geometry: Corresponding OGR geometry
+    """
+
+    return ogr.CreateGeometryFromWkt(wkt)
+
+
+def geojson_to_geometry(geojson: str) -> "osgeo.ogr.Geometry":
+    """Convert GeoJSON string to OGR geometry
+
+    Args:
+        geojson (str): GeoJSON geometry
+
+    Raises:
+        RuntimeError: OGR/GDAL issue
+
+    Returns:
+        osgeo.ogr.Geometry: Corresponding OGR geometry
+    """
+
+    return ogr.CreateGeometryFromJson(geojson)
+
+
+def path_to_geometry(path: str) -> "osgeo.ogr.Geometry":
+    """Convert file content to OGR geometry
+
+    We use format according to extension : .json and .geojson will be read as GeoJSON, other extensions as WKT
+
+    Args:
+        path (str): Path to file or object containing geometry.
+
+    Raises:
+        StorageError: Storage read issue
+        RuntimeError: OGR/GDAL issue
+
+    Returns:
+        osgeo.ogr.Geometry: Corresponding OGR geometry
+    """
+
+    geometry_string = get_data_str(path)
+
+    if path.endswith(".json") or path.endswith(".geojson"):
+        return geojson_to_geometry(geometry_string)
+    else:
+        return wkt_to_geometry(geometry_string)
+
+
+def reproject_geometry(
+    geometry: "osgeo.ogr.Geometry", srs_src: str, srs_dst: str
+) -> "osgeo.ogr.Geometry":
+    """Return geometry in other coordinates system
+
+    Points are added to be sure output bounding box contains input bounding box
+
+    Args:
+        geometry (osgeo.ogr.Geometry): geometry with source coordinates system
+        srs_src (str): source coordinates system
+        srs_dst (str): destination coordinates system
+
+    Returns:
+        osgeo.ogr.Geometry: geometry with destination coordinates system
+    """
+
+    sr_src = srs_to_spatialreference(srs_src)
+    sr_src_inv = sr_src.EPSGTreatsAsLatLong() or sr_src.EPSGTreatsAsNorthingEasting()
+
+    sr_dst = srs_to_spatialreference(srs_dst)
+    sr_dst_inv = sr_dst.EPSGTreatsAsLatLong() or sr_dst.EPSGTreatsAsNorthingEasting()
+
+    if sr_src.IsSame(sr_dst) and sr_src_inv == sr_dst_inv:
+        # Les système sont vraiment les même, avec le même ordre des axes
+        return geometry.Clone()
+    elif sr_src.IsSame(sr_dst) and sr_src_inv != sr_dst_inv:
+        # Les système sont les même pour OSR, mais l'ordre des axes est différent
+        return geometry.Clone().SwapXY()
+
+    # Systèmes différents
+
+    geometry.AssignSpatialReference(sr_src)
+
+    rgeometry = geometry.Clone()
+    os.environ["OGR_ENABLE_PARTIAL_REPROJECTION"] = "YES"
+    rgeometry.TransformTo(sr_dst)
+    return rgeometry
 
 
 def reproject_bbox(
@@ -175,12 +268,29 @@ def reproject_point(
     return (x_dst, y_dst)
 
 
+def get_geometry_parts(
+    geometry: "osgeo.ogr.Geometry",
+) -> List[Tuple["osgeo.ogr.Geometry", Tuple[float, float, float, float]]]:
+    parts = []
+    geometry = ogr.ForceToMultiPolygon(geometry)
+    for i in range(0, geometry.GetGeometryCount()):
+        g = geometry.GetGeometryRef(i).Clone()
+        env = g.GetEnvelope()
+        parts.append((g, (env[0], env[2], env[1], env[3])))
+
+    return parts
+
+
+def intersects(geometry1: "osgeo.ogr.Geometry", geometry2: "osgeo.ogr.Geometry") -> bool:
+    inter = geometry1.Intersection(geometry2)
+    return inter is not None and inter.Area() > 0
+
+
 def compute_bbox(source_dataset: gdal.Dataset) -> Tuple:
     """Image boundingbox computing method
 
     Args:
-        source_dataset (gdal.Dataset): Dataset instanciated
-          from the raster image
+        source_dataset (gdal.Dataset): Dataset instanciated from the raster image
 
     Limitations:
         Image's axis must be parallel to SRS' axis

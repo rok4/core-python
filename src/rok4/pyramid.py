@@ -24,10 +24,17 @@ import numpy
 from PIL import Image
 
 # package
-from rok4.enums import PyramidType, SlabType, StorageType
+from rok4.enums import (
+    PyramidCompression,
+    PyramidSampleFormat,
+    PyramidType,
+    SlabType,
+    StorageType,
+)
 from rok4.exceptions import FormatError, MissingAttributeError
 from rok4.storage import (
     copy,
+    exists,
     get_data_binary,
     get_data_str,
     get_infos_from_path,
@@ -382,7 +389,7 @@ class Pyramid:
         __levels (Dict[str, Level]): Pyramid's levels
         __format (str): Data format
         __storage (Dict[str, Union[rok4.enums.StorageType,str,int]]): Pyramid's storage informations (type, root and depth if FILE storage)
-        __raster_specifications (Dict): If raster pyramid, raster specifications
+        __raster_specifications (Dict): If raster pyramid, raster specifications : nodata, photometric, interpolation, channels
         __content (Dict): Loading status (loaded), slab count (count) and list content (cache).
 
             Example (S3 storage):
@@ -400,6 +407,18 @@ class Pyramid:
                     'loaded': True
                 }
     """
+
+    @classmethod
+    def compute_format(cls, compression: str, sampleformat: str) -> str:
+        try:
+            c = PyramidCompression[compression.upper()]
+            sf = PyramidSampleFormat[sampleformat.upper()]
+
+            return f"TIFF_{c.value}_{sf.value}"
+        except KeyError:
+            raise Exception(
+                f"{compression} and {sampleformat} are not valid values for a compression and a sample format"
+            )
 
     @classmethod
     def from_descriptor(cls, descriptor: str) -> "Pyramid":
@@ -440,7 +459,7 @@ class Pyramid:
         pyramid.__storage["type"], path, pyramid.__storage["root"], base_name = get_infos_from_path(
             descriptor
         )
-        pyramid.__name = base_name[:-5]  # on supprime l'extension.json
+        pyramid.__name = base_name[:-5]  # on supprime l'extension .json
         pyramid.__descriptor = descriptor
         pyramid.__list = get_path_from_infos(
             pyramid.__storage["type"], pyramid.__storage["root"], f"{pyramid.__name}.list"
@@ -543,6 +562,74 @@ class Pyramid:
 
         return pyramid
 
+    @classmethod
+    def from_parameters(cls, params: Dict) -> "Pyramid":
+        """Create a pyramid from parameters
+
+        Args:
+            params (str): pyramid's features
+
+        Raises:
+            Exception: Information is missing in parameters
+
+        Returns:
+            Pyramid: a Pyramid instance
+        """
+
+        pyramid = cls()
+
+        try:
+            pyramid.__name = params["name"]
+            pyramid.__storage = params["storage"]
+
+            # On convertit le type de stockage selon l'énumération
+            pyramid.__storage["type"] = StorageType[pyramid.__storage["type"]]
+
+            if pyramid.__storage["type"] == StorageType.FILE and pyramid.__name.find("/") != -1:
+                raise Exception(
+                    f"A FILE stored pyramid's name cannot contain '/' : '{pyramid.__name}'"
+                )
+
+            if pyramid.__storage["type"] == StorageType.FILE and "depth" not in pyramid.__storage:
+                pyramid.__storage["depth"] = 2
+
+            pyramid.__descriptor = get_path_from_infos(
+                pyramid.__storage["type"], pyramid.__storage["root"], f"{pyramid.__name}.json"
+            )
+            pyramid.__list = get_path_from_infos(
+                pyramid.__storage["type"], pyramid.__storage["root"], f"{pyramid.__name}.list"
+            )
+
+            pyramid.__tms = TileMatrixSet(params["tms"])
+
+            pyramid.__format = Pyramid.compute_format(
+                params.get("compression", "none"), params["pixel"]["sampleformat"]
+            )
+
+            if pyramid.type == PyramidType.RASTER:
+
+                if params["pixel"]["samplesperpixel"] <= 2:
+                    photometric = "gray"
+                else:
+                    photometric = "rgb"
+
+                pyramid.__raster_specifications = {
+                    "nodata": ",".join(
+                        str(v)
+                        for v in params.get("nodata", [0] * params["pixel"]["samplesperpixel"])
+                    ),
+                    "photometric": photometric,
+                    "interpolation": params.get("interpolation", "bicubic"),
+                    "channels": params["pixel"]["samplesperpixel"],
+                }
+
+                pyramid.__masks = params.get("mask", False)
+
+        except KeyError as e:
+            raise Exception(f"Missing '{e}' key to create a pyramid from parameters")
+
+        return pyramid
+
     def __init__(self) -> None:
         self.__storage = {}
         self.__levels = {}
@@ -613,7 +700,10 @@ class Pyramid:
         Returns:
             Dict: Raster specifications, None if VECTOR pyramid
         """
-        return self.__raster_specifications
+        if self.type == PyramidType.RASTER:
+            return self.__raster_specifications
+        else:
+            return None
 
     @property
     def storage_type(self) -> StorageType:
@@ -681,7 +771,10 @@ class Pyramid:
 
     @property
     def channels(self) -> str:
-        return self.raster_specifications["channels"]
+        if self.type == PyramidType.RASTER:
+            return self.raster_specifications["channels"]
+        else:
+            return None
 
     @property
     def tile_extension(self) -> str:
@@ -737,6 +830,45 @@ class Pyramid:
         else:
             return PyramidType.RASTER
 
+    @property
+    def nodata(self) -> str:
+        """Get nodata value as string"""
+        return self.__raster_specifications["nodata"]
+
+    @property
+    def photometric(self) -> str:
+        """Get photometric"""
+        return self.__raster_specifications["photometric"]
+
+    @property
+    def compression(self) -> PyramidCompression:
+        """Get data compression from its format"""
+        try:
+            return PyramidCompression(self.__format.split("_")[1])
+        except ValueError:
+            raise Exception(
+                f"Compression extracted from the pyramid's format ({self.__format}) is not valid"
+            )
+
+    @property
+    def sample_format(self) -> PyramidSampleFormat:
+        """Get sample format from the pyramid's format (if raster)"""
+        try:
+            return PyramidSampleFormat(self.__format.split("_")[2])
+        except ValueError:
+            raise Exception(
+                f"Sample format extracted from the pyramid's format ({self.__format}) is not valid"
+            )
+
+    @property
+    def top_level(self) -> "Level":
+        """Get the low resolution level in the pyramid
+
+        Returns:
+            Level: the top level
+        """
+        return sorted(self.__levels.values(), key=lambda level: level.resolution)[-1]
+
     def load_list(self) -> int:
         """Load list content and cache it
 
@@ -760,7 +892,7 @@ class Pyramid:
 
         List is copied as temporary file, roots are read and informations about each slab is returned. If list is already loaded, we yield the cached content
         Args :
-            level_id (str) : id of the level for load only one level
+            level_id (str) : id of the level to load only one level
 
         Examples:
 
@@ -803,10 +935,15 @@ class Pyramid:
                         yield slab, infos
                 else:
                     yield slab, infos
+        elif not exists(self.__list):
+            # La liste n'existe pas, on doit avoir une nouvelle pyramide
+            # On garde une liste vide
+            return
         else:
             # Copie de la liste dans un fichier temporaire (cette liste peut être un objet)
             list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
             list_file = list_obj.name
+
             copy(self.__list, f"file://{list_file}")
             list_obj.close()
 
@@ -857,6 +994,95 @@ class Pyramid:
                         yield ((slab_type, level, column, row), infos)
 
             remove(f"file://{list_file}")
+
+    def write_list(self) -> None:
+        """Write the pyramid's list to the final location (in the pyramid's storage root)"""
+
+        if not self.__content["loaded"]:
+            raise Exception("Cannot write the pyramid's list if not loaded")
+
+        # On fait une première passe pour faire l'inventaire des racines différentes
+
+        # On occupe la première place pour mettre la racine de la pyramide courante
+        roots_list = [""]
+        roots_dict = {}
+
+        for slab, infos in self.__content["cache"].items():
+            root = infos["root"]
+
+            if infos["link"] and root not in roots_list:
+                # On a une nouvelle racine d'une pyramide externe, on l'ajoute à la suite
+                roots_list.append(root)
+                roots_dict[root] = len(roots_list) - 1
+            elif root not in roots_list:
+                # C'est une dalle de la pyramide courante, mais sa racine n'est pas encore dans l'inventaire
+                # On l'ajoute à la première place
+                roots_list[0] = root
+                roots_dict[root] = 0
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
+
+            # Écriture des racines
+
+            for i in range(0, len(roots_list)):
+
+                # On ne veut pas de l'hôte S3 dans le fichier liste, donc on les enlève si on en a
+                if self.storage_s3_cluster is None:
+                    f.write(f"{i}={roots_list[i]}\n")
+                else:
+                    r = roots_list[i].replace(f"@{self.storage_s3_cluster}", "")
+                    f.write(f"{i}={r}\n")
+
+            f.write("#\n")
+
+            # Écriture des dalles
+
+            for slab, infos in self.__content["cache"].items():
+                f.write(f"{roots_dict[infos['root']]}/{infos['slab']}\n")
+
+            f.close()
+
+            # Recopie à l'emplacement finale et nettoyage
+
+            copy(f"file://{f.name}", self.__list)
+            remove(f"file://{f.name}")
+
+    def upsert_slab(
+        self, slab_type: SlabType, level: str, column: int, row: int, root: str, slab_path: str
+    ) -> None:
+        """Add or update slab to loaded pyramid's content
+
+        Args:
+            slab_type (SlabType): Slab type
+            level (str): Slab level
+            column (int): Slab column
+            row (int): Slab row
+            root (str): Slab storage root, without the S3 cluster if S3 storage
+            slab_path (str): Slab path, relative to provided root
+
+        """
+
+        if not self.__content["loaded"]:
+            raise Exception("Cannot upsert a slab into the pyramid's content if not loaded")
+
+        link = root != f"{self.storage_root}/{self.name}"
+
+        if self.storage_s3_cluster is not None:
+            # On a un nom de cluster S3, on l'ajoute au nom du bucket dans la racine
+            root_bucket, root_path = root.split("/", 1)
+            root = f"{root_bucket}@{s3_cluster}/{root_path}"
+
+        key = (slab_type, level, column, row)
+
+        if key not in self.__content["cache"]:
+            self.__content["count"] += 1
+
+        self.__content["cache"][key] = {
+            "root": root,
+            "link": link,
+            "slab": slab_path,
+            "md5": None,
+        }
 
     def get_level(self, level_id: str) -> "Level":
         """Get one level according to its identifier
@@ -1433,6 +1659,12 @@ class Pyramid:
             tile_limits : Minimum and maximum tiles' columns and rows of pyramid's content
         """
 
+        if self.__tms.get_level(level_id) is None:
+            raise Exception(f"Level '{level_id}' is not defined in the TMS '{self.tms.name}'")
+
+        if level_id in self.__levels:
+            raise Exception(f"Level '{level_id}' already exists in the pyramid")
+
         data = {
             "id": level_id,
             "tile_limits": tile_limits,
@@ -1447,12 +1679,7 @@ class Pyramid:
 
         lev = Level.from_descriptor(data, self)
 
-        if self.__tms.get_level(lev.id) is None:
-            raise Exception(
-                f"Pyramid {self.name} owns a level with the ID '{lev.id}', not defined in the TMS '{self.tms.name}'"
-            )
-        else:
-            self.__levels[lev.id] = lev
+        self.__levels[lev.id] = lev
 
     @property
     def size(self) -> int:

@@ -42,8 +42,13 @@ jobs:
         include:
           - os: ubuntu-20.04
             python-version: "3.8"
+            publish: "no"
           - os: ubuntu-22.04
             python-version: "3.10"
+            publish: "no"
+          - os: ubuntu-22.04
+            python-version: "3.11"
+            publish: "yes"
 
     runs-on: ${{ matrix.os }}
 
@@ -82,20 +87,20 @@ jobs:
           coverage report -m
 
       - name: Build unit tests report
-        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "! contains(github.ref_name,'b') && matrix.publish == 'yes'"
         run: |
           source .venv/bin/activate
           coverage html -d target/docs/tests/
           rm target/docs/tests/.gitignore
 
       - name: Build package
-        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "matrix.publish == 'yes'"
         run: |
           source .venv/bin/activate
           python3 -m build
 
       - name: Build documentation
-        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "! contains(github.ref_name,'b') && matrix.publish == 'yes'"
         run: |
           source .venv/bin/activate
           pip install -e .[doc]
@@ -112,7 +117,7 @@ jobs:
           cat CONTRIBUTING.md >>target/docs/CONTRIBUTING.md
 
       - name: Upload packages
-        if: "matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "matrix.publish == 'yes'"
         uses: actions/upload-artifact@v4
         with:
           name: dist-py3
@@ -121,7 +126,7 @@ jobs:
           retention-days: 1
 
       - name: Publish documentation
-        if: "! contains(github.ref_name,'b') && matrix.os == 'ubuntu-20.04' && matrix.python-version == '3.8'"
+        if: "! contains(github.ref_name,'b') && matrix.publish == 'yes'"
         run: |
           source .venv/bin/activate
           pip install -r docs/requirements.txt

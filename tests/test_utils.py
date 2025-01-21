@@ -1,6 +1,7 @@
 import math
 import random
-from unittest.mock import MagicMock, Mock, patch
+from unittest import mock
+from unittest.mock import *
 
 import pytest
 from osgeo import gdal, osr
@@ -11,9 +12,15 @@ from rok4.utils import (
     bbox_to_geometry,
     compute_bbox,
     compute_format,
+    geojson_to_geometry,
+    get_geometry_parts,
+    intersects,
+    path_to_geometry,
     reproject_bbox,
+    reproject_geometry,
     reproject_point,
     srs_to_spatialreference,
+    wkt_to_geometry,
 )
 
 
@@ -385,3 +392,105 @@ def test_compute_format_no_band_nok(
         mocked_Info.assert_not_called()
     except Exception as exc:
         assert False, f"Color format computation raises an exception: {exc}"
+
+
+def test_wkt_to_geometry_nok():
+    with pytest.raises(RuntimeError):
+        wkt_to_geometry("toto")
+
+
+def test_wkt_to_geometry_ok():
+    try:
+        geom = wkt_to_geometry("POLYGON((0 0,10 0,10 10,0 10,0 0))")
+        assert geom.Area() == 100
+    except Exception as exc:
+        assert False, f"Geometry creation from WKT raises an exception: {exc}"
+
+
+def test_geojson_to_geometry_nok():
+    with pytest.raises(RuntimeError):
+        geojson_to_geometry("toto")
+
+
+def test_geojson_to_geometry_ok():
+    try:
+        geom = geojson_to_geometry(
+            '{"coordinates":[[[0.0,0.0],[10.0,0.0],[10.0,10.0],[0.0,10.0],[0.0,0.0]]],"type":"Polygon"}'
+        )
+        assert geom.Area() == 100
+    except Exception as exc:
+        assert False, f"Geometry creation from GeoJSON raises an exception: {exc}"
+
+
+@mock.patch(
+    "rok4.utils.get_data_str",
+    side_effect=FileNotFoundError("foo"),
+)
+def test_path_to_geometry_wrongfile_nok(mocked_get_data_str):
+    with pytest.raises(FileNotFoundError):
+        geom = path_to_geometry("file:///path/to/geometry.wkt")
+
+    mocked_get_data_str.assert_called_once_with("file:///path/to/geometry.wkt")
+
+
+@mock.patch(
+    "rok4.utils.get_data_str",
+    return_value="""{"coordinates":[[[0.0,0.0],[10.0,0.0],[10.0,10.0],[0.0,10.0],[0.0,0.0]]],"type":"Polygon"}""",
+)
+def test_path_to_geometry_format_nok(mocked_get_data_str):
+    with pytest.raises(RuntimeError):
+        geom = path_to_geometry("file:///path/to/geometry.wkt")
+
+    mocked_get_data_str.assert_called_once_with("file:///path/to/geometry.wkt")
+
+
+@mock.patch(
+    "rok4.utils.get_data_str",
+    return_value="""{"coordinates":[[[0.0,0.0],[10.0,0.0],[10.0,10.0],[0.0,10.0],[0.0,0.0]]],"type":"Polygon"}""",
+)
+def test_path_to_geometry_json_ok(mocked_get_data_str):
+    try:
+        geom = path_to_geometry("file:///path/to/geometry.json")
+        assert geom.Area() == 100
+        mocked_get_data_str.assert_called_once_with("file:///path/to/geometry.json")
+    except Exception as exc:
+        assert False, f"Geometry creation from path (GeoJSON) raises an exception: {exc}"
+
+
+@mock.patch(
+    "rok4.utils.get_data_str",
+    return_value="""POLYGON((0 0,10 0,10 10,0 10,0 0))""",
+)
+def test_path_to_geometry_json_ok(mocked_get_data_str):
+    try:
+        geom = path_to_geometry("file:///path/to/geometry.toto")
+        assert geom.Area() == 100
+        mocked_get_data_str.assert_called_once_with("file:///path/to/geometry.toto")
+    except Exception as exc:
+        assert False, f"Geometry creation from path (WKT) raises an exception: {exc}"
+
+
+def test_geometry_computes_ok():
+    try:
+        geom1 = wkt_to_geometry("POLYGON((0 0,10 0,10 10,0 10,0 0))")
+        geom2 = wkt_to_geometry("POLYGON((5 5,15 5,15 15,5 15,5 5))")
+        geom3 = wkt_to_geometry("POLYGON((10 0,20 0,20 10,10 10,10 0))")
+        multigeom = wkt_to_geometry(
+            "MULTIPOLYGON(((10 0,20 0,20 10,10 10,10 0)),((30 30,30 45,45 45,45 30,30 30)))"
+        )
+
+        assert intersects(geom1, geom2)
+        assert not intersects(geom1, geom3)
+
+        parts = get_geometry_parts(multigeom)
+        assert len(parts) == 2
+        assert parts[0][1] == (10, 0, 20, 10)
+        assert parts[1][1] == (30, 30, 45, 45)
+        assert parts[0][0].Area() == 100
+        assert parts[1][0].Area() == 225
+
+        rmultigeom = reproject_geometry(multigeom, "EPSG:4326", "EPSG:3857")
+        assert rmultigeom.Area() == 4821356702626.261
+
+    except Exception as exc:
+        assert False, f"Geometry computes raise an exception: {exc}"

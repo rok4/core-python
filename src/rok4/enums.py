@@ -38,3 +38,40 @@ class ColorFormat(Enum):
     BIT = 1
     UINT8 = 8
     FLOAT32 = 32
+
+
+class PyramidCompression(Enum):
+    """Pyramid's data compression
+    The member's name matches the compression in the pyramid's format.
+    """
+
+    NONE = "RAW"
+    JPG = "JPG"
+    JPG90 = "JPG90"
+    PNG = "PNG"
+    LZW = "LZW"
+    ZIP = "ZIP"
+    PKB = "PKB"
+    PBF = "PBF"
+
+
+class PyramidSampleFormat(Enum):
+    """Pyramid's data compression
+    The member's name matches the sample format in the pyramid's format.
+    """
+
+    NONE = "MVT"
+    UINT8 = "UINT8"
+    UINT16 = "UINT16"
+    FLOAT32 = "FLOAT32"
+
+
+class PyramidInterpolation(Enum):
+    """Pyramid's data compression
+    The member's name matches the interpolation in the pyramid's descriptor.
+    """
+
+    NEAREST_NEIGHBOUR = "nn"
+    LINEAR = "linear"
+    BICUBIC = "bicubic"
+    LANCZOS = "lanczos"

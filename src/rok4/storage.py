@@ -932,6 +932,12 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                     if chunk:
                         f.write(chunk)
 
+            if response.status_code != 200:
+                raise StorageError(
+                    "HTTP(S) and FILE",
+                    f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : code {response.status_code}",
+                )
+
         except Exception as e:
             raise StorageError(
                 "HTTP(S) and FILE",

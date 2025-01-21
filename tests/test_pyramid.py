@@ -4,10 +4,31 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from rok4.enums import SlabType, StorageType
+from rok4.enums import PyramidCompression, PyramidSampleFormat, SlabType, StorageType
 from rok4.exceptions import FormatError, MissingAttributeError, StorageError
 from rok4.pyramid import Pyramid, b36_path_decode, b36_path_encode
 from rok4.utils import srs_to_spatialreference
+
+
+def test_compute_format():
+    assert Pyramid.compute_format("none", "uint8") == "TIFF_RAW_UINT8"
+    assert Pyramid.compute_format("jpg", "uint8") == "TIFF_JPG_UINT8"
+    assert Pyramid.compute_format("zip", "float32") == "TIFF_ZIP_FLOAT32"
+
+    with pytest.raises(Exception) as exc:
+        Pyramid.compute_format("toto", "float32") == "TIFF_ZIP_FLOAT32"
+
+    assert (
+        str(exc.value)
+        == "toto and float32 are not valid values for a compression and a sample format"
+    )
+
+    with pytest.raises(Exception) as exc:
+        Pyramid.compute_format("jpg", "titi") == "TIFF_ZIP_FLOAT32"
+
+    assert (
+        str(exc.value) == "jpg and titi are not valid values for a compression and a sample format"
+    )
 
 
 @mock.patch("rok4.pyramid.get_data_str", side_effect=StorageError("FILE", "Not found"))
@@ -143,6 +164,8 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
         assert clone.storage_type == StorageType.FILE
         assert clone.storage_root == "/data/ign"
         assert clone.tile_extension == "jpg"
+        assert clone.compression == PyramidCompression.JPG
+        assert clone.sample_format == PyramidSampleFormat.UINT8
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
         assert clone.get_infos_from_slab_path("/data/ign/titi/IMAGE/12/00/4A/F7.tif") == (
@@ -160,6 +183,60 @@ def test_raster_ok(mocked_put_data_str, mocked_tms_class, mocked_get_data_str):
         mocked_put_data_str.assert_called_once_with(
             '{"tile_matrix_set": "PM", "format": "TIFF_JPG_UINT8", "levels": [{"id": "0", "tiles_per_width": 16, "tiles_per_height": 16, "tile_limits": {"min_col": 0, "max_row": 15, "max_col": 15, "min_row": 0}, "storage": {"type": "FILE", "image_directory": "titi/DATA/0", "path_depth": 2}}], "raster_specifications": {"channels": 3, "nodata": "255,0,0", "photometric": "rgb", "interpolation": "bicubic"}}',
             "file:///data/ign/titi.json",
+        )
+    except Exception as exc:
+        assert False, f"Pyramid creation raises an exception: {exc}"
+
+
+@mock.patch.dict(os.environ, {}, clear=True)
+@mock.patch("rok4.pyramid.TileMatrixSet")
+@mock.patch("rok4.pyramid.put_data_str", return_value=None)
+def test_raster_from_parameters_ok(mocked_put_data_str, mocked_tms_class):
+    tms_instance = MagicMock()
+    tms_instance.name = "PM"
+    tms_instance.srs = "EPSG:3857"
+    tms_instance.sr = srs_to_spatialreference("EPSG:3857")
+
+    tm_instance = MagicMock()
+    tm_instance.id = "0"
+    tm_instance.resolution = 1
+    tm_instance.point_to_indices.return_value = (0, 0, 128, 157)
+
+    tms_instance.get_level.return_value = tm_instance
+
+    mocked_tms_class.return_value = tms_instance
+
+    try:
+        pyramid = Pyramid.from_parameters(
+            {
+                "name": "sub/test",
+                "tms": "PM",
+                "compression": "jpg",
+                "slab_size": [8, 8],
+                "storage": {"type": "CEPH", "root": "pool"},
+                "mask": True,
+                "pixel": {"sampleformat": "UINT8", "samplesperpixel": 3},
+            }
+        )
+        assert pyramid.get_level("4") is None
+        assert pyramid.name == "sub/test"
+        assert pyramid.storage_type == StorageType.CEPH
+        assert pyramid.storage_root == "pool"
+
+        pyramid.add_level("4", 8, 8, {"min_col": 0, "max_col": 10, "min_row": 5, "max_row": 15})
+        assert pyramid.get_infos_from_slab_path("pool/sub/test/MSK_4_11_12") == (
+            SlabType.MASK,
+            "4",
+            11,
+            12,
+        )
+        assert pyramid.get_level("4") is not None
+        assert len(pyramid.get_levels()) == 1
+
+        pyramid.write_descriptor()
+        mocked_put_data_str.assert_called_once_with(
+            '{"tile_matrix_set": "PM", "format": "TIFF_JPG_UINT8", "levels": [{"id": "4", "tiles_per_width": 8, "tiles_per_height": 8, "tile_limits": {"min_col": 0, "max_col": 10, "min_row": 5, "max_row": 15}, "storage": {"type": "CEPH", "image_prefix": "sub/test/DATA_4", "pool_name": "pool", "mask_prefix": "sub/test/MASK_4"}}], "raster_specifications": {"nodata": "0,0,0", "photometric": "rgb", "interpolation": "bicubic", "channels": 3}, "mask_format": "TIFF_ZIP_UINT8"}',
+            "ceph://pool/sub/test.json",
         )
     except Exception as exc:
         assert False, f"Pyramid creation raises an exception: {exc}"
@@ -187,6 +264,8 @@ def test_vector_ok(mocked_tms_class, mocked_get_data_str):
         assert clone.storage_type == StorageType.S3
         assert clone.get_level("0") is not None
         assert clone.get_level("4") is None
+        assert clone.compression == PyramidCompression.PBF
+        assert clone.sample_format == PyramidSampleFormat.NONE
     except Exception as exc:
         assert False, f"Pyramid creation raises an exception: {exc}"
 

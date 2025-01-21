@@ -16,6 +16,7 @@ Loading a tile matrix set requires environment variables :
 import json
 import os
 from json.decoder import JSONDecodeError
+from math import isclose
 from typing import Dict, List, Tuple
 
 # package
@@ -124,6 +125,40 @@ class TileMatrix:
                 self.origin[1] - self.resolution * tile_row * self.tile_size[1],
             )
 
+    def slab_to_bbox(
+        self, slab_col: int, slab_row: int, slab_size: Tuple[int, int]
+    ) -> Tuple[float, float, float, float]:
+        """Get slab terrain extent (xmin, ymin, xmax, ymax), in TMS coordinates system
+
+        TMS spatial reference is Lat / Lon case is handled.
+
+        Args:
+            slab_col (int): column indice
+            slab_row (int): row indice
+            slab_size (Tuple[int, int]): Tiles per width and tiles per height
+
+        Returns:
+            Tuple[float, float, float, float]: terrain extent (xmin, ymin, xmax, ymax)
+        """
+        if self.__latlon:
+            return (
+                self.origin[1]
+                - self.resolution * (slab_row + 1) * self.tile_size[1] * slab_size[1],
+                self.origin[0] + self.resolution * slab_col * self.tile_size[0] * slab_size[0],
+                self.origin[1] - self.resolution * slab_row * self.tile_size[1] * slab_size[1],
+                self.origin[0]
+                + self.resolution * (slab_col + 1) * self.tile_size[0] * slab_size[0],
+            )
+        else:
+            return (
+                self.origin[0] + self.resolution * slab_col * self.tile_size[0] * slab_size[0],
+                self.origin[1]
+                - self.resolution * (slab_row + 1) * self.tile_size[1] * slab_size[1],
+                self.origin[0]
+                + self.resolution * (slab_col + 1) * self.tile_size[0] * slab_size[0],
+                self.origin[1] - self.resolution * slab_row * self.tile_size[1] * slab_size[1],
+            )
+
     def bbox_to_tiles(self, bbox: Tuple[float, float, float, float]) -> Tuple[int, int, int, int]:
         """Get extrems tile columns and rows corresponding to provided bounding box
 
@@ -183,7 +218,7 @@ class TileMatrix:
         return self.tile_size[0]
 
     @property
-    def tile_heigth(self) -> int:
+    def tile_height(self) -> int:
         return self.tile_size[1]
 
 
@@ -197,6 +232,7 @@ class TileMatrixSet:
         srs (str): TMS coordinates system
         sr (osgeo.osr.SpatialReference): TMS OSR spatial reference
         levels (Dict[str, TileMatrix]): TMS levels
+        qtree (bool): Is TMS a quad tree
     """
 
     def __init__(self, name: str) -> None:
@@ -215,6 +251,7 @@ class TileMatrixSet:
         """
 
         self.name = name
+        self.qtree = True
 
         try:
             self.path = os.path.join(os.environ["ROK4_TMS_DIRECTORY"], f"{self.name}.json")
@@ -239,6 +276,39 @@ class TileMatrixSet:
                 raise Exception(
                     f"TMS '{self.path}' own invalid axes order : only X/Y or Lon/Lat are handled"
                 )
+
+            # On détermine si ce TMS a une structure quad tree :
+            # - tous les niveaux ont le même coin en haut à gauche
+            # - tous les niveaux ont la même taille de tuiles
+            # - les résolutions des niveaux vont de deux en deux (tolérance de 1% de la résolution la plus petite)
+
+            x0 = None
+            y0 = None
+            res = None
+            width = None
+            height = None
+            tolerance = None
+            for level in self.sorted_levels:
+                if x0 is None:
+                    x0 = level.origin[0]
+                    y0 = level.origin[1]
+                    width = level.tile_size[0]
+                    height = level.tile_size[1]
+                    res = level.resolution
+                    tolerance = res / 100
+                    continue
+
+                if (
+                    x0 != level.origin[0]
+                    or y0 != level.origin[1]
+                    or width != level.tile_size[0]
+                    or height != level.tile_size[1]
+                    or not isclose(res * 2, level.resolution, abs_tol=tolerance)
+                ):
+                    self.qtree = False
+                    break
+
+                res = level.resolution
 
         except JSONDecodeError as e:
             raise FormatError("JSON", self.path, e)
@@ -266,3 +336,60 @@ class TileMatrixSet:
     @property
     def sorted_levels(self) -> List[TileMatrix]:
         return sorted(self.levels.values(), key=lambda level: level.resolution)
+
+    def get_levels(self, bottom_id: str = None, top_id: str = None) -> List[TileMatrix]:
+        """Get sorted levels in the provided range from bottom to top
+
+        Args:
+            bottom_id (str, optionnal): specific bottom level id. Defaults to None.
+            top_id (str, optionnal): specific top level id. Defaults to None.
+
+        Raises:
+            Exception: Provided levels are not consistent (bottom > top or not in the pyramid)
+
+        Returns:
+            List[Level]: asked sorted levels
+        """
+
+        sorted_levels = self.sorted_levels
+
+        levels = []
+
+        begin = False
+        if bottom_id is None:
+            # Pas de niveau du bas fourni, on commence tout en bas
+            begin = True
+        elif bottom_id not in self.levels:
+            raise Exception(
+                f"Tile matrix set {self.name} does not contain the provided bottom level {bottom_id}"
+            )
+
+        if top_id is not None and top_id not in self.levels:
+            raise Exception(
+                f"Tile matrix set {self.name} does not contain the provided top level {top_id}"
+            )
+
+        end = False
+
+        for level in sorted_levels:
+            if not begin and level.id == bottom_id:
+                begin = True
+
+            if begin:
+                levels.append(level)
+                if top_id is not None and level.id == top_id:
+                    end = True
+                    break
+                else:
+                    continue
+
+        if top_id is None:
+            # Pas de niveau du haut fourni, on a été jusqu'en haut et c'est normal
+            end = True
+
+        if not begin or not end:
+            raise Exception(
+                f"Provided levels ids ({bottom_id} -> {top_id}) are not consistent with tile matrix set {self.name}"
+            )
+
+        return levels
