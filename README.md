@@ -41,9 +41,9 @@ except Exception as exc:
     print(exc)
 ```
 
-Puis exécuter le programme : 
+Puis exécuter le programme :
 ```sh
-python3 tilematrixset_launcher.py 
+python3 tilematrixset_launcher.py
 ```
 
 
