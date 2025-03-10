@@ -14,10 +14,24 @@ Depuis [PyPI](https://pypi.org/project/rok4/) : `pip install rok4`
 
 Depuis [GitHub](https://github.com/rok4/core-python/releases/) : `pip install https://github.com/rok4/core-python/releases/download/x.y.z/rok4-x.y.z-py3-none-any.whl`
 
+Puis passer en mode superutilisateur pour taper cette ligne de commande et installer l'environnement virtuel de python :
+```sh
+sudo apt install python3.10-venv
+```
+puis revenir en mode normal et tapez cette ligne de commande :
+```sh
+source .venv/bin/activate
+```
+
 L'environnement d'exécution doit avoir accès aux librairies système. Dans le cas d'une utilisation au sein d'un environnement python, précisez bien à la création `python3 -m venv --system-site-packages .venv`.
 
 ## Utiliser la librairie
 
+Dans un script nommé par exemple `tilematrixset_launcher.py` en dehors du dépôt `core-python`, tapez la ligne de commande suivante :
+```sh
+export ROK4_TMS_DIRECTORY=/home/{my_username}/core-python/
+```
+Le script `tilematrixset_launcher.py` contient les lignes suivantes :
 ```python
 from rok4.tile_matrix_set import TileMatrixSet
 
@@ -26,6 +40,12 @@ try:
 except Exception as exc:
     print(exc)
 ```
+
+Puis exécuter le programme : 
+```sh
+python3 tilematrixset_launcher.py 
+```
+
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
 
