@@ -41,7 +41,10 @@ Le script `tilematrixset_launcher.py` contient les lignes suivantes :
 from rok4.tile_matrix_set import TileMatrixSet
 
 try:
-    tms = TileMatrixSet("file:///path/to/tms.json")
+    tms = TileMatrixSet("PM")
+    print (tms.name)
+    print (tms.path)
+    print (tms.srs)
 except Exception as exc:
     print(exc)
 ```
@@ -50,7 +53,13 @@ Puis exécuter le programme :
 ```sh
 python3 tilematrixset_launcher.py
 ```
-
+Le résultat donne :
+```sh
+myusername@pcname:~$ python3 tilematrixset_launcher.py
+PM
+s3://tilematrixsets/PM.json
+EPSG:3857
+```
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
 
