@@ -35,7 +35,7 @@ export ROK4_S3_SECRETKEY=rok4S3storage
 export ROK4_S3_URL=http://localhost:9000
 ```
 
-Dans un script nommé par exemple `tilematrixset_launcher.py` 
+Dans un script nommé par exemple `tilematrixset_launcher.py`
 Le script `tilematrixset_launcher.py` contient les lignes suivantes :
 ```python
 from rok4.tile_matrix_set import TileMatrixSet
