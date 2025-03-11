@@ -42,9 +42,9 @@ from rok4.tile_matrix_set import TileMatrixSet
 
 try:
     tms = TileMatrixSet("PM")
-    print (tms.name)
-    print (tms.path)
-    print (tms.srs)
+    print("le nom du tms est le suivant : {}".format(tms.name))
+    print("le nom du tms est le suivant : {}".format(tms.path))
+    print("le code srs associé au système de projection planimétrique est le suivant : {}".format(tms.srs))
 except Exception as exc:
     print(exc)
 ```
