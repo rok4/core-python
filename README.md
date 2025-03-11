@@ -27,10 +27,15 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 ## Utiliser la librairie
 
-Dans un script nommé par exemple `tilematrixset_launcher.py` en dehors du dépôt `core-python`, tapez la ligne de commande suivante :
+En dehors du dépôt `core-python`, tapez la ligne de commande suivante :
 ```sh
-export ROK4_TMS_DIRECTORY=/home/{my_username}/core-python/
+export ROK4_TMS_DIRECTORY=s3://tilematrixsets
+export ROK4_S3_KEY=rok4
+export ROK4_S3_SECRETKEY=rok4S3storage
+export ROK4_S3_URL=http://localhost:9000
 ```
+
+Dans un script nommé par exemple `tilematrixset_launcher.py` 
 Le script `tilematrixset_launcher.py` contient les lignes suivantes :
 ```python
 from rok4.tile_matrix_set import TileMatrixSet
