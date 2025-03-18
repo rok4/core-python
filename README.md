@@ -35,30 +35,75 @@ export ROK4_S3_SECRETKEY=rok4S3storage
 export ROK4_S3_URL=http://localhost:9000
 ```
 
-Dans un script nommé par exemple `tilematrixset_launcher.py`
-Le script `tilematrixset_launcher.py` contient les lignes suivantes :
+Dans un script nommé par exemple `data_tilesmatrix_launcher.py`
+Le script `data_tilesmatrix_launcher.py` contient les lignes suivantes :
 ```python
-from rok4.tile_matrix_set import TileMatrixSet
+#!/usr/bin/env python3
+# Nom : data_tilesmatrix_launcher.py
+# But : récupérer des informations sur les pyramides de tuiles que l'on analyse
+# Dossier cible : pyramide tuiles ALTI et BDORTHO
 
-try:
+import json
+from enum import Enum
+
+# import des classes de rok4
+from rok4.enums import PyramidType, SlabType, StorageType
+from rok4.pyramid import Level, Pyramid
+from rok4.vector import Vector
+from rok4.style import Colour, Palette, Slope, Exposition, Estompage, Legend, Style
+from rok4.storage import get_infos_from_path, get_path_from_infos, get_osgeo_path, get_size
+from rok4.utils import bbox_to_geometry, reproject_bbox, reproject_point, compute_bbox, compute_format, srs_to_spatialreference
+from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
+
+
+try :
+
     tms = TileMatrixSet("PM")
-    print("le nom du tms est le suivant : {}".format(tms.name))
-    print("le nom du tms est le suivant : {}".format(tms.path))
-    print("le code srs associé au système de projection planimétrique est le suivant : {}".format(tms.srs))
-except Exception as exc:
-    print(exc)
+    print(f"le nom du tms est le suivant : {tms.name}")
+    print(f"le nom du tms est le suivant : {tms.path}")
+    print(f"le code srs associé au système de projection planimétrique est le suivant : {tms.srs}")
+
+    typePyramid = PyramidType("RASTER")
+    slabType = SlabType("MASK")
+    storageType = StorageType("s3://")
+
+    print (f"type de pyramide : {typePyramid}")
+    print (f"type de slab : {slabType}")
+    print (f"type de stockage : {storageType}")
+
+    couleur = Colour({
+                    "value": 600,
+                    "red": 220,
+                    "green": 179,
+                    "blue": 99,
+                    "alpha": 255
+                }, "Style")
+    print(f"les canaux rouge, vert, bleu et alpha : {couleur.rgba}")
+    print(f"les canaux rouge, vert, bleu : {couleur.rgb}")
+
+    pathtorasterpyramide = "/home/FBacquelot/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
+    pathtovecteurrpyramide = "/home/FBacquelot/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
+
+except Exception as exc :
+
+    print (exc)
 ```
 
 Puis exécuter le programme :
 ```sh
-python3 tilematrixset_launcher.py
+python3 data_tilesmatrix_launcher.py
 ```
 Le résultat donne :
 ```sh
-myusername@pcname:~$ python3 tilematrixset_launcher.py
-PM
-s3://tilematrixsets/PM.json
-EPSG:3857
+myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
+le nom du tms est le suivant : PM
+le nom du tms est le suivant : s3://tilematrixsets/PM.json
+le code srs associé au système de projection planimétrique est le suivant : EPSG:3857
+type de pyramide : PyramidType.RASTER
+type de slab : SlabType.MASK
+type de stockage : StorageType.S3
+les canaux rouge, vert, bleu et alpha : (220, 179, 99, 255)
+les canaux rouge, vert, bleu : (220, 179, 99)
 ```
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
