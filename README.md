@@ -41,9 +41,8 @@ Le script `data_tilesmatrix_launcher.py` contient les lignes suivantes :
 #!/usr/bin/env python3
 # Nom : data_tilesmatrix_launcher.py
 # But : récupérer des informations sur les pyramides de tuiles que l'on analyse
-# Dossier cible : pyramide tuiles ALTI et BDORTHO
+# Dossier cible : pyramide tuiles de données raster ALTI et BDORTHO par exemple, et de données vecteur BDPARCELLAIRE
 
-import json
 from enum import Enum
 
 # import des classes de rok4
@@ -81,8 +80,15 @@ try :
     print(f"les canaux rouge, vert, bleu et alpha : {couleur.rgba}")
     print(f"les canaux rouge, vert, bleu : {couleur.rgb}")
 
+    bbox = (10.6, 6.6, 3.3, 3.7)
+    layers = [("vector1", 10, [("attribute1", "attribute2")])]
     pathtorasterpyramide = "/home/FBacquelot/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
     pathtovecteurrpyramide = "/home/FBacquelot/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
+
+    vector = Vector()
+    print(f"le path donnant accès aux données de la pyramide de tuile vecteur est : {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['path']}")
+    print(f"la boundary box de la pyramide de tuile vecteur est : {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['bbox']}")
+    print(f"les couches vectorielles avec leur nom, le nombre d'objets et leurs attributs {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['layers']}")
 
 except Exception as exc :
 
@@ -95,7 +101,7 @@ python3 data_tilesmatrix_launcher.py
 ```
 Le résultat donne :
 ```sh
-myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
+myusername@pcname:~$ python3 data_tilesmatrix_launcher.py 
 le nom du tms est le suivant : PM
 le nom du tms est le suivant : s3://tilematrixsets/PM.json
 le code srs associé au système de projection planimétrique est le suivant : EPSG:3857
@@ -104,6 +110,9 @@ type de slab : SlabType.MASK
 type de stockage : StorageType.S3
 les canaux rouge, vert, bleu et alpha : (220, 179, 99, 255)
 les canaux rouge, vert, bleu : (220, 179, 99)
+le path donnant accès aux données de la pyramide de tuile vecteur est : /home/myusername/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235
+la boundary box de la pyramide de tuile vecteur est : (10.6, 6.6, 3.3, 3.7)
+les couches vectorielles avec leur nom, le nombre d'objets et leurs attributs [('vector1', 10, [('attribute1', 'attribute2')])]
 ```
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
