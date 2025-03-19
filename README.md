@@ -82,8 +82,8 @@ try :
 
     bbox = (10.6, 6.6, 3.3, 3.7)
     layers = [("vector1", 10, [("attribute1", "attribute2")])]
-    pathtorasterpyramide = "/home/FBacquelot/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
-    pathtovecteurrpyramide = "/home/FBacquelot/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
+    pathtorasterpyramide = "/home/myusername/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
+    pathtovecteurrpyramide = "/home/myusername/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
 
     vector = Vector()
     print(f"le path donnant accès aux données de la pyramide de tuile vecteur est : {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['path']}")
