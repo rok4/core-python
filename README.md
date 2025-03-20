@@ -27,12 +27,42 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 ## Utiliser la librairie
 
-En dehors du dépôt `core-python`, tapez la ligne de commande suivante :
+En dehors du dépôt `core-python`, tapez la ligne de commande suivante dans un fichier shell `envvar.sh` , ainsi il n'y aura à chaque fois plus quà lancer le script shell contenant l'export de toutes les variables d'environnement du projet :
 ```sh
 export ROK4_TMS_DIRECTORY=s3://tilematrixsets
 export ROK4_S3_KEY=rok4
 export ROK4_S3_SECRETKEY=rok4S3storage
 export ROK4_S3_URL=http://localhost:9000
+```
+
+Arborescence d'organisation des scripts et des fichiers json pour l'exploitation des informations sur les tuiles de pyramide :
+```sh
+tree ../../Pyramide/
+../../Pyramide/
+├── JSON
+│   ├── layers
+│   │   └── pente.json
+│   ├── pyramides
+│   │   └── ALTI.json
+│   ├── styles
+│   │   └── pente.json
+│   └── tilematrixsets
+│       └── PM.json
+├── RASTER
+│   ├── ALTI
+│   │   ├── DATA_0_0_0
+│   │   └── DATA_11_42_58
+│   └── BDORTHO
+│       ├── DATA_11_42_58
+│       └── DATA_14_338_470
+├── scripts
+│   ├── data_tilesmatrix_launcher.py
+│   ├── envvar.sh
+│   └── tilematrixset_launcher.py
+└── VECTEUR
+    └── BDPARCELLAIRE
+        ├── DATA_11_21_29
+        └── DATA_14_169_235
 ```
 
 Dans un script nommé par exemple `data_tilesmatrix_launcher.py`
@@ -80,10 +110,43 @@ try :
     print(f"les canaux rouge, vert, bleu et alpha : {couleur.rgba}")
     print(f"les canaux rouge, vert, bleu : {couleur.rgb}")
 
+        # Ouverture d'un fichier JSON d'une couche
+    print(f"\nOuverture d'un fichier JSON d'une pyramide")
+    with open("~/Documents/Pyramide/JSON/layers/pente.json") as json_file:
+        data = json.load(json_file)
+        print(f"type de structure de données de data : {type(data)}")
+        print(f'mots-clefs : {data["keywords"]}')
+        print(f'niveau le plus bas de la pyramide : {data["pyramids"][0]["bottom_level"]}')
+        print(f'niveau le plus haut de la pyramide : {data["pyramids"][0]["top_level"]}')
+        print(f'le chemin d accès à la pyramide : {data["pyramids"][0]["path"]}')
+        print(f'le style choisi : {data["styles"][0]}')
+        print(f'code srs de la projection planimétrique : {data["extra_crs"]}')
+
+    # Ouverture d'un fichier JSON d'une pyramide
+    print ("\nOuverture d'un fichier JSON d'une pyramide")
+    with open("~/Documents/Pyramide/JSON/pyramides/ALTI.json") as json_file:
+        data = json.load(json_file)
+        print(f"type de structure de données de data : {type(data)}")
+        #print(data)
+        print(f'nombre de niveaux de la pyramide : {len(data["levels"])}')
+        #print(data["levels"])
+        #print(data["levels"]["tile_limits"])
+        print(data["levels"][0]["tile_limits"])
+        print(f'niveau zéro de stockage de la pyramide : {data["levels"][0]["storage"]}')
+        print(f'nom de la tuile de la pyramide : {data["tile_matrix_set"]}')
+        #print(f'niveaux de la tuile de la pyramide : {data["levels"]}')
+        print(f'niveau zéro de la tuile de la pyramide : {data["levels"][0]}')
+        print(f'max de la colonne en limite de tuile niveau zéro de la tuile de la pyramide : {data["levels"][0]["tile_limits"]["max_col"]}')
+        print(f'données de stockage du niveau zéro de la tuile de la pyramide : {data["levels"][0]["storage"]}')
+        print(f'type de stockage : {data["levels"][0]["storage"]["type"]}')
+        print(f'préfixe de l image : {data["levels"][0]["storage"]["image_prefix"]}')
+        print(f'nom du bucket de stockage : {data["levels"][0]["storage"]["bucket_name"]}')
+        print(f'nombre de tuiles par hauteur : {data["levels"][0]["tiles_per_height"]}')
+
     bbox = (10.6, 6.6, 3.3, 3.7)
     layers = [("vector1", 10, [("attribute1", "attribute2")])]
-    pathtorasterpyramide = "/home/myusername/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
-    pathtovecteurrpyramide = "/home/myusername/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
+    pathtorasterpyramide = "~/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
+    pathtovecteurrpyramide = "~/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
 
     vector = Vector()
     print(f"le path donnant accès aux données de la pyramide de tuile vecteur est : {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['path']}")
@@ -101,7 +164,7 @@ python3 data_tilesmatrix_launcher.py
 ```
 Le résultat donne :
 ```sh
-myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
+myusername@pcname:~$ python3 data_tilesmatrix_launcher.py 
 le nom du tms est le suivant : PM
 le nom du tms est le suivant : s3://tilematrixsets/PM.json
 le code srs associé au système de projection planimétrique est le suivant : EPSG:3857
@@ -110,9 +173,25 @@ type de slab : SlabType.MASK
 type de stockage : StorageType.S3
 les canaux rouge, vert, bleu et alpha : (220, 179, 99, 255)
 les canaux rouge, vert, bleu : (220, 179, 99)
-le path donnant accès aux données de la pyramide de tuile vecteur est : /home/myusername/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235
-la boundary box de la pyramide de tuile vecteur est : (10.6, 6.6, 3.3, 3.7)
-les couches vectorielles avec leur nom, le nombre d'objets et leurs attributs [('vector1', 10, [('attribute1', 'attribute2')])]
+type de structure de données de data : <class 'dict'>
+mots-clefs : ['Pente', 'Dérivé de la BD Alti']
+niveau le plus bas de la pyramide : 13
+niveau le plus haut de la pyramide : 0
+le chemin d accès à la pyramide : s3://pyramids/PENTE.json
+le style choisi : montagne_palette
+code srs de la projection planimétrique : ['EPSG:4559']
+type de structure de données de data : <class 'dict'>
+nombre de niveaux de la pyramide : 14
+{'max_col': 0, 'max_row': 0, 'min_col': 0, 'min_row': 0}
+{'type': 'S3', 'image_prefix': 'ALTI/DATA_0', 'bucket_name': 'pyramids'}
+nom de la tuile de la pyramide : PM
+niveau zéro de la tuile de la pyramide : {'tile_limits': {'max_col': 0, 'max_row': 0, 'min_col': 0, 'min_row': 0}, 'storage': {'type': 'S3', 'image_prefix': 'ALTI/DATA_0', 'bucket_name': 'pyramids'}, 'tiles_per_width': 16, 'id': '0', 'tiles_per_height': 16}
+max de la colonne en limite de tuile niveau zéro de la tuile de la pyramide : 0
+données de stockage du niveau zéro de la tuile de la pyramide : {'type': 'S3', 'image_prefix': 'ALTI/DATA_0', 'bucket_name': 'pyramids'}
+type de stockage : S3
+préfixe de l image : ALTI/DATA_0
+nom du bucket de stockage : pyramids
+nombre de tuiles par hauteur : 16
 ```
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
