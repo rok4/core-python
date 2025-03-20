@@ -49,12 +49,13 @@ tree ../../Pyramide/
 │       └── DATA_14_338_470
 ├── scripts
 │   ├── data_tilesmatrix_launcher.py
-│   ├── envvar.sh
-│   └── tilematrixset_launcher.py
+│   └── envvar.sh
 └── VECTEUR
     └── BDPARCELLAIRE
         ├── DATA_11_21_29
         └── DATA_14_169_235
+
+11 directories, 12 files
 ```
 
 En dehors du dépôt `core-python`, tapez la ligne de commande suivante dans un fichier shell `envvar.sh` , ainsi il n'y aura qu'une fois à lancer ce script shell contenant l'export de toutes les variables d'environnement du projet `ROK4`:
