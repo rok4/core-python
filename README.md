@@ -194,10 +194,7 @@ python3 data_tilesmatrix_launcher.py
 ```
 Le résultat donne :
 ```sh
-myusername@pcname:~$ python3 data_tilesmatrix_launcher.py 
-
-Exploitation de la classe TileMatrixSet
-
+myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
 le nom du tms est le suivant : PM
 le nom du tms est le suivant : s3://tilematrixsets/PM.json
 le code srs associé au système de projection planimétrique est le suivant : EPSG:3857
