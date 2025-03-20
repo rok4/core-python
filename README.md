@@ -27,15 +27,7 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 ## Utiliser la librairie
 
-En dehors du dépôt `core-python`, tapez la ligne de commande suivante dans un fichier shell `envvar.sh` , ainsi il n'y aura à chaque fois plus quà lancer le script shell contenant l'export de toutes les variables d'environnement du projet :
-```sh
-export ROK4_TMS_DIRECTORY=s3://tilematrixsets
-export ROK4_S3_KEY=rok4
-export ROK4_S3_SECRETKEY=rok4S3storage
-export ROK4_S3_URL=http://localhost:9000
-```
-
-Arborescence d'organisation des scripts et des fichiers json pour l'exploitation des informations sur les tuiles de pyramide :
+Voici un exemple d'arborescence d'organisation des scripts et des fichiers json pour l'exploitation des informations sur les pyramides de tuiles de données raster ou vecteur :
 ```sh
 tree ../../Pyramide/
 ../../Pyramide/
@@ -64,6 +56,15 @@ tree ../../Pyramide/
         ├── DATA_11_21_29
         └── DATA_14_169_235
 ```
+
+En dehors du dépôt `core-python`, tapez la ligne de commande suivante dans un fichier shell `envvar.sh` , ainsi il n'y aura qu'une fois à lancer ce script shell contenant l'export de toutes les variables d'environnement du projet `ROK4`:
+```sh
+export ROK4_TMS_DIRECTORY=s3://tilematrixsets
+export ROK4_S3_KEY=rok4
+export ROK4_S3_SECRETKEY=rok4S3storage
+export ROK4_S3_URL=http://localhost:9000
+```
+
 
 Dans un script nommé par exemple `data_tilesmatrix_launcher.py`
 Le script `data_tilesmatrix_launcher.py` contient les lignes suivantes :
@@ -110,8 +111,8 @@ try :
     print(f"les canaux rouge, vert, bleu et alpha : {couleur.rgba}")
     print(f"les canaux rouge, vert, bleu : {couleur.rgb}")
 
-        # Ouverture d'un fichier JSON d'une couche
-    print(f"\nOuverture d'un fichier JSON d'une pyramide")
+    # Ouverture d'un fichier JSON d'une couche
+    print(f"\nOuverture d'un fichier JSON d'une couche\n")
     with open("~/Documents/Pyramide/JSON/layers/pente.json") as json_file:
         data = json.load(json_file)
         print(f"type de structure de données de data : {type(data)}")
@@ -120,10 +121,10 @@ try :
         print(f'niveau le plus haut de la pyramide : {data["pyramids"][0]["top_level"]}')
         print(f'le chemin d accès à la pyramide : {data["pyramids"][0]["path"]}')
         print(f'le style choisi : {data["styles"][0]}')
-        print(f'code srs de la projection planimétrique : {data["extra_crs"]}')
+        print(f'code srs de la projection planimétrique : {data["extra_crs"][0]}')
 
     # Ouverture d'un fichier JSON d'une pyramide
-    print ("\nOuverture d'un fichier JSON d'une pyramide")
+    print ("\nOuverture d'un fichier JSON d'une pyramide\n")
     with open("~/Documents/Pyramide/JSON/pyramides/ALTI.json") as json_file:
         data = json.load(json_file)
         print(f"type de structure de données de data : {type(data)}")
@@ -142,6 +143,35 @@ try :
         print(f'préfixe de l image : {data["levels"][0]["storage"]["image_prefix"]}')
         print(f'nom du bucket de stockage : {data["levels"][0]["storage"]["bucket_name"]}')
         print(f'nombre de tuiles par hauteur : {data["levels"][0]["tiles_per_height"]}')
+
+    # Ouverture d'un fichier JSON d'un style
+    print ("\nOuverture d'un fichier JSON d'un style\n")
+    with open("~/Documents/Pyramide/JSON/styles/pente.json") as json_file:
+        data = json.load(json_file)
+        print(f"type de structure de données de data : {type(data)}")
+        print(f'le titre : {data["title"]}')
+        print(f'pente : {data["keywords"][0]}')
+        print(f'ce dont il s"agit : {data["keywords"][1]}')
+        print(f'niveau le plus bas : {data["pyramids"][0]["bottom_level"]}')
+        print(f'niveau le plus haut : {data["pyramids"][0]["top_level"]}')
+        print(f'type de palette : {data["styles"][0]}')
+        print(f'code srs associé à la projection planimétrique : {data["extra_crs"][0]}')
+
+    # Ouverture d'un fichier JSON d'un tilematrixset
+    print ("\nOuverture d'un fichier JSON d'un tilematrixset\n")
+    with open("~/Documents/Pyramide/JSON/tilematrixsets/PM.json") as json_file:
+        data = json.load(json_file)
+        print(f"type de structure de données de data : {type(data)}")
+        print(f'nom de la pyramide : {data["id"]}')
+        print(f'code srs projection planimétrique : {data["crs"]}')
+        print(f'nombre de tuiles de la pyramide : {len(data["tileMatrices"])}')
+        print(f'coordonnées du point origine : {data["tileMatrices"][0]["pointOfOrigin"]}')
+        print(f'taille de la cellule : {data["tileMatrices"][0]["cellSize"]}')
+        print(f'nombre d"éléments de la matrices de tuiles cad le nombre de tuiles : {len(data["tileMatrices"])}')
+
+
+    # Exploitation de la classe Vector
+    print ("\nExploitation de la classe Vector\n")
 
     bbox = (10.6, 6.6, 3.3, 3.7)
     layers = [("vector1", 10, [("attribute1", "attribute2")])]
@@ -165,6 +195,9 @@ python3 data_tilesmatrix_launcher.py
 Le résultat donne :
 ```sh
 myusername@pcname:~$ python3 data_tilesmatrix_launcher.py 
+
+Exploitation de la classe TileMatrixSet
+
 le nom du tms est le suivant : PM
 le nom du tms est le suivant : s3://tilematrixsets/PM.json
 le code srs associé au système de projection planimétrique est le suivant : EPSG:3857
@@ -173,17 +206,23 @@ type de slab : SlabType.MASK
 type de stockage : StorageType.S3
 les canaux rouge, vert, bleu et alpha : (220, 179, 99, 255)
 les canaux rouge, vert, bleu : (220, 179, 99)
+
+Ouverture d'un fichier JSON d'une couche
+
 type de structure de données de data : <class 'dict'>
 mots-clefs : ['Pente', 'Dérivé de la BD Alti']
 niveau le plus bas de la pyramide : 13
 niveau le plus haut de la pyramide : 0
 le chemin d accès à la pyramide : s3://pyramids/PENTE.json
 le style choisi : montagne_palette
-code srs de la projection planimétrique : ['EPSG:4559']
+code srs de la projection planimétrique : EPSG:4559
+
+Ouverture d'un fichier JSON d'une pyramide
+
 type de structure de données de data : <class 'dict'>
 nombre de niveaux de la pyramide : 14
 {'max_col': 0, 'max_row': 0, 'min_col': 0, 'min_row': 0}
-{'type': 'S3', 'image_prefix': 'ALTI/DATA_0', 'bucket_name': 'pyramids'}
+niveau zéro de stockage de la pyramide : {'type': 'S3', 'image_prefix': 'ALTI/DATA_0', 'bucket_name': 'pyramids'}
 nom de la tuile de la pyramide : PM
 niveau zéro de la tuile de la pyramide : {'tile_limits': {'max_col': 0, 'max_row': 0, 'min_col': 0, 'min_row': 0}, 'storage': {'type': 'S3', 'image_prefix': 'ALTI/DATA_0', 'bucket_name': 'pyramids'}, 'tiles_per_width': 16, 'id': '0', 'tiles_per_height': 16}
 max de la colonne en limite de tuile niveau zéro de la tuile de la pyramide : 0
@@ -192,6 +231,33 @@ type de stockage : S3
 préfixe de l image : ALTI/DATA_0
 nom du bucket de stockage : pyramids
 nombre de tuiles par hauteur : 16
+
+Ouverture d'un fichier JSON d'un style
+
+type de structure de données de data : <class 'dict'>
+le titre : Pente
+pente : Pente
+ce dont il s"agit : Dérivé de la BD Alti
+niveau le plus bas : 13
+niveau le plus haut : 0
+type de palette : montagne_palette
+code srs associé à la projection planimétrique : EPSG:4559
+
+Ouverture d'un fichier JSON d'un tilematrixset
+
+type de structure de données de data : <class 'dict'>
+nom de la pyramide : PM
+code srs projection planimétrique : EPSG:3857
+nombre de tuiles de la pyramide : 22
+coordonnées du point origine : [-20037508.3427892, 20037508.3427892]
+taille de la cellule : 156543.033928041
+nombre d"éléments de la matrices de tuiles cad le nombre de tuiles : 22
+
+Exploitation de la classe Vector
+
+le path donnant accès aux données de la pyramide de tuile vecteur est : ~/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235
+la boundary box de la pyramide de tuile vecteur est : (10.6, 6.6, 3.3, 3.7)
+les couches vectorielles avec leur nom, le nombre d'objets et leurs attributs [('vector1', 10, [('attribute1', 'attribute2')])]
 ```
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
