@@ -58,7 +58,7 @@ tree ../../Pyramide/
 11 directories, 12 files
 ```
 
-En dehors du dépôt `core-python`, tapez la ligne de commande suivante dans un fichier shell `envvar.sh` , ainsi il n'y aura qu'une fois à lancer ce script shell contenant l'export de toutes les variables d'environnement du projet `ROK4`:
+En dehors du dépôt `core-python`, tapez les ligne de commande suivantes dans un fichier shell `envvar.sh` contenant l'export de toutes les variables d'environnement du projet `ROK4`:
 ```sh
 export ROK4_TMS_DIRECTORY=s3://tilematrixsets
 export ROK4_S3_KEY=rok4
@@ -76,14 +76,17 @@ Le script `data_tilesmatrix_launcher.py` contient les lignes suivantes :
 # Dossier cible : pyramide tuiles de données raster ALTI et BDORTHO par exemple, et de données vecteur BDPARCELLAIRE
 
 from enum import Enum
+import json
 
-# import des classes de rok4
-from rok4.enums import PyramidType, SlabType, StorageType
+# import des packages de rok4
+from rok4.enums import PyramidType, SlabType, StorageType, ColorFormat
 from rok4.pyramid import Level, Pyramid
+from rok4.layer import Layer
 from rok4.vector import Vector
+from rok4.raster import Raster, RasterSet
 from rok4.style import Colour, Palette, Slope, Exposition, Estompage, Legend, Style
-from rok4.storage import get_infos_from_path, get_path_from_infos, get_osgeo_path, get_size
-from rok4.utils import bbox_to_geometry, reproject_bbox, reproject_point, compute_bbox, compute_format, srs_to_spatialreference
+from rok4.storage import *
+from rok4.utils import *
 from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
 
 
