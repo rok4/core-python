@@ -85,9 +85,10 @@ from rok4.layer import Layer
 from rok4.vector import Vector
 from rok4.raster import Raster, RasterSet
 from rok4.style import Colour, Palette, Slope, Exposition, Estompage, Legend, Style
-from rok4.storage import *
-from rok4.utils import *
+from rok4.storage import disconnect_s3_clients, disconnect_ceph_clients, get_infos_from_path, get_path_from_infos, hash_file, get_data_str, get_data_binary, put_data_str, get_size, exists, remove, copy, link, get_osgeo_path, size_path
+from rok4.utils import srs_to_spatialreference, bbox_to_geometry, reproject_bbox, reproject_point, compute_bbox, compute_format
 from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
+from rok4.exceptions import MissingEnvironmentError, StorageError
 
 
 try :
