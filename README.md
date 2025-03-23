@@ -80,15 +80,22 @@ import json
 
 # import des packages de rok4
 from rok4.enums import PyramidType, SlabType, StorageType, ColorFormat
-from rok4.pyramid import Level, Pyramid
+from rok4.pyramid import Pyramid, Level
 from rok4.layer import Layer
 from rok4.vector import Vector
 from rok4.raster import Raster, RasterSet
 from rok4.style import Colour, Palette, Slope, Exposition, Estompage, Legend, Style
-from rok4.storage import disconnect_s3_clients, disconnect_ceph_clients, get_infos_from_path, get_path_from_infos, hash_file, get_data_str, get_data_binary, put_data_str, get_size, exists, remove, copy, link, get_osgeo_path, size_path
+from rok4.storage import (copy,
+    get_data_binary,
+    get_data_str,
+    get_infos_from_path,
+    get_path_from_infos,
+    put_data_str,
+    remove,
+    size_path)
 from rok4.utils import srs_to_spatialreference, bbox_to_geometry, reproject_bbox, reproject_point, compute_bbox, compute_format
 from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
-from rok4.exceptions import MissingEnvironmentError, StorageError
+from rok4.exceptions import MissingEnvironmentError, StorageError, MissingAttributeError, FormatError
 
 
 try :
@@ -175,18 +182,32 @@ try :
         print(f'nombre d"éléments de la matrices de tuiles cad le nombre de tuiles : {len(data["tileMatrices"])}')
 
 
-    # Exploitation de la classe Vector
-    print ("\nExploitation de la classe Vector\n")
+    # Exploitation de la classe Pyramid
+    print ("\nExploitation de la classe Pyramid\n")
+    # chemin de la dalle ou du bloc de tuiles
+    slab_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29" 
+    # chemin du descriptor de la pyramide alti
+    path_to_pyramid_alti_descriptor = "s3://pyramids/ALTI.json"
+    # descriptor de la pyramide ALTI
+    pyr_alti_descriptor = Pyramid.from_descriptor(path_to_pyramid_alti_descriptor)
 
-    bbox = (10.6, 6.6, 3.3, 3.7)
-    layers = [("vector1", 10, [("attribute1", "attribute2")])]
-    pathtorasterpyramide = "~/Documents/Pyramide/RASTER/BDORTHO/DATA_14_338_470"
-    pathtovecteurrpyramide = "~/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235"
+    slab_indexes_1 = (SlabType.DATA, "12", 159, 367)
+    slab_indexes_2 = (SlabType.MASK, "15", 9164, 5846)
 
-    vector = Vector()
-    print(f"le path donnant accès aux données de la pyramide de tuile vecteur est : {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['path']}")
-    print(f"la boundary box de la pyramide de tuile vecteur est : {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['bbox']}")
-    print(f"les couches vectorielles avec leur nom, le nombre d'objets et leurs attributs {vector.from_parameters(pathtovecteurrpyramide, bbox, layers).__dict__['layers']}")
+    print (f"créer une pyramide à partir du path de son descriptor {pyr_alti_descriptor}")
+    slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_path)
+    slab_indexes = pyr_alti_descriptor.get_infos_from_slab_path(slab_path)
+    print (slab_indexes)
+    slab_indexes_3 = ("SlabType.MASK", "15", 9164, 5846, True)
+
+    pyramid_ortho = Pyramid.from_descriptor("s3://pyramids/BDORTHO.json")
+    level, col, row, pcol, prow = pyramid_ortho.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
+
+    data_binary = pyramid_ortho.get_tile_data_binary(level, col, row)
+    data_raster = pyramid_ortho.get_tile_data_raster(level, col, row)
+
+    print(data_binary)
+    print(data_raster)
 
 except Exception as exc :
 
