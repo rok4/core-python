@@ -185,7 +185,7 @@ try :
     # Exploitation de la classe Pyramid
     print ("\nExploitation de la classe Pyramid\n")
     # chemin de la dalle ou du bloc de tuiles
-    slab_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29" 
+    slab_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29"
     # chemin du descriptor de la pyramide alti
     path_to_pyramid_alti_descriptor = "s3://pyramids/ALTI.json"
     # descriptor de la pyramide ALTI
