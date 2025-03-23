@@ -29,33 +29,53 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 Voici un exemple d'arborescence d'organisation des scripts et des fichiers json pour l'exploitation des informations sur les pyramides de tuiles de données raster ou vecteur :
 ```sh
-tree ../../Pyramide/
-../../Pyramide/
+ tree ../../../Pyramide/
+../../../Pyramide/
 ├── JSON
-│   ├── layers
-│   │   └── pente.json
-│   ├── pyramides
-│   │   └── ALTI.json
-│   ├── styles
-│   │   └── pente.json
-│   └── tilematrixsets
-│       └── PM.json
+│   ├── layers
+│   │   └── pente.json
+│   ├── pyramides
+│   │   └── ALTI.json
+│   ├── styles
+│   │   └── pente.json
+│   └── tilematrixsets
+│       └── PM.json
 ├── RASTER
-│   ├── ALTI
-│   │   ├── DATA_0_0_0
-│   │   └── DATA_11_42_58
-│   └── BDORTHO
-│       ├── DATA_11_42_58
-│       └── DATA_14_338_470
+│   ├── ALTI
+│   │   ├── 01
+│   │   │   ├── DATA_10_21_29
+│   │   │   └── DATA_11_42_58
+│   │   ├── 02
+│   │   │   ├── DATA_10_21_29
+│   │   │   ├── DATA_11_42_58
+│   │   │   └── DATA_12_84_117
+│   │   ├── 03
+│   │   │   ├── DATA_10_21_29
+│   │   │   ├── DATA_11_42_58
+│   │   │   ├── DATA_12_84_117
+│   │   │   └── DATA_13_168_234
+│   │   ├── 04
+│   │   │   ├── DATA_1_0_0
+│   │   │   └── DATA_13_168_234
+│   │   └── DATA_12_84_117.tif
+│   └── BDORTHO
+│       ├── BDORTHO.json
+│       ├── DATA_11_42_58
+│       ├── DATA_13_168_234
+│       └── DATA_14_338_470
 ├── scripts
-│   ├── data_tilesmatrix_launcher.py
-│   └── envvar.sh
+│   ├── data_tilesmatrix_launcher.py
+│   └── envvar.sh
 └── VECTEUR
-    └── BDPARCELLAIRE
-        ├── DATA_11_21_29
-        └── DATA_14_169_235
+    ├── BDPARCELLAIRE
+    │   ├── BDPARCELLAIRE.json
+    │   ├── DATA_11_21_29
+    │   └── DATA_14_169_235
+    └── LIMITES_ADMINISTRATIVES
+        ├── DATA_15_678_940
+        └── LIMADM.json
 
-11 directories, 12 files
+16 directories, 27 files
 ```
 
 En dehors du dépôt `core-python`, tapez les ligne de commande suivantes dans un fichier shell `envvar.sh` contenant l'export de toutes les variables d'environnement du projet `ROK4`:
@@ -184,30 +204,88 @@ try :
 
     # Exploitation de la classe Pyramid
     print ("\nExploitation de la classe Pyramid\n")
+    # POUR l'ALTI :
+    print ("\npour des données ALTI\n")
     # chemin de la dalle ou du bloc de tuiles
-    slab_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29" 
+    slab_alti_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29" 
     # chemin du descriptor de la pyramide alti
     path_to_pyramid_alti_descriptor = "s3://pyramids/ALTI.json"
     # descriptor de la pyramide ALTI
     pyr_alti_descriptor = Pyramid.from_descriptor(path_to_pyramid_alti_descriptor)
 
-    slab_indexes_1 = (SlabType.DATA, "12", 159, 367)
-    slab_indexes_2 = (SlabType.MASK, "15", 9164, 5846)
-
     print (f"créer une pyramide à partir du path de son descriptor {pyr_alti_descriptor}")
-    slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_path)
-    slab_indexes = pyr_alti_descriptor.get_infos_from_slab_path(slab_path)
-    print (slab_indexes)
-    slab_indexes_3 = ("SlabType.MASK", "15", 9164, 5846, True)
+    print(f"type de pyramide {pyr_alti_descriptor.type}") 
+    print(f"format des tuiles de données vecteur : {pyr_alti_descriptor.format}") 
+    print(f"niveau le plus bas de la pyramide : {pyr_alti_descriptor.bottom_level}")
+    print(f"niveau le plus haut de la pyramide : {pyr_alti_descriptor.top_level}")
+    slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
+    slab_indexes = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
+    print (f"données du slab: \n")
+    print (f" type de slab {slab_indexes[0]}")
+    print (f" identifiant du niveau {slab_indexes[1]}")
+    print (f" nombre de tuiles en largeur par slab {slab_indexes[2]}")
+    print (f" nombre de tuiles en hauteur par slab : {slab_indexes[3]}")
+    level, col, row, pcol, prow = pyr_alti_descriptor.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
 
-    pyramid_ortho = Pyramid.from_descriptor("s3://pyramids/BDORTHO.json")
-    level, col, row, pcol, prow = pyramid_ortho.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
+    data_binary = pyr_alti_descriptor.get_tile_data_binary(level, col, row)
+    data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 
-    data_binary = pyramid_ortho.get_tile_data_binary(level, col, row)
-    data_raster = pyramid_ortho.get_tile_data_raster(level, col, row)
-
-    print(data_binary)
+    #print(data_binary)
     print(data_raster)
+    for (slab_type, level, column, row), infos in pyr_alti_descriptor.list_generator():
+        print(infos)
+
+    # pour la BDORTHO
+    print ("\npour des données raster BDORTHO\n")
+    pyramid_ortho_descriptor = Pyramid.from_descriptor("s3://pyramids/BDORTHO.json")
+    slab_ortho_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_13_168_234" 
+
+    print (f"créer une pyramide à partir du path de son descriptor {pyramid_ortho_descriptor}")
+    print(f"type de pyramide {pyramid_ortho_descriptor.type}") 
+    print(f"format des tuiles de données vecteur : {pyramid_ortho_descriptor.format}") 
+    print(f"niveau le plus bas de la pyramide : {pyramid_ortho_descriptor.bottom_level}")
+    print(f"niveau le plus haut de la pyramide : {pyramid_ortho_descriptor.top_level}")
+    print ()
+    slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_ortho_path)
+    slab_indexes = pyr_alti_descriptor.get_infos_from_slab_path(slab_ortho_path)
+    print ("données du slab: \n")
+    print (f" type de slab {slab_indexes[0]}")
+    print (f" identifiant du niveau {slab_indexes[1]}")
+    print (f" nombre de tuiles en largeur par slab {slab_indexes[2]}")
+    print (f" nombre de tuiles en hauteur par slab : {slab_indexes[3]}")
+    level, col, row, pcol, prow = pyramid_ortho_descriptor.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
+
+    data_binary = pyramid_ortho_descriptor.get_tile_data_binary(level, col, row)
+    data_raster = pyramid_ortho_descriptor.get_tile_data_raster(level, col, row)
+
+    #print(data_binary)
+    print(data_raster)
+
+    # for (slab_type, level, column, row), infos in pyramid_ortho_descriptor.list_generator():
+    #     print(infos)
+
+    print("\n\n")
+
+    # pour les limites ADMINISTRATIVES
+    print ("\npour des données VECTEUR LES LIMITES ADMINISTRATIVES\n")
+    pyramid_limits_administratives_descriptor = Pyramid.from_descriptor("s3://pyramids/LIMADM.json")
+    slab_limits_administratives_path = "~/Documents/Pyramide/VECTEUR/LIMITES_ADMINISTRATIVES/DATA_15_678_940" 
+
+    slab_indexes = pyramid_limits_administratives_descriptor.get_infos_from_slab_path(slab_limits_administratives_path)
+    print(f"type de pyramide {pyramid_limits_administratives_descriptor.type}") 
+    print(f"format des tuiles de données vecteur : {pyramid_limits_administratives_descriptor.format}") 
+    print(f"niveau le plus bas de la pyramide : {pyramid_limits_administratives_descriptor.bottom_level}")
+    print(f"niveau le plus haut de la pyramide : {pyramid_limits_administratives_descriptor.top_level}")
+    print (f"créer une pyramide à partir du path de son descriptor : {pyramid_limits_administratives_descriptor}")
+    print ("données du slab: \n")
+    print (f" type de slab {slab_indexes[0]}")
+    print (f" identifiant du niveau {slab_indexes[1]}")
+    print (f" nombre de tuiles en largeur par slab {slab_indexes[2]}")
+    print (f" nombre de tuiles en hauteur par slab : {slab_indexes[3]}")
+    print("\n")
+    """ for (slab_type, level, column, row), infos in pyramid_limits_administratives_descriptor.list_generator():
+        print(infos) """
+
 
 except Exception as exc :
 
@@ -276,11 +354,51 @@ coordonnées du point origine : [-20037508.3427892, 20037508.3427892]
 taille de la cellule : 156543.033928041
 nombre d"éléments de la matrices de tuiles cad le nombre de tuiles : 22
 
-Exploitation de la classe Vector
+EExploitation de la classe Pyramid
 
-le path donnant accès aux données de la pyramide de tuile vecteur est : ~/Documents/Pyramide/VECTEUR/BDPARCELLAIRE/DATA_14_169_235
-la boundary box de la pyramide de tuile vecteur est : (10.6, 6.6, 3.3, 3.7)
-les couches vectorielles avec leur nom, le nombre d'objets et leurs attributs [('vector1', 10, [('attribute1', 'attribute2')])]
+
+pour des données ALTI
+
+créer une pyramide à partir du path de son descriptor RASTER pyramid 'ALTI' (S3 storage)
+type de pyramide PyramidType.RASTER
+format des tuiles de données vecteur : TIFF_ZIP_FLOAT32
+niveau le plus bas de la pyramide : RASTER pyramid's level '13' (S3 storage)
+niveau le plus haut de la pyramide : RASTER pyramid's level '0' (S3 storage)
+données du slab: 
+
+ type de slab SlabType.DATA
+ identifiant du niveau 10
+ nombre de tuiles en largeur par slab 21
+ nombre de tuiles en hauteur par slab : 29
+
+ pour des données raster BDORTHO
+
+créer une pyramide à partir du path de son descriptor RASTER pyramid 'BDORTHO' (S3 storage)
+type de pyramide PyramidType.RASTER
+format des tuiles de données vecteur : TIFF_JPG_UINT8
+niveau le plus bas de la pyramide : RASTER pyramid's level '15' (S3 storage)
+niveau le plus haut de la pyramide : RASTER pyramid's level '0' (S3 storage)
+
+données du slab: 
+
+ type de slab SlabType.DATA
+ identifiant du niveau 13
+ nombre de tuiles en largeur par slab 168
+ nombre de tuiles en hauteur par slab : 234
+
+ pour des données VECTEUR LES LIMITES ADMINISTRATIVES
+
+type de pyramide PyramidType.VECTOR
+format des tuiles de données vecteur : TIFF_PBF_MVT
+niveau le plus bas de la pyramide : VECTOR pyramid's level '18' (S3 storage)
+niveau le plus haut de la pyramide : VECTOR pyramid's level '0' (S3 storage)
+créer une pyramide à partir du path de son descriptor : VECTOR pyramid 'LIMADM' (S3 storage)
+données du slab: 
+
+ type de slab SlabType.DATA
+ identifiant du niveau 15
+ nombre de tuiles en largeur par slab 678
+ nombre de tuiles en hauteur par slab : 940
 ```
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
