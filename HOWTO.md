@@ -144,3 +144,67 @@ try:
 except Exception as exc :
     print (exc)
 ```
+
+## Descripteur de couches des "layers" => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
+
+```list.txt``` contient tous les noms des buckets de stockage des listes sous forme de liste :
+
+```txt
+s3://layers/bdortho.json
+s3://layers/alti.json
+s3://layers/limadm.json
+s3://layers/pente.json
+s3://layers/bdparcellaire.json
+```
+
+*   Ci-jointe sa structure en objet json :
+
+```json
+{
+    "title": "Photographies aériennes",
+    "abstract": "Données BD Ortho",
+    "keywords":
+    [
+        "Ortho-photographies",
+        "Données RGB"
+    ],
+    "pyramids":
+    [
+        {
+            "bottom_level": "15",
+            "top_level": "0",
+            "path": "s3://pyramids/BDORTHO.json"
+        }
+    ],
+    "resampling": "bicubic",
+    "styles":
+    [
+        "normal"
+    ],
+    "extra_crs":
+    [
+        "EPSG:4559"
+    ],
+    "extra_tilematrixsets":
+    [
+        "4326",
+        "UTM20W84MART_2.5m"
+    ],
+    "wms":
+    {
+        "enabled": true
+    },
+    "wmts":
+    {
+        "enabled": true
+    },
+    "tms":
+    {
+        "enabled": true
+    },
+    "tiles":
+    {
+        "enabled": true
+    }
+}
+```
