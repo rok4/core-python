@@ -61,7 +61,7 @@ data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 
 *   Même principe qu'avec le cas RASTER, si l'on veut récupérer les données vecteur d'une tuile de Pyramide :
 
-*   Cas d'usage : données VECTEUR : LIMITES ADMINISTRATIVES
+*   Cas d'usage : données VECTEUR : pyramide LIMITES ADMINISTRATIVES
 ```py
 pyramid_vector = Pyramid.from_descriptor("s3://pyramids/LIMADM.json")
 level, col, row, pcol, prow = pyramid.get_tile_indices(tile_level, tile_column, tile_row)
