@@ -92,19 +92,23 @@ On utilise la classe ```TileMatrix()``` avec laquelle on instancie un objet lié
 tilematrixsets/PM.json"``` par exemple voici une partie de sa structure en objet json pour le tms ```PM```:
 
 ```json
-
-tileMatrices
-0
-id	"0"
-tileWidth	256
-scaleDenominator	559082264.028718
-matrixWidth	1
-cellSize	156543.033928041
-matrixHeight	1
-tileHeight	256
-pointOfOrigin
-0	-20037508.3427892
-1	20037508.3427892
+{
+   "tileMatrices" : [
+      {
+         "id" : "0",
+         "tileWidth" : 256,
+         "scaleDenominator" : 559082264.028718,
+         "matrixWidth" : 1,
+         "cellSize" : 156543.033928041,
+         "matrixHeight" : 1,
+         "tileHeight" : 256,
+         "pointOfOrigin" : [
+            -20037508.3427892,
+            20037508.3427892
+         ]
+      },
+      {},..
+}
 ```
 
 On peut ainsi aisément accéder :
