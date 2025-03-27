@@ -85,11 +85,11 @@ level, col, row, pcol, prow = pyramid.get_tile_indices(tile_level, tile_column, 
 data_vector = pyramid.get_tile_data_vector(level, col, row)
 ```
 
-### Comment définit-on une matrice de tuiles à partir des niveau de jeux de matrice de tuile ?
+### Comment définit-on une matrice de tuiles à partir des niveaux de jeux de matrice de tuile ?
 
-On utilise la classe ```TileMatrix()``` avec laquelle on instancie un objet lié à cette classe à partir du bucket de stockage ```s3://
+On utilise la classe ```TileMatrixSet()``` avec laquelle on instancie un objet lié à cette classe,
 
-tilematrixsets/PM.json``` par exemple voici une partie de sa structure en objet json pour le tms ```PM```:
+à partir du bucket de stockage ```s3://tilematrixsets/PM.json``` par exemple voici une partie de sa structure en objet json pour le tms ```PM```:
 
 ```json
 {
@@ -124,6 +124,10 @@ On peut ainsi aisément accéder :
 *   à la taille de la tuile en largeur et et en hauteur,
 
 *   à la taille de la matrice en largeur et en hauteur
+
+On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction ```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et max)
+
+On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : ```point_to_indices(self, x: float, y: float) -> Tuple[int, int, int, int]```
 
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :

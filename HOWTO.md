@@ -33,3 +33,43 @@
 
     print(data_raster)
  ```
+
+# Cas d'usage simple avec le TileMatrixSet "PM": bucket de stockage : ```s3://tilematrixsets/PM.json```
+
+```py
+#!/usr/bin/env python3
+import json
+# import des packages de rok4
+from rok4.enums import PyramidType, SlabType, StorageType, ColorFormat
+from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
+try:
+    tms = TileMatrixSet("PM")
+    print ("\nExploitation de la classe TileMatrixSet\n")
+    print(f"le nom du tms est le suivant : {tms.name}")
+    print(f"le nom du tms est le suivant : {tms.path}")
+    print(f"le code srs associé au système de projection planimétrique est le suivant : {tms.srs}")
+
+    typePyramid = PyramidType("RASTER")
+    slabType = SlabType("MASK")
+    storageType = StorageType("s3://")
+
+    print (f"type de pyramide : {typePyramid}")
+    print (f"type de slab : {slabType}")
+    print (f"type de stockage : {storageType}")
+
+    # Ouverture d'un fichier JSON d'un tilematrixset
+    print ("\nOuverture d'un fichier JSON d'un tilematrixset\n")
+
+    with open("s3://tilematrixsets/PM.json") as json_file:
+        data = json.load(json_file)
+        print(f"type de structure de données de data : {type(data)}")
+        print(f'nom de la pyramide : {data["id"]}')
+        print(f'code srs projection planimétrique : {data["crs"]}')
+        print(f'nombre de tuiles de la pyramide : {len(data["tileMatrices"])}')
+        print(f'coordonnées du point origine : {data["tileMatrices"][0]["pointOfOrigin"]}')
+        print(f'taille de la cellule : {data["tileMatrices"][0]["cellSize"]}')
+        print(f'nombre d"éléments de la matrices de tuiles cad le nombre de tuiles : {len(data["tileMatrices"])}')
+
+except Exception as exc :
+    print (exc)
+```
