@@ -145,7 +145,9 @@ except Exception as exc :
     print (exc)
 ```
 
-## Descripteur de couches des "layers" => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
+## Descripteur de couches des "layers" :
+
+=> exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
 ```list.txt``` contient tous les noms des buckets de stockage des couches sous forme d'une liste :
 
