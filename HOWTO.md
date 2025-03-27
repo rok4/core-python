@@ -36,6 +36,28 @@
 
 # Cas d'usage simple avec le TileMatrixSet "PM": bucket de stockage : ```s3://tilematrixsets/PM.json```
 
+voici une partie de sa structure en objet json pour le tms ```PM```:
+
+```json
+{
+   "tileMatrices" : [
+      {
+         "id" : "0",
+         "tileWidth" : 256,
+         "scaleDenominator" : 559082264.028718,
+         "matrixWidth" : 1,
+         "cellSize" : 156543.033928041,
+         "matrixHeight" : 1,
+         "tileHeight" : 256,
+         "pointOfOrigin" : [
+            -20037508.3427892,
+            20037508.3427892
+         ]
+      },
+      {},..
+}
+```
+
 ```py
 #!/usr/bin/env python3
 import json

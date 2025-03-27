@@ -89,27 +89,7 @@ data_vector = pyramid.get_tile_data_vector(level, col, row)
 
 On utilise la classe ```TileMatrixSet()``` avec laquelle on instancie un objet lié à cette classe,
 
-à partir du bucket de stockage ```s3://tilematrixsets/PM.json``` par exemple voici une partie de sa structure en objet json pour le tms ```PM```:
-
-```json
-{
-   "tileMatrices" : [
-      {
-         "id" : "0",
-         "tileWidth" : 256,
-         "scaleDenominator" : 559082264.028718,
-         "matrixWidth" : 1,
-         "cellSize" : 156543.033928041,
-         "matrixHeight" : 1,
-         "tileHeight" : 256,
-         "pointOfOrigin" : [
-            -20037508.3427892,
-            20037508.3427892
-         ]
-      },
-      {},..
-}
-```
+à partir du bucket de stockage ```s3://tilematrixsets/PM.json``` par exemple 
 
 On peut ainsi aisément accéder :
 
