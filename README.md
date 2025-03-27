@@ -82,11 +82,11 @@ On peut ainsi aisément accéder :
 
 *   aux coordonnées de l'origine X et Y,
 
-*   à la résolution (niveau)
+*   à la résolution (niveau),
 
 *   à la taille de la tuile en largeur et et en hauteur,
 
-*   à la taille de la matrice en largeur et en hauteur
+*   à la taille de la matrice en largeur et en hauteur.
 
 On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction ```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et max)
 
