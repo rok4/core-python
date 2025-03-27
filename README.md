@@ -91,7 +91,7 @@ On peut ainsi aisément accéder :
 
 On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction ```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et max)
 
-On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : ```point_to_indices(self, x: float, y: float) -> Tuple[int, int, int, int]```
+On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : ```point_to_indices(x: float, y: float)```
 
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
