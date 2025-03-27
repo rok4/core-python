@@ -147,7 +147,7 @@ except Exception as exc :
 
 ## Descripteur de couches des "layers" => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
-```list.txt``` contient tous les noms des buckets de stockage des listes sous forme de liste :
+```list.txt``` contient tous les noms des buckets de stockage des listes sous forme d'une liste :
 
 ```txt
 s3://layers/bdortho.json
