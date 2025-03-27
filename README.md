@@ -76,30 +76,50 @@ données du slab:
 
 ### Comment lire une tuile de pyramide de données vecteur ?
 
+*   Même principe qu'avec le cas RASTER, si l'on veut récupérer les données vecteur d'une tuile de Pyramide :
+
 *   Cas d'usage : données VECTEUR : LIMITES ADMINISTRATIVES
-
-```sh
-données du slab:
-
- type de slab SlabType.DATA
- identifiant du niveau 13
- nombre de tuiles en largeur par slab 168
- nombre de tuiles en hauteur par slab : 234
-
- pour des données VECTEUR LES LIMITES ADMINISTRATIVES
-
-type de pyramide PyramidType.VECTOR
-format des tuiles de données vecteur : TIFF_PBF_MVT
-niveau le plus bas de la pyramide : VECTOR pyramid's level '18' (S3 storage)
-niveau le plus haut de la pyramide : VECTOR pyramid's level '0' (S3 storage)
-créer une pyramide à partir du path de son descriptor : VECTOR pyramid 'LIMADM' (S3 storage)
-données du slab:
-
- type de slab SlabType.DATA
- identifiant du niveau 15
- nombre de tuiles en largeur par slab 678
- nombre de tuiles en hauteur par slab : 940
+```py
+pyramid_vector = Pyramid.from_descriptor("s3://pyramids/LIMADM.json")
+level, col, row, pcol, prow = pyramid.get_tile_indices(tile_level, tile_column, tile_row)
+data_vector = pyramid.get_tile_data_vector(level, col, row)
 ```
+
+### Comment définit-on une matrice de tuiles à partir des niveau de jeux de matrice de tuile ?
+
+On utilise la classe ```TileMatrix()``` avec laquelle on instancie un objet lié à cette classe à partir du bucket de stockage ```s3://
+
+tilematrixsets/PM.json"``` par exemple voici une partie de sa structure en objet json pour le tms ```PM```:
+
+```json
+
+tileMatrices
+0
+id	"0"
+tileWidth	256
+scaleDenominator	559082264.028718
+matrixWidth	1
+cellSize	156543.033928041
+matrixHeight	1
+tileHeight	256
+pointOfOrigin
+0	-20037508.3427892
+1	20037508.3427892
+```
+
+On peut ainsi aisément accéder :
+
+*   à son identifiant,
+
+*   à son chemin,
+
+*   aux coordonnées de l'origine X et Y,
+
+*   à la résolution (niveau)
+
+*   à la taille de la tuile en largeur et et en hauteur,
+
+*   à la taille de la matrice en largeur et en hauteur
 
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
