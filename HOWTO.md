@@ -87,15 +87,15 @@ try :
     # POUR l'ALTI :
     print ("\npour des données ALTI\n")
     # chemin de la dalle ou du bloc de tuiles
-    slab_alti_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29" 
+    slab_alti_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_10_21_29"
     # chemin du descriptor de la pyramide alti
     path_to_pyramid_alti_descriptor = "s3://pyramids/ALTI.json"
     # descriptor de la pyramide ALTI
     pyr_alti_descriptor = Pyramid.from_descriptor(path_to_pyramid_alti_descriptor)
 
     print (f"créer une pyramide à partir du path de son descriptor {pyr_alti_descriptor}")
-    print(f"type de pyramide {pyr_alti_descriptor.type}") 
-    print(f"format des tuiles de données vecteur : {pyr_alti_descriptor.format}") 
+    print(f"type de pyramide {pyr_alti_descriptor.type}")
+    print(f"format des tuiles de données vecteur : {pyr_alti_descriptor.format}")
     print(f"niveau le plus bas de la pyramide : {pyr_alti_descriptor.bottom_level}")
     print(f"niveau le plus haut de la pyramide : {pyr_alti_descriptor.top_level}")
     slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
@@ -118,11 +118,11 @@ try :
     # pour la BDORTHO
     print ("\npour des données raster BDORTHO\n")
     pyramid_ortho_descriptor = Pyramid.from_descriptor("s3://pyramids/BDORTHO.json")
-    slab_ortho_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_13_168_234" 
+    slab_ortho_path = "~/Documents/Pyramide/RASTER/ALTI/01/DATA_13_168_234"
 
     print (f"créer une pyramide à partir du path de son descriptor {pyramid_ortho_descriptor}")
-    print(f"type de pyramide {pyramid_ortho_descriptor.type}") 
-    print(f"format des tuiles de données vecteur : {pyramid_ortho_descriptor.format}") 
+    print(f"type de pyramide {pyramid_ortho_descriptor.type}")
+    print(f"format des tuiles de données vecteur : {pyramid_ortho_descriptor.format}")
     print(f"niveau le plus bas de la pyramide : {pyramid_ortho_descriptor.bottom_level}")
     print(f"niveau le plus haut de la pyramide : {pyramid_ortho_descriptor.top_level}")
     print ()
@@ -149,11 +149,11 @@ try :
     # pour les limites ADMINISTRATIVES
     print ("\npour des données VECTEUR LES LIMITES ADMINISTRATIVES\n")
     pyramid_limits_administratives_descriptor = Pyramid.from_descriptor("s3://pyramids/LIMADM.json")
-    slab_limits_administratives_path = "~/Documents/Pyramide/VECTEUR/LIMITES_ADMINISTRATIVES/DATA_15_678_940" 
+    slab_limits_administratives_path = "~/Documents/Pyramide/VECTEUR/LIMITES_ADMINISTRATIVES/DATA_15_678_940"
 
     slab_indexes = pyramid_limits_administratives_descriptor.get_infos_from_slab_path(slab_limits_administratives_path)
-    print(f"type de pyramide {pyramid_limits_administratives_descriptor.type}") 
-    print(f"format des tuiles de données vecteur : {pyramid_limits_administratives_descriptor.format}") 
+    print(f"type de pyramide {pyramid_limits_administratives_descriptor.type}")
+    print(f"format des tuiles de données vecteur : {pyramid_limits_administratives_descriptor.format}")
     print(f"niveau le plus bas de la pyramide : {pyramid_limits_administratives_descriptor.bottom_level}")
     print(f"niveau le plus haut de la pyramide : {pyramid_limits_administratives_descriptor.top_level}")
     print (f"créer une pyramide à partir du path de son descriptor : {pyramid_limits_administratives_descriptor}")
@@ -165,5 +165,3 @@ try :
     print("\n")
     """ for (slab_type, level, column, row), infos in pyramid_limits_administratives_descriptor.list_generator():
         print(infos) """
-
-
