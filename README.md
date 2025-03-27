@@ -66,7 +66,7 @@ type de pyramide PyramidType.RASTER
 format des tuiles de données vecteur : TIFF_ZIP_FLOAT32
 niveau le plus bas de la pyramide : RASTER pyramid's level '13' (S3 storage)
 niveau le plus haut de la pyramide : RASTER pyramid's level '0' (S3 storage)
-données du slab: 
+données du slab:
 
  type de slab SlabType.DATA
  identifiant du niveau 10
@@ -76,17 +76,24 @@ données du slab:
 
 ### Comment lire une tuile de pyramide de données vecteur ?
 
-Cas d'usage : données VECTEUR : LIMITES ADMINISTRATIVES
+*   Cas d'usage : données VECTEUR : LIMITES ADMINISTRATIVES
 
-```sh 
-pour des données VECTEUR LES LIMITES ADMINISTRATIVES
+```sh
+données du slab:
+
+ type de slab SlabType.DATA
+ identifiant du niveau 13
+ nombre de tuiles en largeur par slab 168
+ nombre de tuiles en hauteur par slab : 234
+
+ pour des données VECTEUR LES LIMITES ADMINISTRATIVES
 
 type de pyramide PyramidType.VECTOR
 format des tuiles de données vecteur : TIFF_PBF_MVT
 niveau le plus bas de la pyramide : VECTOR pyramid's level '18' (S3 storage)
 niveau le plus haut de la pyramide : VECTOR pyramid's level '0' (S3 storage)
 créer une pyramide à partir du path de son descriptor : VECTOR pyramid 'LIMADM' (S3 storage)
-données du slab: 
+données du slab:
 
  type de slab SlabType.DATA
  identifiant du niveau 15
