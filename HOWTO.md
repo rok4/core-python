@@ -74,7 +74,32 @@ voici une partie de sa structure en objet json pour le tms ```PM```:
             20037508.3427892
          ]
       },
-      {},..
+      {
+         "matrixHeight" : 2,
+         "pointOfOrigin" : [
+            -20037508.3427892,
+            20037508.3427892
+         ],
+         "tileHeight" : 256,
+         "cellSize" : 78271.5169640205,
+         "scaleDenominator" : 279541132.014359,
+         "matrixWidth" : 2,
+         "tileWidth" : 256,
+         "id" : "1"
+      },
+      {
+         "cellSize" : 39135.7584820102,
+         "pointOfOrigin" : [
+            -20037508.3427892,
+            20037508.3427892
+         ],
+         "tileHeight" : 256,
+         "matrixHeight" : 4,
+         "tileWidth" : 256,
+         "matrixWidth" : 4,
+         "scaleDenominator" : 139770566.007179,
+         "id" : "2"
+      },{},{},...
 }
 ```
 
