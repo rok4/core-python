@@ -35,8 +35,7 @@ export ROK4_S3_SECRETKEY=rok4S3storage
 export ROK4_S3_URL=http://localhost:9000
 ```
 
-Dans un script nommé par exemple `data_tilesmatrix_launcher.py`
-Puis exécuter le programme :
+Dans un script nommé par exemple `data_tilesmatrix_launcher.py`, on exécute le programme comme suit :
 ```sh
 python3 data_tilesmatrix_launcher.py
 ```
