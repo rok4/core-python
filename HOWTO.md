@@ -1,7 +1,7 @@
 
-# Cas d'usage simple : exemple avec des données ALTI
+## Cas d'usage simple : exemple avec des données ALTI
 
-*   Cas d'usage: résultats obtenus avec l'exemple des données ALTI
+*   ci-dessous les résultats obtenus avec l'exemple des données ALTI :
 
 ```sh
 myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
