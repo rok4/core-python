@@ -96,7 +96,7 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir un style ?
 
-### Comment définir une couche à partir du descripetur de couche 
+### Comment définir une couche à partir du descripetur de couche
 
 * Cas d'usage couche ALTI :
 
