@@ -1,5 +1,25 @@
 
 # Cas d'usage simple : exemple avec des données ALTI
+
+*   Cas d'usage: résultats obtenus avec l'exemple des données ALTI
+
+```sh
+myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
+créer une pyramide à partir du path de son descriptor RASTER pyramid 'ALTI' (S3 storage)
+type de pyramide PyramidType.RASTER
+format des tuiles de données vecteur : TIFF_ZIP_FLOAT32
+niveau le plus bas de la pyramide : RASTER pyramid's level '13' (S3 storage)
+niveau le plus haut de la pyramide : RASTER pyramid's level '0' (S3 storage)
+données du slab:
+
+ type de slab SlabType.DATA
+ identifiant du niveau 10
+ nombre de tuiles en largeur par slab 21
+ nombre de tuiles en hauteur par slab : 29
+ ```
+
+## Comment l'obtenir ?
+
 ```py
     #!/usr/bin/env python3
 
@@ -57,6 +77,8 @@ voici une partie de sa structure en objet json pour le tms ```PM```:
       {},..
 }
 ```
+
+## Exploitation des données d'un fichier JSON d'un tilematrixset exemple : PM.json
 
 ```py
 #!/usr/bin/env python3

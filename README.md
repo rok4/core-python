@@ -58,22 +58,6 @@ level, col, row, pcol, prow = pyr_alti_descriptor.get_tile_indices(16, 16, "0", 
 data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 ```
 
-*   Cas d'usage: données ALTI
-```sh
-myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
-créer une pyramide à partir du path de son descriptor RASTER pyramid 'ALTI' (S3 storage)
-type de pyramide PyramidType.RASTER
-format des tuiles de données vecteur : TIFF_ZIP_FLOAT32
-niveau le plus bas de la pyramide : RASTER pyramid's level '13' (S3 storage)
-niveau le plus haut de la pyramide : RASTER pyramid's level '0' (S3 storage)
-données du slab:
-
- type de slab SlabType.DATA
- identifiant du niveau 10
- nombre de tuiles en largeur par slab 21
- nombre de tuiles en hauteur par slab : 29
- ```
-
 ### Comment lire une tuile de pyramide de données vecteur ?
 
 *   Même principe qu'avec le cas RASTER, si l'on veut récupérer les données vecteur d'une tuile de Pyramide :
