@@ -54,7 +54,9 @@ données du slab:
     print(data_raster)
  ```
 
-# Cas d'usage simple avec le TileMatrixSet "PM": bucket de stockage : ```s3://tilematrixsets/PM.json```
+## Cas d'usage simple avec le TileMatrixSet "PM":
+
+emplacement du bucket de stockage : ```s3://tilematrixsets/PM.json```
 
 voici une partie de sa structure en objet json pour le tms ```PM```:
 
