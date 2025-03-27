@@ -92,6 +92,17 @@ On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des
 
 On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : ```point_to_indices(x: float, y: float)```
 
+### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
+
+### Comment définir un style ?
+
+### Comment définir une couche à partir du descripetur de couche 
+
+* Cas d'usage couche ALTI :
+
+### Comment définir des données VECTEUR ?
+
+### Comment définir des données RASTER et une structure décrivant un jeu de données RASTER ?
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
 
