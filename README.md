@@ -27,7 +27,7 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 
 ## Utiliser la librairie
 
-En dehors du dépôt `core-python`, tapez les ligne de commande suivantes dans un fichier shell `envvar.sh` contenant l'export de toutes les 
+En dehors du dépôt `core-python`, tapez les ligne de commande suivantes dans un fichier shell `envvar.sh` contenant l'export de toutes les
 
 variables d'environnement du projet `ROK4`:
 
@@ -93,13 +93,13 @@ On peut ainsi aisément accéder :
 
 *   à la taille de la matrice en largeur et en hauteur.
 
-On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction 
+On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction
 
-```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et 
+```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et
 
 max)
 
-On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : 
+On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction :
 
 ```point_to_indices(x, y)```
 
@@ -113,26 +113,26 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir des données VECTEUR ?
 
-*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage), 
-   
+*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),
+
     *   le chemin d'accès au fichier/objet,
-    
+
     *   csv : le dictionnaire des paramètres CSV :
-    
+
         -srs : système de référence spatiale de la géométrie,
-    
+
         -column_x : le champ de coordonnée X
-    
+
         -column_y : le champ de coordonnée Y
-    
+
         -column_wkt : le champ du WKT(Well Known Text) de la géométrie
 
 *   A partir des paramètres :
-    
+
     *   le chemin d'accès au fichier/objet,
-    
+
     *   bbox : le rectangle de la boundary box dans la projection des données
-    
+
     *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs
 
 ### Comment définir des données RASTER et une structure décrivant un jeu de données RASTER ?
@@ -151,7 +151,7 @@ On part de la classe 'Raster()' qui définit des données raster :
 
 *   à partir d'informations d'un fichier stocké en image TIFF ```file:///data/SC1000/0040_6150_L93.tif```
 
-*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF ```file:///data/SC1000/_0040_6150_L93.tif``` couplée à un 
+*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF ```file:///data/SC1000/_0040_6150_L93.tif``` couplée à un
 
 masque d'image TIFF ```file:///data/SC1000/0040_6150_L93.msk```
 
