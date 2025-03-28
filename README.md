@@ -113,26 +113,26 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir des données VECTEUR ?
 
-*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage), 
-   
+*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),
+
     *   le chemin d'accès au fichier/objet,
-    
+
     *   csv : le dictionnaire des paramètres CSV :
-    
+
         -srs : système de référence spatiale de la géométrie,
-    
+
         -column_x : le champ de coordonnée X
-    
+
         -column_y : le champ de coordonnée Y
-    
+
         -column_wkt : le champ du WKT(Well Known Text) de la géométrie
 
 *   A partir des paramètres :
-    
+
     *   le chemin d'accès au fichier/objet,
-    
+
     *   bbox : le rectangle de la boundary box dans la projection des données
-    
+
     *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs
 
 ### Comment définir des données RASTER et une structure décrivant un jeu de données RASTER ?
