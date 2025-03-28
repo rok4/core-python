@@ -132,7 +132,7 @@ from rok4.raster import Raster
 raster = Raster.from_file("file:///data/SC1000/0040_6150_L93.tif")
 ```
 
-*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF couplée à un masque d'image TIFF:
+*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF couplée à un masque d'image TIFF tel que :
 
 ```py
 from rok4.raster import Raster
