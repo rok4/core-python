@@ -121,7 +121,7 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir une couche à partir du descripteur de couche ?
 
-* Cas d'usage couche ALTI :
+* Cas d'usage couche BDORTHO :
 
 ![ROK4 LAYER DESCRIPTOR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
 
