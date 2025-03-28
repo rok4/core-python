@@ -96,7 +96,7 @@ On peut ainsi aisément accéder :
 
 *   aux coordonnées de l'origine X et Y du point,
 
-*   à la résolution (niveau),
+*   à la résolution (taille de la cellule),
 
 *   à la taille de la tuile en largeur et et en hauteur,
 

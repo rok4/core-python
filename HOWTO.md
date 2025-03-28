@@ -80,52 +80,48 @@ raster = Raster.from_parameters(
 ```sh
 myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
 créer une pyramide à partir du path de son descriptor RASTER pyramid 'ALTI' (S3 storage)
-type de pyramide PyramidType.RASTER
 format des tuiles de données vecteur : TIFF_ZIP_FLOAT32
 niveau le plus bas de la pyramide : RASTER pyramid's level '13' (S3 storage)
 niveau le plus haut de la pyramide : RASTER pyramid's level '0' (S3 storage)
 données du slab:
-
- type de slab SlabType.DATA
- identifiant du niveau 10
- nombre de tuiles en largeur par slab 21
- nombre de tuiles en hauteur par slab : 29
+type de slab SlabType.DATA
+identifiant du niveau 10
+nombre de tuiles en largeur par slab 21
+nombre de tuiles en hauteur par slab : 29
  ```
 
 ## Comment l'obtenir ?
 
 ```py
-    #!/usr/bin/env python3
+#!/usr/bin/env python3
 
-    # import des packages de rok4
-    from rok4.enums import PyramidType, SlabType, StorageType, ColorFormat
-    from rok4.pyramid import Pyramid, Level
+# import des packages de rok4
+from rok4.enums import PyramidType, SlabType, StorageType, ColorFormat
+from rok4.pyramid import Pyramid, Level
 
-    # chemin du descriptor de la pyramide alti
-    path_to_pyramid_alti_descriptor = "s3://pyramids/ALTI.json"
+# chemin du descriptor de la pyramide alti
+path_to_pyramid_alti_descriptor = "s3://pyramids/ALTI.json"
 
-    # descriptor de la pyramide ALTI
-    pyr_alti_descriptor = Pyramid.from_descriptor(path_to_pyramid_alti_descriptor)
+# descriptor de la pyramide ALTI
+pyr_alti_descriptor = Pyramid.from_descriptor(path_to_pyramid_alti_descriptor)
+print (f"créer une pyramide à partir du path de son descriptor {pyr_alti_descriptor}")
 
-    print (f"créer une pyramide à partir du path de son descriptor {pyr_alti_descriptor}")
+print(f"format des tuiles de données vecteur : {pyr_alti_descriptor.format}")
+print(f"niveau le plus bas de la pyramide : {pyr_alti_descriptor.bottom_level}")
+print(f"niveau le plus haut de la pyramide : {pyr_alti_descriptor.top_level}")
 
-    print(f"type de pyramide {pyr_alti_descriptor.type}")
-    print(f"format des tuiles de données vecteur : {pyr_alti_descriptor.format}")
-    print(f"niveau le plus bas de la pyramide : {pyr_alti_descriptor.bottom_level}")
-    print(f"niveau le plus haut de la pyramide : {pyr_alti_descriptor.top_level}")
+slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
+slab_indexes = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
 
-    slab_type, level, column, row = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
-    slab_indexes = pyr_alti_descriptor.get_infos_from_slab_path(slab_alti_path)
+print ("données du slab: \n")
+print (f" type de slab {slab_indexes[0]}")
+print (f" identifiant du niveau {slab_indexes[1]}")
+print (f" nombre de tuiles en largeur par slab {slab_indexes[2]}")
+print (f" nombre de tuiles en hauteur par slab : {slab_indexes[3]}")
+level, col, row, pcol, prow = pyr_alti_descriptor.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
+data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 
-    print ("données du slab: \n")
-    print (f" type de slab {slab_indexes[0]}")
-    print (f" identifiant du niveau {slab_indexes[1]}")
-    print (f" nombre de tuiles en largeur par slab {slab_indexes[2]}")
-    print (f" nombre de tuiles en hauteur par slab : {slab_indexes[3]}")
-    level, col, row, pcol, prow = pyr_alti_descriptor.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
-    data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
-
-    print(data_raster)
+print(data_raster)
  ```
 
 ## Cas d'usage simple avec le TileMatrixSet "PM":
@@ -189,10 +185,9 @@ from rok4.enums import PyramidType, SlabType, StorageType, ColorFormat
 from rok4.tile_matrix_set import TileMatrix, TileMatrixSet
 try:
     tms = TileMatrixSet("PM")
-    print ("\nExploitation de la classe TileMatrixSet\n")
-    print(f"le nom du tms est le suivant : {tms.name}")
-    print(f"le nom du tms est le suivant : {tms.path}")
-    print(f"le code srs associé au système de projection planimétrique est le suivant : {tms.srs}")
+    print(f"le nom du tms : {tms.name}")
+    print(f"le chemin du tms : {tms.path}")
+    print(f"le code srs : {tms.srs}")
 
     typePyramid = PyramidType("RASTER")
     slabType = SlabType("MASK")
@@ -289,7 +284,7 @@ s3://layers/bdparcellaire.json
 
 ## Exemple de style du projet rok4 :
 
-* Exemple du stytle de la **montagne palette** parmi les **onze styles** stockés sur le s3 :
+* Exemple du style : la **montagne palette** parmi les **onze styles** stockés sur le bucket de stockage s3 :
 
 * Ci-jointe la structure en objet json dont l'emplacement est le suivant ```s3://styles/montagne_palette.json```:
 
