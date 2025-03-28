@@ -184,7 +184,7 @@ Ces deux méthodologies permettent de retourner un sortie les éléments suivant
 
 *   l'extension du masque et du fichier au format TIFF. (ex: ```file:///path/to/image.msk``` or ```s3://bucket/image.msk```)
 
-![ROK4 RASTERSET] (https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-raster-)
+![ROK4 RASTERSET](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-raster-)
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
 
