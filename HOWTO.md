@@ -251,3 +251,65 @@ s3://layers/bdparcellaire.json
     }
 }
 ```
+
+# Comment exploiter des données vecteur ?
+
+*   A partir d'un fichier vecteur (shapefile, csv ou geopackage) comme suit :
+
+```py
+from rok4.vector import Vector
+vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")
+vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
+vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
+```
+
+*   A partir des paramètres comme suit :
+
+```py
+from rok4.vector import Vector
+vector = Vector.from_parameters("file://tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
+```
+
+# Comment exploiter des données raster ?
+
+On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster à partir du descriptor tel que :
+
+```py
+from rok4.raster import RasterSet
+raster_set = RasterSet.from_descriptor(
+                        "file:///data/images/descriptor.json"
+                    )
+```
+
+*   ou bien à partir d'une liste d'images et de code srs tel que :
+
+```py
+from rok4.raster import RasterSet
+raster_set = RasterSet.from_list(
+                        path="file:///data/SC1000.list",
+                        srs="EPSG:3857"
+                    )
+```
+
+On part de la classe 'Raster()' qui définit des données raster :
+
+*   à partir d'informations d'un fichier stocké en image TIFF tel que :
+
+```py
+from rok4.raster import Raster
+raster = Raster.from_file("file:///data/SC1000/0040_6150_L93.tif")
+```
+
+*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF couplée à un masque d'image TIFF tel que :
+
+```py
+from rok4.raster import Raster
+raster = Raster.from_parameters(
+    path="file:///data/SC1000/_0040_6150_L93.tif",
+    mask="file:///data/SC1000/0040_6150_L93.msk",
+    bands=3,
+    format=ColorFormat.UINT8,
+    dimensions=(2000, 2000),
+    bbox=(40000.000, 5950000.000, 240000.000, 6150000.000)
+)
+```

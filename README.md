@@ -102,49 +102,38 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir des données VECTEUR ?
 
+*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),   
+    *   path : path to the file/object
+    *   csv : dictionnary of CSV parameters :
+        -srs : spatial reference system of the geometry
+        -column_x : field of the x coordinate
+        -column_y : field of the y coordinate
+        -column_wkt : field of the WKT of the geometry
+
+*   A partir des paramètres :
+    *   path : path to the file/object
+    *   bbox : bounding rectange in the data projection
+    *   layers : Vector layers with their name, their number of objects and their attributes
+
 ### Comment définir des données RASTER et une structure décrivant un jeu de données RASTER ?
 
-On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster à partir du descriptor tel que :
+On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster :
 
-```py
-from rok4.raster import RasterSet
-raster_set = RasterSet.from_descriptor(
-                        "file:///data/images/descriptor.json"
-                    )
-```
+*   à partir du descriptor ```"file:///data/images/descriptor.json"```
 
-*   ou bien à partir d'une liste d'images et de code srs tel que :
-
-```py
-from rok4.raster import RasterSet
-raster_set = RasterSet.from_list(
+*   ou bien à partir d'une liste d'images et de code srs ```(
                         path="file:///data/SC1000.list",
                         srs="EPSG:3857"
-                    )
-```
+                    )```
+
 
 On part de la classe 'Raster()' qui définit des données raster :
 
-*   à partir d'informations d'un fichier stocké en image TIFF tel que :
+                    )
+*   à partir d'informations d'un fichier stocké en image TIFF ```file:///data/SC1000/0040_6150_L93.tif```
 
-```py
-from rok4.raster import Raster
-raster = Raster.from_file("file:///data/SC1000/0040_6150_L93.tif")
-```
+*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF ```file:///data/SC1000/_0040_6150_L93.tif``` couplée à un masque d'image TIFF ```file:///data/SC1000/0040_6150_L93.msk```
 
-*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF couplée à un masque d'image TIFF tel que :
-
-```py
-from rok4.raster import Raster
-raster = Raster.from_parameters(
-    path="file:///data/SC1000/_0040_6150_L93.tif",
-    mask="file:///data/SC1000/0040_6150_L93.msk",
-    bands=3,
-    format=ColorFormat.UINT8,
-    dimensions=(2000, 2000),
-    bbox=(40000.000, 5950000.000, 240000.000, 6150000.000)
-)
-```
 
 Ces deux méthodologies permettent de retourner un sortie les éléments suivants décrivant le jeu de données raster :
 
@@ -152,7 +141,7 @@ Ces deux méthodologies permettent de retourner un sortie les éléments suivant
 
 *   nombre de bandes colorées,
 
-*   la boundary box,
+*   la boundary box (le rectangle),
 
 *   les dimensions de l'image en pixel,
 
