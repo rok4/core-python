@@ -103,17 +103,17 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 ### Comment définir des données VECTEUR ?
 
 *   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),  
-    *   path : path to the file/object
-    *   csv : dictionnary of CSV parameters :
-        -srs : spatial reference system of the geometry
-        -column_x : field of the x coordinate
-        -column_y : field of the y coordinate
-        -column_wkt : field of the WKT of the geometry
+    *   le chemin d'accès au fichier/objet,
+    *   csv : le dictionnaire des paramètres CSV :
+        -srs : système de référence spatiale de la géométrie,
+        -column_x : le champ de coordonnée X
+        -column_y : le champ de coordonnée Y
+        -column_wkt : le champ du WKT(Well Known Text) de la géométrie
 
 *   A partir des paramètres :
-    *   path : path to the file/object
-    *   bbox : bounding rectange in the data projection
-    *   layers : Vector layers with their name, their number of objects and their attributes
+    *   le chemin d'accès au fichier/objet,
+    *   bbox : le rectangle de la boundary box dans la projection des données
+    *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs
 
 ### Comment définir des données RASTER et une structure décrivant un jeu de données RASTER ?
 
@@ -148,7 +148,7 @@ Ces deux méthodologies permettent de retourner un sortie les éléments suivant
 
 *   le chemin d'accès au masque associé,
 
-*   l'extension du masque et du fichier au format TIFF. (ex: file:///path/to/image.msk or s3://bucket/image.msk)
+*   l'extension du masque et du fichier au format TIFF. (ex: ```file:///path/to/image.msk``` or ```s3://bucket/image.msk```)
 
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :

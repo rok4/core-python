@@ -145,6 +145,8 @@ except Exception as exc :
     print (exc)
 ```
 
+## Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
+
 ## Descripteur de couches des "layers" :
 
 => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
