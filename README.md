@@ -102,7 +102,7 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir des données VECTEUR ?
 
-*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),   
+*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),  
     *   path : path to the file/object
     *   csv : dictionnary of CSV parameters :
         -srs : spatial reference system of the geometry
