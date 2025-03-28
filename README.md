@@ -145,6 +145,8 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
     *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs
 
+![ROK4 DATA VECTEUR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-vecteur-)
+
 ### Comment définir des données RASTER et une structure décrivant un jeu de données RASTER ?
 
 On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster :
@@ -182,7 +184,7 @@ Ces deux méthodologies permettent de retourner un sortie les éléments suivant
 
 *   l'extension du masque et du fichier au format TIFF. (ex: ```file:///path/to/image.msk``` or ```s3://bucket/image.msk```)
 
-![ROK4 data RASTER] (https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-raster-)
+![ROK4 RASTERSET] (https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-raster-)
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
 
