@@ -167,9 +167,7 @@ On part de la classe 'Raster()' qui définit des données raster :
 
 *   à partir d'informations d'un fichier stocké en image TIFF ```file:///data/SC1000/0040_6150_L93.tif```
 
-*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF ```file:///data/SC1000/_0040_6150_L93.tif``` couplée à un
-
-masque d'image TIFF ```file:///data/SC1000/0040_6150_L93.msk```
+*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF ```file:///data/SC1000/_0040_6150_L93.tif``` couplée à un masque d'image TIFF ```file:///data/SC1000/0040_6150_L93.msk```
 
 
 Ces deux méthodologies permettent de retourner un sortie les éléments suivants décrivant le jeu de données raster :
