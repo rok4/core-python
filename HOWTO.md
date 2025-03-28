@@ -3,6 +3,10 @@
 
 *   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage) comme suit :
 
+    *   le chemin d'accès au fichier/objet,
+
+    *   csv : le dictionnaire des paramètres CSV.
+
 ```py
 from rok4.vector import Vector
 vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")
@@ -11,6 +15,12 @@ vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delim
 ```
 
 *   A partir des paramètres comme suit :
+
+    *   le chemin d'accès au fichier/objet,
+
+    *   bbox : le rectangle de la boundary box dans la projection des données,
+
+    *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs.
 
 ```py
 from rok4.vector import Vector
