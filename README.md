@@ -121,6 +121,8 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 * Cas d'usage couche ALTI :
 
+![ROK4 LAYER DESCRIPTOR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
+
 ### Comment définir des données VECTEUR ?
 
 *   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage),
