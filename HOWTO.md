@@ -27,6 +27,8 @@ from rok4.vector import Vector
 vector = Vector.from_parameters("file://tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
 ```
 
+![ROK4 DATA VECTEUR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-vecteur-)
+
 # Comment exploiter des données raster ?
 
 On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster :

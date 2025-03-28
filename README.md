@@ -70,6 +70,7 @@ où :
 ```py
 data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 ```
+![ROK4 pyramide ALTI](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#cas-dusage-simple--exemple-avec-des-donn%C3%A9es-alti)
 
 ### Comment lire une tuile de pyramide de données vecteur ?
 
@@ -82,11 +83,15 @@ level, col, row, pcol, prow = pyramid.get_tile_indices(tile_level, tile_column, 
 data_vector = pyramid.get_tile_data_vector(level, col, row)
 ```
 
+![ROK4 pyramide VECTEUR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-vecteur-)
+
 ### Comment définit-on une matrice de tuiles à partir des niveaux de jeux de matrice de tuile ?
 
 On utilise la classe ```TileMatrixSet()``` avec laquelle on instancie un objet lié à cette classe,
 
 à partir du bucket de stockage ```s3://tilematrixsets/PM.json``` par exemple
+
+![ROK4 TMS](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#cas-dusage-simple-avec-le-tilematrixset-pm)
 
 On peut ainsi aisément accéder :
 
@@ -177,6 +182,7 @@ Ces deux méthodologies permettent de retourner un sortie les éléments suivant
 
 *   l'extension du masque et du fichier au format TIFF. (ex: ```file:///path/to/image.msk``` or ```s3://bucket/image.msk```)
 
+![ROK4 data RASTER] (https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-raster-)
 
 Les variables d'environnement suivantes peuvent être nécessaires, par module :
 
