@@ -57,6 +57,15 @@ python3 data_tilesmatrix_launcher.py
 ```py
 level, col, row, pcol, prow = pyr_alti_descriptor.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
 ```
+
+où :
+*   pcol : indice de colonne de pixels à partir des coordonnées du point,
+*   prow : indice de rangée de pixels à partir des coordonnées du point,
+*   level : niveau de la tuile,
+*   col : colonne de la tuile,
+*   row : rangée de la tuile.
+
+
 *   Si l'on veut récupérer les données raster d'une tuile de Pyramide :
 ```py
 data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
@@ -85,7 +94,7 @@ On peut ainsi aisément accéder :
 
 *   à son chemin,
 
-*   aux coordonnées de l'origine X et Y,
+*   aux coordonnées de l'origine X et Y du point,
 
 *   à la résolution (niveau),
 
@@ -94,14 +103,10 @@ On peut ainsi aisément accéder :
 *   à la taille de la matrice en largeur et en hauteur.
 
 On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction
-
 ```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et
-
 max)
 
-On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction :
-
-```point_to_indices(x, y)```
+On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction  ```point_to_indices(x, y)```
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
