@@ -230,7 +230,7 @@ s3://layers/pente.json
 s3://layers/bdparcellaire.json
 ```
 
-*   Ci-jointe sa structure en objet json :
+*   Ci-jointe sa structure en objet json du descripteur de couche BDORTHO:
 
 ```json
 {
