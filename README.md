@@ -90,7 +90,7 @@ On peut ainsi aisément accéder :
 
 On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction ```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et max)
 
-On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : ```point_to_indices(x: float, y: float)```
+On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction : ```point_to_indices(x, y)```
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
