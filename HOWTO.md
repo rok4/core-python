@@ -1,7 +1,7 @@
 
 # Comment exploiter des données vecteur ?
 
-*   A partir d'un fichier vecteur (shapefile, csv ou geopackage) comme suit :
+*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage) comme suit :
 
 ```py
 from rok4.vector import Vector
