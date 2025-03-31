@@ -111,7 +111,7 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
-## Descripteur des couches des "layers" :
+### Descripteur des couches des "layers" :
 
 *   elle est définie par son nom technique,
 *   la liste des chemins de la pyramide utilisée
