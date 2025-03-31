@@ -111,6 +111,19 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
+## Descripteur des couches des "layers" :
+
+*   elle est définie par son nom technique,
+*   la liste des chemins de la pyramide utilisée
+*   la grille utilisée,
+*   les mots-clefs,
+*   les niveaux de pyramide utilisés
+*   le meilleur niveau des pyramides utilisés
+*   l'interpolation pour utiliser le ré-échantillonnage,
+*   les données de la boundary box avec le système de coordonnées du TMS
+
+![ROK4 LAYERS](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
+
 ### Comment définir un style ?
 
 ![ROK4 STYLE](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#exemple-de-style-du-projet-rok4-)

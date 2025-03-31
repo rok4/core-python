@@ -73,6 +73,80 @@ raster = Raster.from_parameters(
 )
 ```
 
+
+## Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
+
+=> exemple pour la BDORTHO : ```s3://layers/bdortho.json```
+
+```list.txt``` contient tous les noms des buckets de stockage des couches sous forme d'une liste :
+
+```txt
+s3://layers/bdortho.json
+s3://layers/alti.json
+s3://layers/limadm.json
+s3://layers/pente.json
+s3://layers/bdparcellaire.json
+```
+
+*   Pour obtenir le niveau le plus bas et le niveau le plus haut des pyramides de tuile à partir du descriptor:
+```py
+pyramid = Pyramid.from_descriptor(p["path"])
+bottom_level = p.get("bottom_level", None)
+top_level = p.get("top_level", None)
+```
+
+*   Ci-jointe un exemple de sa structure en objet json du descripteur de couche BDORTHO :
+
+```json
+{
+    "title": "Photographies aériennes",
+    "abstract": "Données BD Ortho",
+    "keywords":
+    [
+        "Ortho-photographies",
+        "Données RGB"
+    ],
+    "pyramids":
+    [
+        {
+            "bottom_level": "15",
+            "top_level": "0",
+            "path": "s3://pyramids/BDORTHO.json"
+        }
+    ],
+    "resampling": "bicubic",
+    "styles":
+    [
+        "normal"
+    ],
+    "extra_crs":
+    [
+        "EPSG:4559"
+    ],
+    "extra_tilematrixsets":
+    [
+        "4326",
+        "UTM20W84MART_2.5m"
+    ],
+    "wms":
+    {
+        "enabled": true
+    },
+    "wmts":
+    {
+        "enabled": true
+    },
+    "tms":
+    {
+        "enabled": true
+    },
+    "tiles":
+    {
+        "enabled": true
+    }
+}
+```
+
 ## Cas d'usage simple : exemple avec des données ALTI
 
 *   ci-dessous les résultats obtenus avec l'exemple des données ALTI :
@@ -212,83 +286,6 @@ try:
 
 except Exception as exc :
     print (exc)
-```
-
-## Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
-
-## Descripteur de couches des "layers" :
-
-*   elle est définie par son nom technique,
-*   la liste des chemins de la pyramide utilisée
-*   la grille utilisée,
-*   les mots-clefs,
-*   les niveaux de pyramide utilisés
-*   le meilleur niveau des pyramides utilisés
-*   l'interpolation pour utiliser le ré-échantillonnage,
-*   les données de la boundary box avec le système de coordonnées du TMS
-
-=> exemple pour la BDORTHO : ```s3://layers/bdortho.json```
-
-```list.txt``` contient tous les noms des buckets de stockage des couches sous forme d'une liste :
-
-```txt
-s3://layers/bdortho.json
-s3://layers/alti.json
-s3://layers/limadm.json
-s3://layers/pente.json
-s3://layers/bdparcellaire.json
-```
-
-*   Ci-jointe sa structure en objet json du descripteur de couche BDORTHO:
-
-```json
-{
-    "title": "Photographies aériennes",
-    "abstract": "Données BD Ortho",
-    "keywords":
-    [
-        "Ortho-photographies",
-        "Données RGB"
-    ],
-    "pyramids":
-    [
-        {
-            "bottom_level": "15",
-            "top_level": "0",
-            "path": "s3://pyramids/BDORTHO.json"
-        }
-    ],
-    "resampling": "bicubic",
-    "styles":
-    [
-        "normal"
-    ],
-    "extra_crs":
-    [
-        "EPSG:4559"
-    ],
-    "extra_tilematrixsets":
-    [
-        "4326",
-        "UTM20W84MART_2.5m"
-    ],
-    "wms":
-    {
-        "enabled": true
-    },
-    "wmts":
-    {
-        "enabled": true
-    },
-    "tms":
-    {
-        "enabled": true
-    },
-    "tiles":
-    {
-        "enabled": true
-    }
-}
 ```
 
 ## Exemple de style du projet rok4 :
