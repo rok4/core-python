@@ -218,6 +218,15 @@ except Exception as exc :
 
 ## Descripteur de couches des "layers" :
 
+*   elle est définie par son nom technique,
+*   la liste des chemins de la pyramide utilisée
+*   la grille utilisée,
+*   les mots-clefs,
+*   les niveaux de pyramide utilisés
+*   le meilleur niveau des pyramides utilisés
+*   l'interpolation pour utiliser le ré-échantillonnage,
+*   les données de la boundary box avec le système de coordonnées du TMS
+
 => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
 ```list.txt``` contient tous les noms des buckets de stockage des couches sous forme d'une liste :
