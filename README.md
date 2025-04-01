@@ -182,7 +182,7 @@ Les paramètres d'exposition contiennent des paramètres de valeur de pente pour
 
 l'algorithme de calcul de la pente.
 
-Les paramètres d'estompage contiennnet les valeurs azimuthales du soleil et la position zénithale du Soleil en degrés, le facteur 
+Les paramètres d'estompage contiennnet les valeurs azimuthales du soleil et la position zénithale du Soleil en degrés, le facteur
 
 d'exagération de la pente, et des valeurs flag pour l'estompage.
 
