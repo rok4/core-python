@@ -178,21 +178,21 @@ L'objet Style contient la palette à créer.
 
 Les paramètres de pente contiennent une valeur maximale de pente et des valeurs "flag" ou nodata "9999".
 
-Les paramètres d'exposition contiennent des paramètres de valeur de pente pour laquelle l'exposition est calculée, le nom de l'algorithme de calcul
+Les paramètres d'exposition contiennent des paramètres de valeur de pente pour laquelle l'exposition est calculée, le nom de
 
-de la pente.
+l'algorithme de calcul de la pente.
 
-Les paramètres d'estompage contiennnet les valeurs azimuthales du soleil et la position zénithale du Soleil en degrés, le facteur d'exagération de
+Les paramètres d'estompage contiennnet les valeurs azimuthales du soleil et la position zénithale du Soleil en degrés, le facteur 
 
-la pente, et des valeurs flag pour l'estompage.
+d'exagération de la pente, et des valeurs flag pour l'estompage.
 
-POur la légende du style, elle contient :
+Pour la légende du style, elle contient :
 
 *   la légende et l'url de l'image,
 
 *   la hauteur et la largeur du pixel de l'image,
 
-*   l'échelle minimale et maximale pour laquelle la légende est appliquée./
+*   l'échelle minimale et maximale pour laquelle la légende est appliquée.
 
 ![ROK4 STYLE](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#exemple-de-style-du-projet-rok4-)
 
