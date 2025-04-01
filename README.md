@@ -141,6 +141,30 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir un style ?
 
+Le projet rok4 comportent onze styles qui sont les suivants:
+
+*   aspect,
+
+*   blanc,
+
+*   epandage,
+
+*   estompage,
+
+*   hypso,
+
+*   inspire,
+
+*   montagne_palette,
+
+*   montagne,
+
+*   normal,
+
+*   orange,
+
+*   pente.
+
 ![ROK4 STYLE](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#exemple-de-style-du-projet-rok4-)
 
 ### Comment définir une couche à partir du descripteur de couche ?
