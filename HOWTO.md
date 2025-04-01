@@ -90,9 +90,15 @@ s3://layers/bdparcellaire.json
 
 *   Pour obtenir le niveau le plus bas et le niveau le plus haut des pyramides de tuile à partir du descriptor:
 ```py
+from rok4.pyramid import Pyramid
+from rok4.storage import get_data_str, get_infos_from_path, put_data_str
+from rok4.utils import reproject_bbox
 pyramid = Pyramid.from_descriptor(p["path"])
+data = json.loads(get_data_str(descriptor))
+storage_type, path, root, base_name = get_infos_from_path(descriptor)
 bottom_level = p.get("bottom_level", None)
 top_level = p.get("top_level", None)
+levels = pyramid.get_levels(bottom_level, top_level)
 ```
 
 *   Ci-jointe un exemple de sa structure en objet json du descripteur de couche BDORTHO :

@@ -114,13 +114,28 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 ### Descripteur des couches des "layers" :
 
 *   elle est définie par son nom technique,
-*   la liste des chemins de la pyramide utilisée
+
+*   la liste des chemins de la pyramide utilisée,
+
 *   la grille utilisée,
+
 *   les mots-clefs,
-*   les niveaux de pyramide utilisés
-*   le meilleur niveau des pyramides utilisés
+
+*   les niveaux de pyramide utilisés,
+
+*   le meilleur niveau des pyramides utilisés,
+
 *   l'interpolation pour utiliser le ré-échantillonnage,
-*   les données de la boundary box avec le système de coordonnées du TMS
+
+*   les données de la boundary box avec le système de coordonnées du TMS,
+
+*   les niveaux extrêmes de la couche,
+
+*   le titre de la couche,
+
+*   l'abstraction de la couche,
+
+*   les identifiants des styles autorisés pour la couche.
 
 ![ROK4 LAYERS](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
 
