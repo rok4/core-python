@@ -109,6 +109,9 @@ max)
 
 On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction  ```point_to_indices(x, y)```
 
+![ROK4 EXPLOITATION JSON TMS](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#exploitation-des-donn%C3%A9es-dun-fichier-json-dun-tilematrixset-exemple--pmjson)
+
+
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
 ### Descripteur des couches des "layers" :
