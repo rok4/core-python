@@ -114,6 +114,8 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
+![ROK4 STOCKAGE BUCKET](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-d%C3%A9finir-le-stockage-de-tous-les-buckets-du-projet-rok4-sur-le-bucket-s3-)
+
 ### Descripteur des couches des "layers" :
 
 *   elle est définie par son nom technique,
