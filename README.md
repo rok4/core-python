@@ -137,7 +137,9 @@ On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de
 
 *   les identifiants des styles autorisés pour la couche.
 
-![ROK4 LAYERS](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
+* Cas d'usage couche BDORTHO :
+
+![ROK4 LAYER DESCRIPTOR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
 
 ### Comment définir un style ?
 
@@ -165,13 +167,31 @@ Le projet rok4 comportent onze styles qui sont les suivants:
 
 *   pente.
 
+Pour la palette des couleurs, on a les 4 canaux: rouge, bleu, vert et alpha.
+
+L'objet Style contient la palette à créer.
+
+Les paramètres de pente contiennent une valeur maximale de pente et des valeurs "flag" ou nodata "9999".
+
+Les paramètres d'exposition contiennent des paramètres de valeur de pente pour laquelle l'exposition est calculée, le nom de l'algorithme de calcul 
+
+de la pente.
+
+Les paramètres d'estompage contiennnet les valeurs azimuthales du soleil et la position zénithale du Soleil en degrés, le facteur d'exagération de 
+
+la pente, et des valeurs flag pour l'estompage.
+
+POur la légende du style, elle contient :
+
+*   la légende et l'url de l'image,
+
+*   la hauteur et la largeur du pixel de l'image,
+
+*   l'échelle minimale et maximale pour laquelle la légende est appliquée./
+
 ![ROK4 STYLE](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#exemple-de-style-du-projet-rok4-)
 
-### Comment définir une couche à partir du descripteur de couche ?
 
-* Cas d'usage couche BDORTHO :
-
-![ROK4 LAYER DESCRIPTOR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#descripteur-de-couches-des-layers-)
 
 ### Comment définir des données VECTEUR ?
 
