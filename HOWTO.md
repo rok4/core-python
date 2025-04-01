@@ -155,8 +155,6 @@ levels = pyramid.get_levels(bottom_level, top_level)
 
 ## Cas d'usage simple : exemple avec des données ALTI
 
-*   ci-dessous les résultats obtenus avec l'exemple des données ALTI :
-
 ```sh
 myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
 créer une pyramide à partir du path de son descriptor RASTER pyramid 'ALTI' (S3 storage)
@@ -170,7 +168,7 @@ nombre de tuiles en largeur par slab 21
 nombre de tuiles en hauteur par slab : 29
  ```
 
-## Comment l'obtenir ?
+## Comment obtenir ces résultats ?
 
 ```py
 #!/usr/bin/env python3
