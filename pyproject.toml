@@ -41,6 +41,7 @@ dependencies = [
 [project.optional-dependencies]
 doc = [
   "pdoc3 >= 0.10.0"
+  "pydeps"
 ]
 
 dev = [
