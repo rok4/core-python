@@ -671,6 +671,10 @@ class Pyramid:
         return self.__list
 
     @property
+    def exists(self) -> bool:
+        return exists(self.__descriptor)
+
+    @property
     def descriptor(self) -> str:
         return self.__descriptor
 

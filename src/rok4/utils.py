@@ -6,14 +6,14 @@
 # standard library
 import os
 import re
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 # 3rd party
 from osgeo import gdal, ogr, osr
 
 # package
 from rok4.enums import ColorFormat
-from rok4.storage import get_data_str
+from rok4.storage import get_data_str, get_osgeo_path
 
 # -- GLOBALS --
 ogr.UseExceptions()
@@ -372,3 +372,30 @@ def compute_format(dataset: gdal.Dataset, path: str = None) -> ColorFormat:
             + f"'{data_type_name}' ({data_type_size} bits)"
         )
     return color_format
+
+
+def get_raster_infos(path: str) -> Dict:
+    """Get image informations
+
+    Args:
+        path (str): Image's path (file or object) tp get informations
+
+    Raises:
+        RuntimeError: raised by OGR/GDAL if anything goes wrong
+        NotImplementedError: Storage type not handled
+
+    Returns:
+        Dict: Informations about image : bbox (Tuple[float]), bands (int), format (ColorFormat) and dimensions (Tuple[int])
+    """
+
+    work_image_path = get_osgeo_path(path)
+
+    image_datasource = gdal.Open(work_image_path)
+
+    infos = {}
+    infos["bbox"] = compute_bbox(image_datasource)
+    infos["bands"] = image_datasource.RasterCount
+    infos["format"] = compute_format(image_datasource, path)
+    infos["dimensions"] = (image_datasource.RasterXSize, image_datasource.RasterYSize)
+
+    return infos

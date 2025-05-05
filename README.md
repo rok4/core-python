@@ -1,6 +1,6 @@
 # Librairies ROK4 Python
 
-![ROK4 Logo](https://rok4.github.io/assets/images/rok4.png)
+![ROK4 Logo](https://rok4.github.io/assets/images/rok4-256.png)
 
 Ces librairies facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
 
@@ -22,7 +22,7 @@ L'environnement d'exécution doit avoir accès aux librairies système. Dans le 
 from rok4.tile_matrix_set import TileMatrixSet
 
 try:
-    tms = TileMatrixSet("file:///path/to/tms.json")
+    tms = TileMatrixSet("PM")
 except Exception as exc:
     print(exc)
 ```

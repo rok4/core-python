@@ -1,6 +1,6 @@
 # ROK4 Python libraries
 
-![ROK4 Logo](https://rok4.github.io/assets/images/rok4.png)
+![ROK4 Logo](https://rok4.github.io/assets/images/rok4-256.png)
 
 The `rok4` package help to use [ROK4 project](https://rok4.github.io/) concepts, like Tile Matrix Sets, data pyramids or layers.
 

@@ -933,15 +933,13 @@ def copy(from_path: str, to_path: str, from_md5: str = None) -> None:
                         f.write(chunk)
 
             if response.status_code != 200:
-                raise StorageError(
-                    "HTTP(S) and FILE",
-                    f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : code {response.status_code}",
-                )
+                err = get_data_str(to_path)
+                raise Exception(f"HTTP status {response.status_code}\n{err}")
 
         except Exception as e:
             raise StorageError(
                 "HTTP(S) and FILE",
-                f"Cannot copy HTTP(S) object {from_path} to FILE object {to_path} : {e}",
+                f"Cannot copy HTTP(S) object {from_type.value}{from_path} to FILE object {to_path} : {e}",
             )
 
     elif (
@@ -1099,7 +1097,11 @@ def get_osgeo_path(path: str) -> str:
 
         return f"/vsis3/{bucket_name}/{base_name}"
 
-    elif storage_type == StorageType.FILE:
+    elif (storage_type == StorageType.HTTP or storage_type == StorageType.HTTPS) and GDAL_AVAILABLE:
+
+        return f"/vsicurl/{path}"
+
+    elif storage_type == StorageType.FILE and GDAL_AVAILABLE:
         return unprefixed_path
 
     else:
