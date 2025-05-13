@@ -1,3 +1,5 @@
+## Exemple de cas d'utilisations des librairies du projet ROK4
+
 ### Comment lire une tuile de pyramide de données raster ?
 
 *   On doit passer le bucket s3 de stockage exemple : ```"s3://pyramids/ALTI.json"``` en paramètre d'entrée de la méthode de classe ```from_descriptor()``` appliquée à la classe ```Pyramid()``` tel que :
@@ -25,7 +27,7 @@ où :
 ```py
 data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 ```
-![ROK4 pyramide ALTI](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#cas-dusage-simple--exemple-avec-des-donn%C3%A9es-alti)
+![ROK4 pyramide ALTI](./HOWTO.md#cas-dusage-simple--exemple-avec-des-donn%C3%A9es-alti)
 
 ### Comment lire une tuile de pyramide de données vecteur ?
 
@@ -38,7 +40,7 @@ level, col, row, pcol, prow = pyramid.get_tile_indices(tile_level, tile_column, 
 data_vector = pyramid.get_tile_data_vector(level, col, row)
 ```
 
-![ROK4 pyramide VECTEUR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-vecteur-)
+![ROK4 pyramide VECTEUR](./HOWTO.md#comment-exploiter-des-donn%C3%A9es-vecteur-)
 
 
 ### Comment exploiter des données vecteur ?
@@ -51,9 +53,9 @@ data_vector = pyramid.get_tile_data_vector(level, col, row)
 
 ```py
 from rok4.vector import Vector
-vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")
-vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
-vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
+vector = Vector.from_file("https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp")
+vector_csv1 = Vector.from_file("https://github.com/rok4/core-python/blob/develop/tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
+vector_csv2 = Vector.from_file("https://github.com/rok4/core-python/blob/develop/tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
 ```
 
 *   A partir des paramètres comme suit :
@@ -66,7 +68,7 @@ vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delim
 
 ```py
 from rok4.vector import Vector
-vector = Vector.from_parameters("file://tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
+vector = Vector.from_parameters("https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
 ```
 
 ### Comment exploiter des données raster ?
@@ -120,26 +122,17 @@ raster = Raster.from_parameters(
 
 => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
-```list.txt``` contient tous les noms des buckets de stockage des couches sous forme d'une liste :
-
-```txt
-s3://layers/bdortho.json
-s3://layers/alti.json
-s3://layers/limadm.json
-s3://layers/pente.json
-s3://layers/bdparcellaire.json
-```
-
 *   Pour obtenir le niveau le plus bas et le niveau le plus haut des pyramides de tuile à partir du descriptor:
 ```py
 from rok4.pyramid import Pyramid
 from rok4.storage import get_data_str, get_infos_from_path, put_data_str
 from rok4.utils import reproject_bbox
 pyramid = Pyramid.from_descriptor(p["path"])
-data = json.loads(get_data_str(descriptor))
 storage_type, path, root, base_name = get_infos_from_path(descriptor)
-bottom_level = p.get("bottom_level", None)
-top_level = p.get("top_level", None)
+pyramids = [{"pyramid1": pyramid1}, {"pyramid2": pyramid2}, {"pyramid3": pyramid3}, {"pyramid4": pyramid4}, {"pyramid5": pyramid5}]
+for p in pyramids :
+    bottom_level = p.get("bottom_level", None)
+    top_level = p.get("top_level", None)
 levels = pyramid.get_levels(bottom_level, top_level)
 ```
 
