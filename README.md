@@ -38,58 +38,10 @@ export ROK4_S3_SECRETKEY=rok4S3storage
 export ROK4_S3_URL=http://localhost:9000
 ```
 
-### Comment définit-on une matrice de tuiles à partir des niveaux de jeux de matrice de tuile ?
-
-On utilise la classe ```TileMatrixSet()``` avec laquelle on instancie un objet lié à cette classe,
-
-à partir du bucket de stockage ```s3://tilematrixsets/PM.json``` par exemple
-
-![ROK4 TMS](./HOWTO.md#cas-dusage-simple-avec-le-tilematrixset-pm)
-
-On peut ainsi aisément accéder :
-*   à son identifiant,
-*   à son chemin,
-*   aux coordonnées de l'origine X et Y du point,
-*   à la résolution (taille de la cellule),
-*   à la taille de la tuile en largeur et et en hauteur,
-*   à la taille de la matrice en largeur et en hauteur.
-
-On peut récupérer aussi l'emprise d'une boundary box avec les extrémités des coordonnées de rangées et de colonnes des tuiles à l'aide la fonction
-```bbox_to_tiles(bounding box (xmin, ymin, xmax, ymax)``` dans le système de coordonnées du TMS c'est-à-dire longitude min, max et latitude min et
-max)
-
-On peut aussi récupérer dans un tuple les indices de la tuile et des pixels de la pyramide à partir des coordonnées des points avec la fonction  ```point_to_indices(x, y)```
-
-![ROK4 EXPLOITATION JSON TMS](./HOWTO.md#exploitation-des-donn%C3%A9es-dun-fichier-json-dun-tilematrixset-exemple--pmjson)
-
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
 ![ROK4 STOCKAGE BUCKET](./HOWTO.md#comment-d%C3%A9finir-le-stockage-de-tous-les-buckets-du-projet-rok4-sur-le-bucket-s3-)
-
-
-### Comment définir un style ?
-
-Pour la palette des couleurs, on a les 4 canaux: rouge, bleu, vert et alpha.
-
-L'objet Style contient la palette à créer.
-
-Les paramètres de pente contiennent une valeur maximale de pente et des valeurs "flag" ou nodata "9999".
-
-Les paramètres d'exposition contiennent des paramètres de valeur de pente pour laquelle l'exposition est calculée, le nom de
-
-l'algorithme de calcul de la pente.
-
-Les paramètres d'estompage contiennnet les valeurs azimuthales du soleil et la position zénithale du Soleil en degrés, le facteur
-
-d'exagération de la pente, et des valeurs flag pour l'estompage.
-
-Pour la légende du style, elle contient :
-*   la légende et l'url de l'image,
-*   la hauteur et la largeur du pixel de l'image,
-*   l'échelle minimale et maximale pour laquelle la légende est appliquée.
-
-![ROK4 STYLE](./HOWTO.md#exemple-de-style-du-projet-rok4-)
 
 
 ### Comment définir des données VECTEUR ?
