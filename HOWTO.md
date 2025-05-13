@@ -46,9 +46,7 @@ data_vector = pyramid.get_tile_data_vector(level, col, row)
 ### Comment exploiter des données vecteur ?
 
 *   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage) comme suit :
-
     *   le chemin d'accès au fichier/objet,
-
     *   csv : le dictionnaire des paramètres CSV.
 
 ```py
@@ -59,11 +57,8 @@ vector_csv2 = Vector.from_file("https://github.com/rok4/core-python/blob/develop
 ```
 
 *   A partir des paramètres comme suit :
-
     *   le chemin d'accès au fichier/objet,
-
     *   bbox : le rectangle de la boundary box dans la projection des données,
-
     *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs.
 
 ```py
@@ -134,58 +129,6 @@ for p in pyramids :
     bottom_level = p.get("bottom_level", None)
     top_level = p.get("top_level", None)
 levels = pyramid.get_levels(bottom_level, top_level)
-```
-
-*   Ci-jointe un exemple de sa structure en objet json du descripteur de couche BDORTHO :
-
-```json
-{
-    "title": "Photographies aériennes",
-    "abstract": "Données BD Ortho",
-    "keywords":
-    [
-        "Ortho-photographies",
-        "Données RGB"
-    ],
-    "pyramids":
-    [
-        {
-            "bottom_level": "15",
-            "top_level": "0",
-            "path": "s3://pyramids/BDORTHO.json"
-        }
-    ],
-    "resampling": "bicubic",
-    "styles":
-    [
-        "normal"
-    ],
-    "extra_crs":
-    [
-        "EPSG:4559"
-    ],
-    "extra_tilematrixsets":
-    [
-        "4326",
-        "UTM20W84MART_2.5m"
-    ],
-    "wms":
-    {
-        "enabled": true
-    },
-    "wmts":
-    {
-        "enabled": true
-    },
-    "tms":
-    {
-        "enabled": true
-    },
-    "tiles":
-    {
-        "enabled": true
-    }
-}
 ```
 
 ### Cas d'usage simple : exemple avec des données ALTI
