@@ -1,5 +1,47 @@
+### Comment lire une tuile de pyramide de données raster ?
 
-# Comment exploiter des données vecteur ?
+*   On doit passer le bucket s3 de stockage exemple : ```"s3://pyramids/ALTI.json"``` en paramètre d'entrée de la méthode de classe ```from_descriptor()``` appliquée à la classe ```Pyramid()``` tel que :
+
+```py
+    # descriptor de la pyramide ALTI
+    pyr_alti_descriptor = Pyramid.from_descriptor("s3://pyramids/ALTI.json")
+```
+
+*   Si l'on veut obtenir les indices d'une tuile de pyramide raster, on utilise la fonction ```get_tiles_indices(x_point, y_point, pyramid_level,srs_coords)```
+
+```py
+level, col, row, pcol, prow = pyr_alti_descriptor.get_tile_indices(16, 16, "0", srs = "IGNF:LAMB93")
+```
+
+où :
+*   pcol : indice de colonne de pixels à partir des coordonnées du point,
+*   prow : indice de rangée de pixels à partir des coordonnées du point,
+*   level : niveau de la tuile,
+*   col : colonne de la tuile,
+*   row : rangée de la tuile.
+
+
+*   Si l'on veut récupérer les données raster d'une tuile de Pyramide :
+```py
+data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
+```
+![ROK4 pyramide ALTI](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#cas-dusage-simple--exemple-avec-des-donn%C3%A9es-alti)
+
+### Comment lire une tuile de pyramide de données vecteur ?
+
+*   Même principe qu'avec le cas RASTER, si l'on veut récupérer les données vecteur d'une tuile de Pyramide :
+
+*   Cas d'usage : données VECTEUR : pyramide LIMITES ADMINISTRATIVES
+```py
+pyramid_vector = Pyramid.from_descriptor("s3://pyramids/LIMADM.json")
+level, col, row, pcol, prow = pyramid.get_tile_indices(tile_level, tile_column, tile_row)
+data_vector = pyramid.get_tile_data_vector(level, col, row)
+```
+
+![ROK4 pyramide VECTEUR](https://github.com/rok4/core-python/blob/feature/doc-new-users/HOWTO.md#comment-exploiter-des-donn%C3%A9es-vecteur-)
+
+
+### Comment exploiter des données vecteur ?
 
 *   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage) comme suit :
 
@@ -27,7 +69,7 @@ from rok4.vector import Vector
 vector = Vector.from_parameters("file://tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
 ```
 
-# Comment exploiter des données raster ?
+### Comment exploiter des données raster ?
 
 On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster :
 
@@ -74,7 +116,7 @@ raster = Raster.from_parameters(
 ```
 
 
-## Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
+### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
 => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
@@ -153,7 +195,7 @@ levels = pyramid.get_levels(bottom_level, top_level)
 }
 ```
 
-## Cas d'usage simple : exemple avec des données ALTI
+### Cas d'usage simple : exemple avec des données ALTI
 
 ```sh
 myusername@pcname:~$ python3 data_tilesmatrix_launcher.py
@@ -168,7 +210,7 @@ nombre de tuiles en largeur par slab 21
 nombre de tuiles en hauteur par slab : 29
  ```
 
-## Comment obtenir ces résultats ?
+### Comment obtenir ces résultats ?
 
 ```py
 #!/usr/bin/env python3
@@ -202,7 +244,7 @@ data_raster = pyr_alti_descriptor.get_tile_data_raster(level, col, row)
 print(data_raster)
  ```
 
-## Cas d'usage simple avec le TileMatrixSet "PM":
+### Cas d'usage simple avec le TileMatrixSet "PM":
 
 emplacement du bucket de stockage : ```s3://tilematrixsets/PM.json```
 
@@ -253,7 +295,7 @@ voici une partie de sa structure en objet json pour le tms ```PM```:
 }
 ```
 
-## Exploitation des données d'un fichier JSON d'un tilematrixset exemple : PM.json
+### Exploitation des données d'un fichier JSON d'un tilematrixset exemple : PM.json
 
 ```py
 #!/usr/bin/env python3
@@ -292,7 +334,7 @@ except Exception as exc :
     print (exc)
 ```
 
-## Exemple de style du projet rok4 :
+### Exemple de style du projet rok4 :
 
 * Exemple du style : la **montagne palette** parmi les **onze styles** stockés sur le bucket de stockage s3 :
 
