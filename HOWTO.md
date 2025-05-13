@@ -1,4 +1,4 @@
-## Exemple de cas d'utilisations des librairies du projet ROK4
+## Exemples de cas d'utilisations des librairies du projet ROK4
 
 ### Comment lire une tuile de pyramide de données raster ?
 
