@@ -45,9 +45,9 @@ data_vector = pyramid.get_tile_data_vector(level, col, row)
 
 ### Comment exploiter des données vecteur ?
 
-*   A partir d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage) comme suit :
-    *   le chemin d'accès au fichier/objet,
-    *   csv : le dictionnaire des paramètres CSV.
+*   A partir du chargement d'un fichier vecteur (shapefile, csv, GeoJSON ou Geopackage) comme suit :
+    *  le chemin d'accès au fichier/objet,
+    *  csv : le dictionnaire des paramètres CSV.
 
 ```py
 from rok4.vector import Vector
@@ -57,9 +57,9 @@ vector_csv2 = Vector.from_file("https://github.com/rok4/core-python/blob/develop
 ```
 
 *   A partir des paramètres comme suit :
-    *   le chemin d'accès au fichier/objet,
-    *   bbox : le rectangle de la boundary box dans la projection des données,
-    *   layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs.
+    *  le chemin d'accès au fichier/objet,
+    *  bbox : le rectangle de la boundary box dans la projection des données,
+    *  layers : le nom des couches vecteurs, leur nombre d'objets avec leurs attributs.
 
 ```py
 from rok4.vector import Vector
@@ -70,7 +70,7 @@ vector = Vector.from_parameters("https://github.com/rok4/core-python/blob/develo
 
 On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données raster :
 
-*   à partir du descriptor tel que :
+*  à partir du descriptor tel que :
 
 ```py
 from rok4.raster import RasterSet
@@ -79,7 +79,7 @@ raster_set = RasterSet.from_descriptor(
                     )
 ```
 
-*   ou bien à partir d'une liste d'images et de code srs tel que :
+*  ou bien à partir d'une liste d'images et de code srs tel que :
 
 ```py
 from rok4.raster import RasterSet
@@ -91,14 +91,14 @@ raster_set = RasterSet.from_list(
 
 On part de la classe 'Raster()' qui définit des données raster :
 
-*   à partir d'informations d'un fichier stocké en image TIFF tel que :
+*  à partir d'informations d'un fichier stocké en image TIFF tel que :
 
 ```py
 from rok4.raster import Raster
 raster = Raster.from_file("file:///data/SC1000/0040_6150_L93.tif")
 ```
 
-*   à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF couplée à un masque d'image TIFF tel que :
+*  à partir d'un chargement d'informations à partir de paramètres liées à une image TIFF couplée à un masque d'image TIFF tel que :
 
 ```py
 from rok4.raster import Raster
@@ -117,15 +117,16 @@ raster = Raster.from_parameters(
 
 => exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
-*   Pour obtenir le niveau le plus bas et le niveau le plus haut des pyramides de tuile à partir du descriptor:
+*  Pour obtenir le niveau le plus bas et le niveau le plus haut des pyramides de tuile à partir du descriptor:
 ```py
 from rok4.pyramid import Pyramid
 from rok4.storage import get_data_str, get_infos_from_path, put_data_str
 from rok4.utils import reproject_bbox
-pyramid = Pyramid.from_descriptor(p["path"])
+
 storage_type, path, root, base_name = get_infos_from_path(descriptor)
 pyramids = [{"pyramid1": pyramid1}, {"pyramid2": pyramid2}, {"pyramid3": pyramid3}, {"pyramid4": pyramid4}, {"pyramid5": pyramid5}]
 for p in pyramids :
+    pyramid = Pyramid.from_descriptor(p["path"])
     bottom_level = p.get("bottom_level", None)
     top_level = p.get("top_level", None)
 levels = pyramid.get_levels(bottom_level, top_level)
