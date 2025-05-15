@@ -124,7 +124,7 @@ from rok4.storage import get_data_str, get_infos_from_path, put_data_str
 from rok4.utils import reproject_bbox
 
 storage_type, path, root, base_name = get_infos_from_path(descriptor)
-pyramids = [{"pyramid1": pyramid1}, {"pyramid2": pyramid2}, {"pyramid3": pyramid3}, {"pyramid4": pyramid4}, {"pyramid5": pyramid5}]
+pyramids = [{"bottom_level": "13", "top_level": "0", "path": "s3://pyramids/BDORTHO.json"}]
 for p in pyramids :
     pyramid = Pyramid.from_descriptor(p["path"])
     bottom_level = p.get("bottom_level", None)
