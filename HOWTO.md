@@ -1,5 +1,14 @@
 ## Exemples de cas d'utilisations des librairies du projet ROK4
 
+tapez les ligne de commande suivantes afin d'exporter toutes les variables d'environnement du projet `ROK4`:
+
+```sh
+export ROK4_TMS_DIRECTORY=s3://tilematrixsets
+export ROK4_S3_KEY=rok4
+export ROK4_S3_SECRETKEY=rok4S3storage
+export ROK4_S3_URL=http://localhost:9000
+```
+
 ### Comment lire une tuile de pyramide de données raster ?
 
 *   On doit passer le bucket s3 de stockage exemple : ```"s3://pyramids/ALTI.json"``` en paramètre d'entrée de la méthode de classe ```from_descriptor()``` appliquée à la classe ```Pyramid()``` tel que :
