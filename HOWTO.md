@@ -110,7 +110,7 @@ from rok4.raster import RasterSet
 raster_set = RasterSet.from_list(
                         path="file:///data/SC1000.list",
                         srs="EPSG:3857"
-                    )
+)
 ```
 
 On part de la classe 'Raster()' qui définit des données raster :
