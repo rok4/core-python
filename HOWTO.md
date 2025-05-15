@@ -81,8 +81,8 @@ vector_csv2 = Vector.from_file(
 from rok4.vector import Vector
 
 vector = Vector.from_parameters(
-    "https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp", 
-    (1,2,3,4), 
+    "https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp",
+    (1,2,3,4),
     [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')]
     )]
 )
@@ -151,8 +151,8 @@ from rok4.utils import reproject_bbox
 
 storage_type, path, root, base_name = get_infos_from_path(descriptor)
 pyramids = [{
-    "bottom_level": "13", 
-    "top_level": "0", 
+    "bottom_level": "13",
+    "top_level": "0",
     "path": "s3://pyramids/BDORTHO.json"
     }]
 for p in pyramids :
