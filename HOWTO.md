@@ -62,8 +62,14 @@ data_vector = pyramid.get_tile_data_vector(level, col, row)
 from rok4.vector import Vector
 
 vector = Vector.from_file("https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp")
-vector_csv1 = Vector.from_file("https://github.com/rok4/core-python/blob/develop/tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
-vector_csv2 = Vector.from_file("https://github.com/rok4/core-python/blob/develop/tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
+vector_csv1 = Vector.from_file(
+    "https://github.com/rok4/core-python/blob/develop/tests/fixtures/vector.csv",
+    csv={"delimiter":";", "column_x":"x", "column_y":"y"}
+)
+vector_csv2 = Vector.from_file(
+    "https://github.com/rok4/core-python/blob/develop/tests/fixtures/vector2.csv",
+    csv={"delimiter":";", "column_wkt":"WKT"}
+)
 ```
 
 *   A partir des paramètres comme suit :
@@ -74,7 +80,12 @@ vector_csv2 = Vector.from_file("https://github.com/rok4/core-python/blob/develop
 ```py
 from rok4.vector import Vector
 
-vector = Vector.from_parameters("https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
+vector = Vector.from_parameters(
+    "https://github.com/rok4/core-python/blob/develop/tests/fixtures/ARRONDISSEMENT.shp", 
+    (1,2,3,4), 
+    [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')]
+    )]
+)
 ```
 
 ### Comment exploiter des données raster ?
@@ -139,7 +150,11 @@ from rok4.storage import get_data_str, get_infos_from_path, put_data_str
 from rok4.utils import reproject_bbox
 
 storage_type, path, root, base_name = get_infos_from_path(descriptor)
-pyramids = [{"bottom_level": "13", "top_level": "0", "path": "s3://pyramids/BDORTHO.json"}]
+pyramids = [{
+    "bottom_level": "13", 
+    "top_level": "0", 
+    "path": "s3://pyramids/BDORTHO.json"
+    }]
 for p in pyramids :
     pyramid = Pyramid.from_descriptor(p["path"])
     bottom_level = p.get("bottom_level", None)
