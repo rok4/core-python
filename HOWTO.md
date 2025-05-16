@@ -98,7 +98,7 @@ On part de la classe 'RasterSet()' qui décrit la structure d'un jeu de données
 from rok4.raster import RasterSet
 
 raster_set = RasterSet.from_descriptor(
-                        "file:///data/images/descriptor.json"
+    "file:///data/images/descriptor.json"
 )
 ```
 
@@ -108,8 +108,8 @@ raster_set = RasterSet.from_descriptor(
 from rok4.raster import RasterSet
 
 raster_set = RasterSet.from_list(
-                        path="file:///data/SC1000.list",
-                        srs="EPSG:3857"
+    path="file:///data/SC1000.list",
+    srs="EPSG:3857"
 )
 ```
 
