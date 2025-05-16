@@ -1,6 +1,6 @@
 ## Exemples de cas d'utilisations des librairies génériques du projet ROK4
 
-tapez les ligne de commande suivantes afin d'exporter toutes les variables d'environnement du projet `ROK4`:
+Pour le chargement d'un tilematrixset par exemple, tapez les ligne de commande suivantes afin d'exporter toutes les variables d'environnement du projet `ROK4`:
 
 ```sh
 export ROK4_TMS_DIRECTORY=s3://tilematrixsets
