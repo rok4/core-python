@@ -141,8 +141,6 @@ raster = Raster.from_parameters(
 
 ### Comment définir le stockage de tous les buckets du projet rok4 sur le bucket s3 ?
 
-=> exemple pour la BDORTHO : ```s3://layers/bdortho.json```
-
 *  Pour obtenir le niveau le plus bas et le niveau le plus haut des pyramides de tuile à partir du descriptor:
 ```py
 from rok4.pyramid import Pyramid
@@ -161,6 +159,8 @@ for p in pyramids :
     top_level = p.get("top_level", None)
 levels = pyramid.get_levels(bottom_level, top_level)
 ```
+
+=> exemple pour la BDORTHO : ```s3://layers/bdortho.json```
 
 ### Cas d'usage simple : exemple avec des données ALTI
 
