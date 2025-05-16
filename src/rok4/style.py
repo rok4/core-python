@@ -59,6 +59,7 @@ class Colour:
         Raises:
             MissingAttributeError: Attribute is missing in the content
             Exception: Invalid colour's band
+
         """
 
         try:
@@ -423,6 +424,43 @@ class Style:
             FormatError: Provided path is not a well formed JSON
             MissingAttributeError: Attribute is missing in the content
             Exception: No colour in the palette or invalid colour
+
+        Exemple du style : la **montagne palette** parmi les **onze styles** stockés sur le bucket de stockage s3 :
+
+        ```json
+            {
+	            "identifier": "montagne_palette",
+                "title": "Pente par paliers standards",
+	            "abstract": "Pente affichée par parlier standard de 30 a 90 degres",
+	            "keywords": ["MNT"],
+                "legend": {
+                            "format": "image/png",
+                            "url": "http://ign.fr",
+                            "height": 100,
+                            "width": 100,
+                            "min_scale_denominator": 0,
+                            "max_scale_denominator": 30
+                        },
+                "palette": {
+                            "max_value": 91,
+                            "rgb_continuous": true,
+                            "alpha_continuous": true,
+                            "colours": [
+                                        { "value": 0, "red": 255, "green": 255, "blue": 255, "alpha": 0 },
+                                        { "value": 29, "red": 255, "green": 255, "blue": 255, "alpha": 0 },
+                                        { "value": 30, "red": 242, "green": 229, "blue": 0, "alpha": 255 },
+                                        { "value": 34, "red": 242, "green": 229, "blue": 0, "alpha": 255 },
+                                        { "value": 35, "red": 243, "green": 148, "blue": 25, "alpha": 255 },
+                                        { "value": 39, "red": 243, "green": 148, "blue": 25, "alpha": 255 },
+                                        { "value": 40, "red": 225, "green": 0, "blue": 0, "alpha": 255 },
+                                        { "value": 44, "red": 225, "green": 0, "blue": 0, "alpha": 255 },
+                                        { "value": 45, "red": 200, "green": 137, "blue": 187, "alpha": 255 },
+                                        { "value": 90, "red": 200, "green": 137, "blue": 187, "alpha": 255 },
+                                        { "value": 91, "red": 255, "green": 255, "blue": 255, "alpha": 0 }
+                                    ]
+                            }
+            }
+        ```
         """
 
         self.id = id
