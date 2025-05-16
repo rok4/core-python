@@ -212,6 +212,57 @@ class TileMatrixSet:
             FileNotFoundError: TMS file or object does not exist
             FormatError: Provided path is not a well formed JSON
             MissingAttributeError: Attribute is missing in the content
+        
+        Exemple :
+
+            emplacement du bucket de stockage : ```s3://tilematrixsets/PM.json```
+
+            voici une partie de sa structure en objet json pour le tms ```PM```:
+
+            ```json
+            {
+            "tileMatrices" : [
+                {
+                    "id" : "0",
+                    "tileWidth" : 256,
+                    "scaleDenominator" : 559082264.028718,
+                    "matrixWidth" : 1,
+                    "cellSize" : 156543.033928041,
+                    "matrixHeight" : 1,
+                    "tileHeight" : 256,
+                    "pointOfOrigin" : [
+                        -20037508.3427892,
+                        20037508.3427892
+                    ]
+                },
+                {
+                    "matrixHeight" : 2,
+                    "pointOfOrigin" : [
+                        -20037508.3427892,
+                        20037508.3427892
+                    ],
+                    "tileHeight" : 256,
+                    "cellSize" : 78271.5169640205,
+                    "scaleDenominator" : 279541132.014359,
+                    "matrixWidth" : 2,
+                    "tileWidth" : 256,
+                    "id" : "1"
+                },
+                {
+                    "cellSize" : 39135.7584820102,
+                    "pointOfOrigin" : [
+                        -20037508.3427892,
+                        20037508.3427892
+                    ],
+                    "tileHeight" : 256,
+                    "matrixHeight" : 4,
+                    "tileWidth" : 256,
+                    "matrixWidth" : 4,
+                    "scaleDenominator" : 139770566.007179,
+                    "id" : "2"
+                },{},{},...
+            }
+            ```
         """
 
         self.name = name
