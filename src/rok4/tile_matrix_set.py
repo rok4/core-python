@@ -212,7 +212,7 @@ class TileMatrixSet:
             FileNotFoundError: TMS file or object does not exist
             FormatError: Provided path is not a well formed JSON
             MissingAttributeError: Attribute is missing in the content
-        
+
         Exemple :
 
             emplacement du bucket de stockage : ```s3://tilematrixsets/PM.json```

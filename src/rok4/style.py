@@ -429,10 +429,10 @@ class Style:
 
         ```json
             {
-	            "identifier": "montagne_palette",
+                    "identifier": "montagne_palette",
                 "title": "Pente par paliers standards",
-	            "abstract": "Pente affichée par parlier standard de 30 a 90 degres",
-	            "keywords": ["MNT"],
+                    "abstract": "Pente affichée par parlier standard de 30 a 90 degres",
+                    "keywords": ["MNT"],
                 "legend": {
                             "format": "image/png",
                             "url": "http://ign.fr",
