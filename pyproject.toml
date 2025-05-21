@@ -41,7 +41,7 @@ dependencies = [
 [project.optional-dependencies]
 doc = [
   "pdoc3 >= 0.10.0",
-  "pydeps"
+  "pydeps --max-module-depth=2 -x"
 ]
 
 dev = [
