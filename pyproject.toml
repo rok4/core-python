@@ -41,7 +41,7 @@ dependencies = [
 [project.optional-dependencies]
 doc = [
   "pdoc3 >= 0.10.0",
-  "pydeps --max-module-depth=2 -x"
+  "pydeps  --max-bacon=4 --cluster --max-cluster-size=3 --min-cluster-size=2 --keep-target-cluster"
 ]
 
 dev = [
