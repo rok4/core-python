@@ -18,7 +18,6 @@ from osgeo import ogr
 
 # package
 from rok4.storage import copy, get_osgeo_path
-from rok4.raster import 
 
 # -- GLOBALS --
 
