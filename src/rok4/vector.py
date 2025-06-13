@@ -38,16 +38,34 @@ class VectorSet:
     def from_list(cls, path: str) -> "VectorSet":
         """Constructor method of a VectorSet from lists
         un fichier ou un objet contient une liste de chemins vers 
-        les fichiers vecteurs ou objects vecteur"""
+        les fichiers vecteurs ou objects vecteur
+
+        Args:
+            path (str): chemin du fichier vecteur ou objet vecteur
+
+        Returns:
+            VectorSet: jeu de fichiers/objets vecteur
+        """
     
     @classmethod
     def from_descriptor(cls, path: str) -> "VectorSet":
         """Constructor method of a VectorSet from the descriptor
-           un fichier ou un objet contient toutes les informations sur les fichiers vecteur ou objets vecteur"""
+           un fichier ou un objet contient toutes les informations sur les fichiers vecteur ou objets vecteur
+
+        Args:
+            path (str): chemin du fichier vecteur ou objet vecteur
+
+        Returns:
+            VectorSet: jeu de fichiers/objets vecteur
+        """
 
     @property
     def get_unique_srs_tables_list(srs: str)-> List[str]
         """obtenir la liste des srs uniques des tables
+        Args :
+            srs (str) : système de référence spatiale des coordonnées
+        Returns:
+            List(str): liste des srs uniques des tables
         """
         return ["2154", "4326"]
 
@@ -62,17 +80,36 @@ class Vector:
 
     @classmethod
     def from_file(cls, path: str) -> "Vector":
-        """Constructor method of a Vector from file"""
+        """Constructor method of a Vector from file
+
+        Args:
+            path (str): chemin du fichier/objet vecteur
+
+        Returns:
+            Vector: fichier/objet S3 vecteur à partir du fichier
+        """
 
     @classmethod
     def from_parameters(cls, path: str, tables:List[str]) -> "Vector":
-        """Constructor method of a Vector from the descriptor"""
+        """Constructor method of a Vector from the descriptor
+
+        Args:
+            path (str): chemin du fichier objet/vecteur
+            tables (List[str]): le nom de la table et la valeur de l'instance de Table
+
+        Returns:
+            Vector: fichier/objet s3 Vecteur à partir du descripteur
+        """
 
     @property
-    def get_unique_srs_tables_list(srs: str)->List[str]
+    def get_unique_srs_tables_list(srs: str)-> List[str]
         """obtenir la liste des srs uniques des tables
+        Args :
+            srs (str) : système de référence spatiale des coordonnées
+        Returns:
+            List[str]: la liste des srs uniques des tables
         """
-        return ["2154", "4326"]
+        return ["2154", "4326", "3857", "4210"," 4258"]
 
 class Table:
     """Une table vecteur
@@ -103,6 +140,6 @@ if __name__ == '__main__' :
     shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
     shp_info = "ogrinfo -json -so -al ".shpfilename
     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
-    VectorSet.from_list(cls, path: str) -> Vector.from_file (shp_info) -> Table    
+    VectorSet.from_list(cls, path: str) -> Vector.from_file (shp_info: object) -> Table    
     # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
     VectorSet.from_descriptor (cls, path: str) -> Vector.from_parameters (cls, path: str, tables:List[str])-> Table
