@@ -119,14 +119,14 @@ class Table:
         """constructeur de Table contenant les informations directement fournies
 
         Args:
-            name (str): _description_
-            attributes (Dict): _description_
-            count (int): _description_
-            srs (str): _description_
-            bbox (Tuple[float, float, float, float]): _description_
+            name (str): nom des objets
+            attributes (Dict): nom des attributs (colonnes + types des clonnes)
+            count (int): nombre d'objets
+            srs (str): code correspondant au système de référence spatiale des coordonnées
+            bbox (Tuple[float, float, float, float]): rectangle englobant
 
         Returns:
-            Table: _description_
+            Table: une instance de Table
         """
         self.__name = name
         self.__attributes = attributes
