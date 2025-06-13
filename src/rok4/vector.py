@@ -31,7 +31,9 @@ ogr.UseExceptions()
 
 # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
 
-shp_info = "ogrinfo -json -so -al ".shapefile
+dirname = os.path.dirname(__file__)
+shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
+shp_info = "ogrinfo -json -so -al ".shpfilename
 VectorSet.from_list(cls, path: str) -> Vector.from_file (shp_info) -> Table    
     
 # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
