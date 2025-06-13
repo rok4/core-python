@@ -139,7 +139,7 @@ if __name__ == '__main__' :
     # Ci-dessous deux usages pour le chargement de données vecteur
     dirname = os.path.dirname(__file__)
     shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
-    shp_info = "ogrinfo -json -so -al ".shpfilename
+    shp_info = "ogrinfo -json ".shpfilename
     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
     VectorSet.from_list(cls, path: str) -> Vector.from_file (shp_info: object) -> Table    
     # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
