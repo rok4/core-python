@@ -16,7 +16,7 @@ import os
 import tempfile
 
 # 3rd party
-from osgeo import ogr
+from osgeo import gdal, ogr
 
 # type de structures de données
 from typing import List, Dict, Tuple
@@ -60,7 +60,7 @@ class VectorSet:
         """
 
     @property
-    def get_unique_srs_tables_list(srs: str)-> List[str]
+    def get_unique_srs_tables_list(srs: str)-> List[str]:
         """obtenir la liste des srs uniques des tables
         Args :
             srs (str) : système de référence spatiale des coordonnées
@@ -69,14 +69,14 @@ class VectorSet:
         """
         return ["2154", "4326", "3857", "4210"," 4258"]
 
-class Vector:
+class Vector():
     """un fichier/un objet vecteur
     """
     # attributs de classe
     # chemin du fichier objet/vecteur
     _path: str = ""
     # la clé est le nom de la table et la valeur de l'instance de Table
-    _tables: Dict[Table]  = {[]}
+    _tables: Dict[str, List[str]]  = {[]}
 
     @classmethod
     def from_file(cls, path: str) -> "Vector":
@@ -102,7 +102,7 @@ class Vector:
         """
 
     @property
-    def get_unique_srs_tables_list(srs: str)-> List[str]
+    def get_unique_srs_tables_list(srs: str)-> List[str]:
         """obtenir la liste des srs uniques des tables
         Args :
             srs (str) : système de référence spatiale des coordonnées
@@ -141,6 +141,20 @@ if __name__ == '__main__' :
     shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
     shp_info = "ogrinfo -json ".shpfilename
     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
-    VectorSet.from_list(cls, path: str) -> Vector.from_file (shp_info: object) -> Table    
+    VectorSet.from_list(cls, path)
+    Vector.from_file (shp_info)
+    name = my_object1
+    attributes = {"colonne1": str}
+    count = 100
+    srs = "2154"
+    bbox = (100.0, 23.6, -6.93, 3.369)
+    table1 = Table(name, attributes, count, srs, bbox)   
     # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
-    VectorSet.from_descriptor (cls, path: str) -> Vector.from_parameters (cls, path: str, tables:List[str])-> Table
+    VectorSet.from_descriptor (cls, path)
+    Vector.from_parameters (cls, path, tables)
+    name = my_object2
+    attributes = {"colonne1": str}
+    count = 3000
+    srs = "2154"
+    bbox = (100.0, 23.6, -6.93, 3.369)
+    table2 = Table(name, attributes, count, srs, bbox)
