@@ -29,6 +29,14 @@ from rok4.storage import copy, get_osgeo_path
 # Enable GDAL/OGR exceptions
 ogr.UseExceptions()
 
+# On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
+
+shp_info = "ogrinfo -json -so -al ".shapefile
+VectorSet.from_list(cls, path: str) -> Vector.from_file (shp_info) -> Table    
+    
+# On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
+
+VectorSet.from_descriptor (cls, path: str) -> Vector.from_parameters (cls, path: str, tables:List[str])-> Table
 
 class VectorSet:
     """ correspond à un ensemble de fichiers/objets vecteur
