@@ -120,7 +120,7 @@ class Table:
 
         Args:
             name (str): nom des objets
-            attributes (Dict): nom des attributs (colonnes + types des clonnes)
+            attributes (Dict): nom des attributs (colonnes + types des colonnes)
             count (int): nombre d'objets
             srs (str): code correspondant au système de référence spatiale des coordonnées
             bbox (Tuple[float, float, float, float]): rectangle englobant
