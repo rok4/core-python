@@ -67,7 +67,7 @@ class VectorSet:
         Returns:
             List(str): liste des srs uniques des tables
         """
-        return ["2154", "4326"]
+        return ["2154", "4326", "3857", "4210"," 4258"]
 
 class Vector:
     """un fichier/un objet vecteur
