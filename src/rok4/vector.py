@@ -136,6 +136,7 @@ class Table:
 
 if __name__ == '__main__' :
 
+    # Ci-dessous deux usages pour le chargement de données vecteur
     dirname = os.path.dirname(__file__)
     shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
     shp_info = "ogrinfo -json -so -al ".shpfilename
