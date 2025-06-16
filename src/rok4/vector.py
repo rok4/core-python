@@ -109,7 +109,7 @@ class Vector():
         Returns:
             list[str]: la liste des srs uniques des tables
         """
-        return ["2154", "4326", "3857", "4210"," 4258"]
+        return ["2154", "3857", "4210"," 4258", "4326"]
 
 class Table:
     """Une table vecteur
@@ -140,7 +140,7 @@ if __name__ == '__main__' :
     dirname = os.path.dirname(__file__)
     shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
     shp_info = "ogrinfo -json ".shpfilename
-    
+
     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
     VectorSet.from_list(path)
     Vector.from_file (shp_info)
