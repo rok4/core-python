@@ -35,7 +35,7 @@ class VectorSet:
     """
 
     @classmethod
-    def from_list(path: str) -> "VectorSet":
+    def from_list(cls, path: str) -> "VectorSet":
         """Constructor method of a VectorSet from lists
         un fichier ou un objet contient une liste de chemins vers 
         les fichiers vecteurs ou objects vecteur
@@ -46,9 +46,10 @@ class VectorSet:
         Returns:
             VectorSet: jeu de fichiers/objets vecteur
         """
+        self = cls()
     
     @classmethod
-    def from_descriptor(path: str) -> "VectorSet":
+    def from_descriptor(cls, path: str) -> "VectorSet":
         """Constructor method of a VectorSet from the descriptor
            un fichier ou un objet contient toutes les informations sur les fichiers vecteur ou objets vecteur
 
@@ -58,6 +59,7 @@ class VectorSet:
         Returns:
             VectorSet: jeu de fichiers/objets vecteur
         """
+        self = cls()
 
     @property
     def get_unique_srs_tables_list(srs: str)-> list[str]:
@@ -79,7 +81,7 @@ class Vector():
     _tables: dict[str, list[str]]  = {}
 
     @classmethod
-    def from_file(path: str) -> "Vector":
+    def from_file(cls, path: str) -> "Vector":
         """Constructor method of a Vector from file
 
         Args:
@@ -88,9 +90,10 @@ class Vector():
         Returns:
             Vector: fichier/objet S3 vecteur à partir du fichier
         """
+        self = cls()
 
     @classmethod
-    def from_parameters(path: str, tables: list[str]) -> "Vector":
+    def from_parameters(cls, path: str, tables: list[str]) -> "Vector":
         """Constructor method of a Vector from the descriptor
 
         Args:
@@ -100,6 +103,7 @@ class Vector():
         Returns:
             Vector: fichier/objet s3 Vecteur à partir du descripteur
         """
+        self = cls()
 
     @property
     def get_unique_srs_tables_list(srs: str)-> list[str]:
@@ -143,7 +147,7 @@ if __name__ == '__main__' :
 
     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
     VectorSet.from_list(path)
-    Vector.from_file (shp_info)
+    Vector.from_file(shp_info)
     name = my_object1
     attributes = {"colonne1": str}
     count = 100
@@ -152,8 +156,8 @@ if __name__ == '__main__' :
     table1 = Table(name, attributes, count, srs, bbox)  
 
     # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
-    VectorSet.from_descriptor (path)
-    Vector.from_parameters (path, tables)
+    VectorSet.from_descriptor(path)
+    Vector.from_parameters(path, tables)
     name = my_object2
     attributes = {"colonne1": str}
     count = 3000
