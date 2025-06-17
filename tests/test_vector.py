@@ -192,7 +192,7 @@ def test_ok_parameters():
 
 @patch('rok4.vector.Table.__init__', return_value=None)
 def test_table_init(mpatch):
-    """tester le constructeur __init__ de la classe 'Table()'
+    """tester le constructeur __init__ pour vérifier que l'instance lié à la classe Table a bien été créée
 
     Args:
         mpatch (str): décorateur
