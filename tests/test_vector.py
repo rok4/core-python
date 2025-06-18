@@ -1,14 +1,14 @@
 # standard library
 import os
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, Mock
 
 # 3rd party
 import pytest
 
 # package
 from rok4.exceptions import MissingEnvironmentError, StorageError
-from rok4.storage import disconnect_ceph_clients
+from rok4.storage import disconnect_ceph_clients, get_osgeo_path
 from rok4.vector import VectorSet, Vector, Table
 
 
@@ -46,7 +46,7 @@ def test_wrong_content_ceph(mocked_open, mocked_copy):
     assert str(exc.value) == "The content of file:///vector.shp cannot be read"
 
 
-def test_ok_csv1():
+def test_vectorset_from_list_ok_csv1():
     try:
         vector_csv1 = VectorSet.from_list(
             "file://tests/fixtures/vector.csv",
@@ -67,17 +67,16 @@ def test_ok_csv1():
         assert True, f"Vector creation raises an exception: {exc}"
 
 
-def test_ok_csv2():
+def test_vectorset_from_descriptor_ok_csv2():
     try:
         vector_csv2 = VectorSet.from_descriptor(
             "file://tests/fixtures/vector2.csv",  
         )
-        #, csv={"delimiter": ";", "column_wkt": "WKT"}
         assert str(vector_csv2.path) == "file://tests/fixtures/vector2.csv"
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-def test_ok_csv3():
+def test_vector_from_file_ok_csv3():
     try:
         vector_csv3 = Vector.from_file(
             "file://tests/fixtures/vector.csv",
@@ -89,12 +88,11 @@ def test_ok_csv3():
     except Exception as exc:
         assert True, f"Vector creation raises an exception: {exc}"
 
-def test_ok_csv4():
+def test_vector_from_parameters_ok_csv4():
     try:
         vector_csv4 = Vector.from_parameters(
             "file://tests/fixtures/vector.csv",
             "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-            #csv={"delimiter": ";", "column_x": "x", "column_y": "y"},
         )
         assert (
             str(vector_csv4.path)
@@ -108,33 +106,108 @@ def test_ok_csv4():
         assert False, f"Vector creation raises an exception: {exc}"
 
 
-def test_ok_geojson():
+def test_vectorset_from_list_ok_geojson():
     try:
-        vector = VectorSet.from_list(
+        vector_geojson = VectorSet.from_list(
             "file://tests/fixtures/vector.geojson"
             )
         assert (
-            str(vector.layers)
+            str(vector_geojson.layers)
             == "[('vector', 1, [('id', 'String'), ('id_fantoir', 'String'), ('numero', 'Integer'), ('rep', 'String'), ('nom_voie', 'String'), ('code_postal', 'Integer'), ('code_insee', 'Integer'), ('nom_commune', 'String'), ('code_insee_ancienne_commune', 'String'), ('nom_ancienne_commune', 'String'), ('x', 'Real'), ('y', 'Real'), ('lon', 'Real'), ('lat', 'Real'), ('type_position', 'String'), ('alias', 'String'), ('nom_ld', 'String'), ('libelle_acheminement', 'String'), ('nom_afnor', 'String'), ('source_position', 'String'), ('source_nom_voie', 'String'), ('certification_commune', 'Integer'), ('cad_parcelles', 'String')])]"
         )
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-
-def test_ok_gpkg():
+def test_vectorset_from_descriptor_ok_geojson():
     try:
-        vector = VectorSet.from_list(
+        vector_geojson2 = VectorSet.from_descriptor(
+            "file://tests/fixtures/vector.geojson",  
+        )
+        assert str(vector_geojson2.path) == "file://tests/fixtures/vector.geojson"
+    except Exception as exc:
+        assert False, f"Vector creation raises an exception: {exc}"
+
+def test_vector_from_file_ok_geojson():
+    try:
+        vector_geojson3 = Vector.from_file(
+            "file://tests/fixtures/vector.geojson",
+        )
+        assert (
+            str(vector_geojson3.path)
+            == "file://tests/fixtures/vector.geojson"
+        )
+    except Exception as exc:
+        assert True, f"Vector creation raises an exception: {exc}"
+
+def test_vector_from_parameters_ok_geojson():
+    try:
+        vector_geojson4 = Vector.from_parameters(
+            "file://tests/fixtures/vector.geojson",
+            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        )
+        assert (
+            str(vector_geojson4.path)
+            == "file://tests/fixtures/vector.geojson"
+        )
+        assert (
+            str(vector_geojson4.tables)
+            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        )
+    except Exception as exc:
+        assert False, f"Vector creation raises an exception: {exc}"
+
+def test_vectorset_from_list_ok_gpkg():
+    try:
+        vector_gpkg = VectorSet.from_list(
             "file://tests/fixtures/vector.gpkg"
             )
         assert (
-            str(vector.layers)
+            str(vector_gpkg.layers)
             == "[('Table1', 2, [('id', 'String')]), ('Table2', 2, [('id', 'Integer'), ('nom', 'String')])]"
         )
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
+def test_vectorset_from_descriptor_ok_gpkg2():
+    try:
+        vector_gpkg2 = VectorSet.from_descriptor(
+            "file://tests/fixtures/vector.gpkg",  
+        )
+        assert str(vector_gpkg2.path) == "file://tests/fixtures/vector.gpkg"
+    except Exception as exc:
+        assert False, f"Vector creation raises an exception: {exc}"
 
-def test_ok_shp():
+def test_vector_from_file_ok_gpkg3():
+    try:
+        vector_gpkg3 = Vector.from_file(
+            "file://tests/fixtures/vector.gpkg",
+        )
+        assert (
+            str(vector_gpkg3.path)
+            == "file://tests/fixtures/vector.gpkg"
+        )
+    except Exception as exc:
+        assert True, f"Vector creation raises an exception: {exc}"
+
+def test_vector_from_parameters_ok_gpkg4():
+    try:
+        vector_gpkg4 = Vector.from_parameters(
+            "file://tests/fixtures/vector.gpkg",
+            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        )
+        assert (
+            str(vector_gpkg4.path)
+            == "file://tests/fixtures/vector.gpkg"
+        )
+        assert (
+            str(vector_gpkg4.tables)
+            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        )
+    except Exception as exc:
+        assert False, f"Vector creation raises an exception: {exc}"
+
+
+def test_vectorset_from_list_ok_shp():
     try:
         vector = VectorSet.from_list(
             "file://tests/fixtures/ARRONDISSEMENT.shp"
@@ -146,8 +219,46 @@ def test_ok_shp():
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
+def test_vectorset_from_descriptor_ok_shp2():
+    try:
+        vector_shp2 = VectorSet.from_descriptor(
+            "file://tests/fixtures/ARRONDISSEMENT.shp",  
+        )
+        assert str(vector_shp2.path) == "file://tests/fixtures/ARRONDISSEMENT.shp"
+    except Exception as exc:
+        assert False, f"Vector creation raises an exception: {exc}"
 
-def test_ok_parameters():
+def test_vector_from_file_ok_shp3():
+    try:
+        vector_shp3 = Vector.from_file(
+            "file://tests/fixtures/ARRONDISSEMENT.shp",
+        )
+        assert (
+            str(vector_shp3.path)
+            == "file://tests/fixtures/ARRONDISSEMENT.shp"
+        )
+    except Exception as exc:
+        assert True, f"Vector creation raises an exception: {exc}"
+
+def test_vector_from_parameters_ok_shp4():
+    try:
+        vector_shp4 = Vector.from_parameters(
+            "file://tests/fixtures/ARRONDISSEMENT.shp",
+            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        )
+        assert (
+            str(vector_shp4.path)
+            == "file://tests/fixtures/ARRONDISSEMENT.shp"
+        )
+        assert (
+            str(vector_shp4.tables)
+            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
+        )
+    except Exception as exc:
+        assert False, f"Vector creation raises an exception: {exc}"
+
+
+def test_vectorset_ok_parameters():
     try:
         vector = VectorSet.from_descriptor(
             "file://tests/fixtures/ARRONDISSEMENT.shp",
@@ -164,6 +275,8 @@ def test_ok_parameters():
     except Exception as exc:
         assert True, f"Vector creation raises an exception: {exc}"
 
+def test_vector_ok_parameters():
+
     try:
         vector = Vector.get_unique_srs_tables_list(
             "2154",
@@ -176,7 +289,6 @@ def test_ok_parameters():
         vector5 = Vector.from_parameters(
             "file://tests/fixtures/vector2.csv",
             "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-            #csv={"delimiter": ";", "column_x": "x", "column_y": "y"},
         )
         assert (
             str(vector5.path)
@@ -188,6 +300,18 @@ def test_ok_parameters():
         )
     except Exception as exc:
         assert True, f"Vector creation raises an exception: {exc}"
+
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_vectorset_from_list_ok():
+    mocked_str = Mock()
+    mocked_str.endswith.return_value = True # or something else you want
+    mocked_str.endswith(".csv")
+    try:
+        path = get_osgeo_path("file:///path/to/file.ext")
+        assert path == "/path/to/file.ext"
+    except Exception as exc:
+        assert False, f" the path of vector set from list {path} is not defined"
+    
 
 
 @patch('rok4.vector.Table.__init__', return_value=None)
