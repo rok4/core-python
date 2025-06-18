@@ -22,7 +22,7 @@ from osgeo import gdal, ogr
 from typing import Tuple
 
 # package
-from rok4.storage import copy, get_osgeo_path
+from rok4.storage import copy, get_osgeo_path, get_data_str
 
 # -- GLOBALS --
 
@@ -52,6 +52,7 @@ class VectorSet:
 
         path_split = path.split("/")
 
+
         if path_split[0] == "ceph:" or path.endswith(".csv"):
             if path.endswith(".shp"):
                 with tempfile.TemporaryDirectory() as tmp:
@@ -80,6 +81,8 @@ class VectorSet:
                     copy(path, "file://" + tmp_path + ".geojson")
 
                     dataSource = ogr.Open(tmp_path + ".geojson", 0)
+                    gdal_ogr_compliant_path = get_osgeo_path(path)
+                    load_full_data_into_string=get_data_str(gdal_ogr_compliant_path)
 
             elif path.endswith(".csv"):
                 # Récupération des informations optionnelles
