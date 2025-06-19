@@ -269,7 +269,6 @@ def test_vectorset_from_list_ok():
         assert False, f" the path of vector set from list {path} is not defined"
     
 
-
 @patch('rok4.vector.Table.__init__', return_value=None)
 def test_table_init(mpatch):
     """tester le constructeur __init__ pour vérifier que l'instance lié à la classe Table a bien été créée
