@@ -71,6 +71,7 @@ class VectorSet:
         self = cls()
 
         self.path = path
+        self.vector_descriptor = Vector.from_parameters(path, Vector._tables)
 
         return self
 
@@ -128,7 +129,7 @@ class Vector():
 
         self.path = path
         self.tables = tables
-
+        
         return self
 
     @property
