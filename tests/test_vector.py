@@ -1,14 +1,13 @@
 # standard library
 import os
 from unittest import mock
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import patch, Mock
 
 # 3rd party
 import pytest
 
 # package
-from rok4.exceptions import MissingEnvironmentError, StorageError
-from rok4.storage import disconnect_ceph_clients, get_osgeo_path
+from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str
 from rok4.vector import VectorSet, Vector, Table
 
 
@@ -288,3 +287,33 @@ def test_table_init(mpatch):
     obj_table = Table.__init__(srs,count,bbox,attributes,name)
     mpatch.isinstance(obj_table,mpatch)
     patcher.stop()
+
+@mock.patch.dict(
+    os.environ,
+    {"ROK4_S3_URL": "https://a,https://b", "ROK4_S3_SECRETKEY": "a,b", "ROK4_S3_KEY": "a,b"},
+    clear=True,
+)
+def test_get_osgeo_path_s3_ok():
+    disconnect_s3_clients()
+
+    try:
+        path = get_osgeo_path("s3://bucket@b/to/object.ext")
+        assert path == "/vsis3/bucket/to/object.ext"
+    except Exception as exc:
+        assert False, f"S3 osgeo path raises an exception: {exc}"
+
+
+def test_get_osgeo_path_file_ok():
+    try:
+        path = get_osgeo_path("tests/fixtures/vector2.csv")
+        assert path == "tests/fixtures/vector2.csv"
+    except Exception as exc:
+        assert False, f"FILE osgeo path raises an exception: {exc}"
+
+def test_data_content_vector_is_a_string_ok():
+    try:
+        path_to_data = get_osgeo_path("tests/fixtures/vector2.csv")
+        data_content = get_data_str(path_to_data)
+        assert isinstance (data_content, str)
+    except Exception as exc:
+        assert False, f"data content vector raises an exception: {exc}"
