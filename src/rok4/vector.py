@@ -22,6 +22,8 @@ from osgeo import gdal, ogr
 from typing import Tuple
 
 # package
+from json.decoder import JSONDecodeError
+from rok4.exceptions import FormatError, MissingAttributeError
 from rok4.storage import copy, get_osgeo_path, get_data_str
 
 # -- GLOBALS --
@@ -120,7 +122,7 @@ class Vector():
 
         Args:
             path (str): chemin du fichier objet/vecteur
-            tables (list[str]): le nom de la table et la valeur de l'instance de Table
+            tables (dict[str,Any]): le nom de la table et la valeur de l'instance de Table
 
         Returns:
             Vector: fichier/objet s3 Vecteur à partir du descripteur
@@ -129,7 +131,7 @@ class Vector():
 
         self.path = path
         self.tables = tables
-        
+
         return self
 
     @property

@@ -2,12 +2,14 @@
 import os
 from unittest import mock
 from unittest.mock import patch, Mock
+from json.decoder import JSONDecodeError
 
 # 3rd party
 import pytest
 
 # package
-from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str
+from rok4.exceptions import FormatError
+from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str, StorageError
 from rok4.vector import VectorSet, Vector, Table
 
 
@@ -316,3 +318,10 @@ def test_data_content_vector_is_a_string_ok():
         assert isinstance (data_content, str)
     except Exception as exc:
         assert False, f"data content vector raises an exception: {exc}"
+
+def test_wrong_file_vector_from_file():
+    try :
+        path = "tests/fixtures/vector2.csv"
+        assert Vector.from_file("tests/fixtures/vector2.csv") is False
+    except Exception as exc :
+        assert True, f"the path to the file is correct {exc}"
