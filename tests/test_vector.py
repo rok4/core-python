@@ -2,33 +2,77 @@
 import os
 from unittest import mock
 from unittest.mock import patch, Mock
-from json.decoder import JSONDecodeError
 
-# 3rd party
-import pytest
 
 # package
-from rok4.exceptions import FormatError
-from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str, StorageError
+
+from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str
 from rok4.vector import VectorSet, Vector, Table
 
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_vectorset_from_list_ok(mock_append):
+    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
+    Vector.from_file = Mock(return_value=expected_vector_object)
+    mock_append = Mock()
+    VectorSet._append = mock_append
+    o_object_vector = VectorSet.from_list("file://tests/fixtures/vector2.csv")
+
+    assert mock_append.call_count == 1
+    assert mock_append.call_args[0][0] == expected_vector_object
+    o_object_vector.assert_called_once_with("file://tests/fixtures/vector2.csv")
 
 
-def test_vectorset_from_list_ok_csv1():
+def test_vectorset_from_descriptor_ok_parameters():
+    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
+    path = "file://tests/fixtures/vector2.csv"
+    Vector._tables = expected_vector_object
+    dataset_vector_object = Vector.from_parameters(path, Vector._tables)
+    
+    assert isinstance(VectorSet.from_descriptor(path), VectorSet)
+    assert isinstance(dataset_vector_object, Vector)
+
+@mock.patch("rok4.vector.Vector.from_file")
+def test_vectorset_descriptor_ok(mock_file):
+    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
+    path = "file://tests/fixtures/vector2.csv"
+    tables = ['table1','table2','table3']
+
+    o_object_vector = Vector.from_parameters(path, tables)
+
+    assert mock_file.call_count == 0
+    assert isinstance(o_object_vector._path, str)
+    assert isinstance(o_object_vector._tables, list)
+    assert isinstance(Vector().from_parameters(path, tables), dict)
+    assert (Vector().from_parameters(path, tables) == expected_vector_object)
+
+@mock.patch("rok4.vector.Vector.from_parameters")
+def test_vectorset_descriptor_ok(mock_parameters):
+    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
+    vector = Vector()
+    path = "file://tests/fixtures/vector2.csv"
+    Vector.from_parameters = Mock(return_value = expected_vector_object)
+
+    o_object_vector = VectorSet.from_descriptor("file://tests/fixtures/vector2.csv")
+
+    assert mock_parameters.call_count == 0
+    assert isinstance(Vector.from_parameters(path, vector._tables), dict)
+    assert isinstance(o_object_vector, VectorSet)
+    
+def test_vectorset_from_list_ok_csv():
     try:
-        vector_csv1 = VectorSet.from_list(
+        vector_csv = VectorSet.from_list(
             "file://tests/fixtures/vector.csv",
         )
         assert (
-            str(vector_csv1.path)
+            str(vector_csv.path)
             == "file://tests/fixtures/vector.csv"
         )
         assert (
-            str(vector_csv1.layers)
+            str(vector_csv.layers)
             == "[('vector', 3, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
         )
         assert (
-            str(vector_csv1.bbox)
+            str(vector_csv.bbox)
             == "[('vector', 3, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
         )
     except Exception as exc:
