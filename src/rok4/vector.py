@@ -94,7 +94,7 @@ class Vector():
     # chemin du fichier objet/vecteur
     _path: str = ""
     # la clé est le nom de la table et la valeur de l'instance de Table
-    _tables: dict[str, list[str]]  = {}
+    _tables: list[str]  = []
 
     @classmethod
     def from_file(cls, path: str) -> "Vector":
@@ -122,7 +122,7 @@ class Vector():
 
         Args:
             path (str): chemin du fichier objet/vecteur
-            tables (dict[str,Any]): le nom de la table et la valeur de l'instance de Table
+            tables (list[str]): le nom de la table et la valeur de l'instance de Table
 
         Returns:
             Vector: fichier/objet s3 Vecteur à partir du descripteur
