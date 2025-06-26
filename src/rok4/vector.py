@@ -12,19 +12,16 @@ These classes would be necessary to make easily interactions between tools with 
 # -- IMPORTS --
 
 # standard library
-import os
-import tempfile
+#import os
 
 # 3rd party
-from osgeo import gdal, ogr
+from osgeo import ogr
 
 # type de structures de données
 from typing import Tuple
 
 # package
-from json.decoder import JSONDecodeError
-from rok4.exceptions import FormatError, MissingAttributeError
-from rok4.storage import copy, get_osgeo_path, get_data_str
+from rok4.storage import get_osgeo_path, get_data_str
 
 # -- GLOBALS --
 
@@ -167,29 +164,30 @@ class Table:
         self.__srs = srs
         self.__bbox = bbox
 
-if __name__ == '__main__' :
+# if __name__ == '__main__' :
 
-    # Ci-dessous deux usages pour le chargement de données vecteur
-    dirname = os.path.dirname(__file__)
-    shpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
-    shp_info = "ogrinfo -json ".shpfilename
+#     # Ci-dessous deux usages pour le chargement de données vecteur
+#     dirname = os.path.dirname(__file__)
+#     pathtoshpfilename = os.path.join(dirname, 'core-python/tests/fixtures/ARRONDISSEMENT.shp')
+#     shp_info = "ogrinfo -json ".shpfilename
+#     tables = ['table1','table2','table3']
 
-    # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
-    VectorSet.from_list(path)
-    Vector.from_file(shp_info)
-    name = my_object1
-    attributes = {"colonne1": str}
-    count = 100
-    srs = "2154"
-    bbox = (100.0, 23.6, -6.93, 3.369)
-    table1 = Table(name, attributes, count, srs, bbox)  
+#     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaire) -> Table
+#     VectorSet.from_list(pathtoshpfilename)
+#     Vector.from_file(pathtoshpfilename)
+#     name1 = "my_object1"
+#     attributes1 = {"colonne1": str}
+#     count1 = 100
+#     srs1 = "2154"
+#     bbox1 = (100.0, 23.6, -6.93, 3.369)
+#     table1 = Table(name1, attributes1, count1, srs1, bbox1)  
 
-    # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
-    VectorSet.from_descriptor(path)
-    Vector.from_parameters(path, tables)
-    name = my_object2
-    attributes = {"colonne1": str}
-    count = 3000
-    srs = "2154"
-    bbox = (100.0, 23.6, -6.93, 3.369)
-    table2 = Table(name, attributes, count, srs, bbox)
+#     # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table 
+#     VectorSet.from_descriptor(pathtoshpfilename)
+#     Vector.from_parameters(pathtoshpfilename, tables)
+#     name2 = "my_object2"
+#     attributes2 = {"colonne2": str}
+#     count2 = 3000
+#     srs2 = "2154"
+#     bbox2 = (100.0, 23.6, -6.93, 3.369)
+#     table2 = Table(name2, attributes2, count2, srs2, bbox2)

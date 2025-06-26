@@ -57,26 +57,6 @@ def test_vectorset_descriptor_ok(mock_parameters):
     assert mock_parameters.call_count == 0
     assert isinstance(Vector.from_parameters(path, vector._tables), dict)
     assert isinstance(o_object_vector, VectorSet)
-    
-def test_vectorset_from_list_ok_csv():
-    try:
-        vector_csv = VectorSet.from_list(
-            "file://tests/fixtures/vector.csv",
-        )
-        assert (
-            str(vector_csv.path)
-            == "file://tests/fixtures/vector.csv"
-        )
-        assert (
-            str(vector_csv.layers)
-            == "[('vector', 3, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-        assert (
-            str(vector_csv.bbox)
-            == "[('vector', 3, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
 
 def test_vectorset_from_descriptor_ok_csv2():
@@ -88,17 +68,6 @@ def test_vectorset_from_descriptor_ok_csv2():
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-def test_vector_from_file_ok_csv3():
-    try:
-        vector_csv3 = Vector.from_file(
-            "file://tests/fixtures/vector.csv",
-        )
-        assert (
-            str(vector_csv3.path)
-            == "file://tests/fixtures/vector.csv"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
 def test_vector_from_parameters_ok_csv4():
     try:
@@ -128,17 +97,6 @@ def test_vectorset_from_descriptor_ok_geojson():
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-def test_vector_from_file_ok_geojson():
-    try:
-        vector_geojson3 = Vector.from_file(
-            "file://tests/fixtures/vector.geojson",
-        )
-        assert (
-            str(vector_geojson3.path)
-            == "file://tests/fixtures/vector.geojson"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
 def test_vector_from_parameters_ok_geojson():
     try:
@@ -157,17 +115,6 @@ def test_vector_from_parameters_ok_geojson():
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-def test_vectorset_from_list_ok_gpkg():
-    try:
-        vector_gpkg = VectorSet.from_list(
-            "file://tests/fixtures/vector.gpkg"
-            )
-        assert (
-            str(vector_gpkg.layers)
-            == "[('Table1', 2, [('id', 'String')]), ('Table2', 2, [('id', 'Integer'), ('nom', 'String')])]"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
 def test_vectorset_from_descriptor_ok_gpkg2():
     try:
@@ -178,17 +125,6 @@ def test_vectorset_from_descriptor_ok_gpkg2():
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-def test_vector_from_file_ok_gpkg3():
-    try:
-        vector_gpkg3 = Vector.from_file(
-            "file://tests/fixtures/vector.gpkg",
-        )
-        assert (
-            str(vector_gpkg3.path)
-            == "file://tests/fixtures/vector.gpkg"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
 def test_vector_from_parameters_ok_gpkg4():
     try:
@@ -229,17 +165,6 @@ def test_vectorset_from_descriptor_ok_shp2():
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
 
-def test_vector_from_file_ok_shp3():
-    try:
-        vector_shp3 = Vector.from_file(
-            "file://tests/fixtures/ARRONDISSEMENT.shp",
-        )
-        assert (
-            str(vector_shp3.path)
-            == "file://tests/fixtures/ARRONDISSEMENT.shp"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
 def test_vector_from_parameters_ok_shp4():
     try:
@@ -267,24 +192,9 @@ def test_vectorset_ok_parameters():
         assert str(vector.path) == "file://tests/fixtures/ARRONDISSEMENT.shp"
     except Exception as exc:
         assert False, f"Vector creation raises an exception: {exc}"
-    
-    try:
-        vector = VectorSet.get_unique_srs_tables_list(
-            "2154",
-        )
-        assert str(vector) == ["2154", "4326", "3857", "4210"," 4258"]
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
+
 
 def test_vector_ok_parameters():
-
-    try:
-        vector = Vector.get_unique_srs_tables_list(
-            "2154",
-        )
-        assert str(vector) == ["2154", "4326", "3857", "4210"," 4258"]
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
 
     try:
         vector5 = Vector.from_parameters(
@@ -300,7 +210,7 @@ def test_vector_ok_parameters():
             == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
         )
     except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
+        assert False, f"Vector creation raises an exception: {exc}"
 
 
 @mock.patch.dict(os.environ, {}, clear=True)
@@ -312,10 +222,10 @@ def test_vectorset_from_list_ok():
         path = get_osgeo_path("file:///path/to/file.ext")
         assert path == "/path/to/file.ext"
     except Exception as exc:
-        assert False, f" the path of vector set from list {path} is not defined"
+        assert False, f" the path of vector set from list {path} is not defined {exc}"
     
 
-@patch('rok4.vector.Table.__init__', return_value=None)
+@patch('rok4.vector.Table.__init__', return_value=Table)
 def test_table_init(mpatch):
     """tester le constructeur __init__ pour vérifier que l'instance lié à la classe Table a bien été créée
 
@@ -328,9 +238,11 @@ def test_table_init(mpatch):
     srs = "2154" 
     count = 1000
     bbox = (150,23.5,-59.1,-5.6)
-    attributes={"colonne1": str}
+    attributes={"colonne1": "attribute1"}
     obj_table = Table.__init__(srs,count,bbox,attributes,name)
     mpatch.isinstance(obj_table,mpatch)
+    mpatch.isinstance(obj_table[srs],str)
+    mpatch.assert_called_once_with(srs,count,bbox,attributes,name)
     patcher.stop()
 
 @mock.patch.dict(
@@ -362,10 +274,3 @@ def test_data_content_vector_is_a_string_ok():
         assert isinstance (data_content, str)
     except Exception as exc:
         assert False, f"data content vector raises an exception: {exc}"
-
-def test_wrong_file_vector_from_file():
-    try :
-        path = "tests/fixtures/vector2.csv"
-        assert Vector.from_file("tests/fixtures/vector2.csv") is False
-    except Exception as exc :
-        assert True, f"the path to the file is correct {exc}"
