@@ -42,8 +42,8 @@ def test_vectorset_descriptor_ok(mock_file):
     assert mock_file.call_count == 0
     assert isinstance(o_object_vector._path, str)
     assert isinstance(o_object_vector._tables, list)
-    assert isinstance(Vector().from_parameters(path, tables), dict)
-    assert (Vector().from_parameters(path, tables) == expected_vector_object)
+    assert isinstance(o_object_vector, dict)
+    assert o_object_vector == expected_vector_object
 
 @mock.patch("rok4.vector.Vector.from_parameters")
 def test_vectorset_descriptor_ok(mock_parameters):
@@ -69,18 +69,18 @@ def test_vectorset_from_descriptor_ok_csv2():
         assert False, f"Vector creation raises an exception: {exc}"
 
 
-def test_vector_from_parameters_ok_csv4():
+def test_vector_from_parameters_ok_csv():
     try:
-        vector_csv4 = Vector.from_parameters(
+        vector_csv = Vector.from_parameters(
             "file://tests/fixtures/vector.csv",
             "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
         )
         assert (
-            str(vector_csv4.path)
+            str(vector_csv.path)
             == "file://tests/fixtures/vector.csv"
         )
         assert (
-            str(vector_csv4.tables)
+            str(vector_csv.tables)
             == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
         )
     except Exception as exc:
