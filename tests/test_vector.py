@@ -146,11 +146,15 @@ def test_vector_from_parameters_ok_gpkg4():
 
 def test_vectorset_from_list_ok_shp():
     try:
-        vector = VectorSet.from_list(
+        vector_shp = VectorSet.from_list(
             "file://tests/fixtures/ARRONDISSEMENT.shp"
             )
         assert (
-            str(vector.layers)
+            str(vector_shp.path)
+            == "file://tests/fixtures/ARRONDISSEMENT.shp"
+        )
+        assert (
+            str(vector_shp.tables)
             == "[('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])]"
         )
     except Exception as exc:
