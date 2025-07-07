@@ -245,7 +245,11 @@ def test_table_init(mpatch):
     attributes={"colonne1": "attribute1"}
     obj_table = Table.__init__(srs,count,bbox,attributes,name)
     mpatch.isinstance(obj_table,mpatch)
+    mpatch.isinstance(obj_table[name],str)
     mpatch.isinstance(obj_table[srs],str)
+    mpatch.isinstance(obj_table[count],int)
+    mpatch.isinstance(obj_table[bbox],tuple)
+    mpatch.isinstance(obj_table[attributes],dict)
     mpatch.assert_called_once_with(srs,count,bbox,attributes,name)
     patcher.stop()
 
