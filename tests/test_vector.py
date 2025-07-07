@@ -42,6 +42,11 @@ def test_vectorset_from_descriptor_ok_parameters():
 
 @mock.patch("rok4.vector.Vector.from_file")
 def test_vectorset_descriptor_ok(mock_file):
+    """tester que la méthode de classe 'from_file()' retourne bien l'object vecteur attendu et que l'objet vecteur retourné est bien un dictionnaire
+
+    Args:
+        mock_file (str): décorateur
+    """
     expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
     path = "file://tests/fixtures/vector2.csv"
     tables = ['table1','table2','table3']
@@ -56,6 +61,11 @@ def test_vectorset_descriptor_ok(mock_file):
 
 @mock.patch("rok4.vector.Vector.from_parameters")
 def test_vectorset_descriptor_ok(mock_parameters):
+    """tester que la méthode de classe 'from_parameters()' retourne bien un objecteur vecteur et que c'est bien un dictionnaire qui est retourné en sortie de la fonction
+
+    Args:
+        mock_parameters (str): décorateur
+    """
     expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
     vector = Vector()
     path = "file://tests/fixtures/vector2.csv"
