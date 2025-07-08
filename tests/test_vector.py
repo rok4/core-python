@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # NOM DU PROGRAMME : test_vector.py
-# CONTEXTE : Ces librairies de core-python facilitent la manipulation d'entités du projet ROK4 comme les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
-# BUT DU PROGRAMME : écrire les tests unitaires et les tests d'intégration pour le module de chargement des données vecteur 'vector.py'
+# CONTEXTE : Ces librairies de core-python facilitent la manipulation d'entités du projet ROK4 comme 
+# les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
+# BUT DU PROGRAMME : écrire les tests unitaires et les tests d'intégration pour le module de chargement des données
+#  vecteur 'vector.py'
 # ENTREES : la classe 'Vector()'
 
 # standard library
