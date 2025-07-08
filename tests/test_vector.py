@@ -17,7 +17,8 @@ from rok4.vector import VectorSet, Vector, Table
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_vectorset_from_list_ok(mock_append):
-    """tester que la méthode de classe 'from_list()' ait bien appelée une fois par le programme et que la fonction retourne bien un objet vecteur"""
+    """tester que la méthode de classe 'from_list()' ait bien appelée une fois par le programme et 
+        que la fonction retourne bien un objet vecteur"""
     expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
     Vector.from_file = Mock(return_value=expected_vector_object)
     mock_append = Mock()
@@ -30,7 +31,8 @@ def test_vectorset_from_list_ok(mock_append):
 
 
 def test_vectorset_from_descriptor_ok_parameters():
-    """tester que la méthode de classe 'from_descriptor()' retourne bien l'objet attendu et qu'il soit du type vecteur
+    """tester que la méthode de classe 'from_descriptor()' retourne bien l'objet attendu et 
+        qu'il soit du type vecteur
     """
     expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
     path = "file://tests/fixtures/vector2.csv"
@@ -42,7 +44,8 @@ def test_vectorset_from_descriptor_ok_parameters():
 
 @mock.patch("rok4.vector.Vector.from_file")
 def test_vectorset_descriptor_ok(mock_file):
-    """tester que la méthode de classe 'from_file()' retourne bien l'object vecteur attendu et que l'objet vecteur retourné est bien un dictionnaire
+    """tester que la méthode de classe 'from_file()' retourne bien l'object vecteur attendu et 
+        que l'objet vecteur retourné est bien un dictionnaire
 
     Args:
         mock_file (str): décorateur
@@ -61,7 +64,8 @@ def test_vectorset_descriptor_ok(mock_file):
 
 @mock.patch("rok4.vector.Vector.from_parameters")
 def test_vectorset_descriptor_ok(mock_parameters):
-    """tester que la méthode de classe 'from_parameters()' retourne bien un objecteur vecteur et que c'est bien un dictionnaire qui est retourné en sortie de la fonction
+    """tester que la méthode de classe 'from_parameters()' retourne bien un objecteur vecteur et
+         que c'est bien un dictionnaire qui est retourné en sortie de la fonction
 
     Args:
         mock_parameters (str): décorateur
@@ -79,6 +83,8 @@ def test_vectorset_descriptor_ok(mock_parameters):
 
 
 def test_vectorset_from_descriptor_ok_csv2():
+    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptors()' de 'VectorSet()' est bien une 
+        chaîne de caractères en partant d'un fichier d'entrée d'extension *.csv"""
     try:
         vector_csv2 = VectorSet.from_descriptor(
             "file://tests/fixtures/vector2.csv",  
@@ -89,6 +95,8 @@ def test_vectorset_from_descriptor_ok_csv2():
 
 
 def test_vector_from_parameters_ok_csv():
+    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()' 
+        sont bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.csv"""
     try:
         vector_csv = Vector.from_parameters(
             "file://tests/fixtures/vector.csv",
@@ -108,6 +116,8 @@ def test_vector_from_parameters_ok_csv():
 
 
 def test_vectorset_from_descriptor_ok_geojson():
+    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()' est bien 
+        une chaîne de caractères en partant d'un fichier d'entrée d'extension *.geojson"""
     try:
         vector_geojson2 = VectorSet.from_descriptor(
             "file://tests/fixtures/vector.geojson",  
@@ -118,6 +128,8 @@ def test_vectorset_from_descriptor_ok_geojson():
 
 
 def test_vector_from_parameters_ok_geojson():
+    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()'  sont bien
+         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.geojson"""
     try:
         vector_geojson4 = Vector.from_parameters(
             "file://tests/fixtures/vector.geojson",
@@ -136,6 +148,8 @@ def test_vector_from_parameters_ok_geojson():
 
 
 def test_vectorset_from_descriptor_ok_gpkg2():
+    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()'  est bien 
+        une chaîne de caractères en partant d'un fichier d'entrée d'extension *.gpkg"""
     try:
         vector_gpkg2 = VectorSet.from_descriptor(
             "file://tests/fixtures/vector.gpkg",  
@@ -146,6 +160,8 @@ def test_vectorset_from_descriptor_ok_gpkg2():
 
 
 def test_vector_from_parameters_ok_gpkg4():
+    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()' sont bien
+         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.gpkg"""
     try:
         vector_gpkg4 = Vector.from_parameters(
             "file://tests/fixtures/vector.gpkg",
@@ -164,6 +180,8 @@ def test_vector_from_parameters_ok_gpkg4():
 
 
 def test_vectorset_from_list_ok_shp():
+    """ tester que les attributs path et tables  renvoyés par la méthode 'from_list()' de 'VectorSet()' sont bien
+         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.shp"""
     try:
         vector_shp = VectorSet.from_list(
             "file://tests/fixtures/ARRONDISSEMENT.shp"
@@ -180,6 +198,8 @@ def test_vectorset_from_list_ok_shp():
         assert True, f"Vector creation raises an exception: {exc}"
 
 def test_vectorset_from_descriptor_ok_shp2():
+    """ tester que l' attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()' est bien 
+        une chaîne de caractères en partant d'un fichier d'entrée d'extension *.shp"""
     try:
         vector_shp2 = VectorSet.from_descriptor(
             "file://tests/fixtures/ARRONDISSEMENT.shp",  
@@ -190,6 +210,8 @@ def test_vectorset_from_descriptor_ok_shp2():
 
 
 def test_vector_from_parameters_ok_shp4():
+    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()' sont bien
+         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.shp"""
     try:
         vector_shp4 = Vector.from_parameters(
             "file://tests/fixtures/ARRONDISSEMENT.shp",
@@ -208,6 +230,8 @@ def test_vector_from_parameters_ok_shp4():
 
 
 def test_vectorset_ok_parameters():
+    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()' est 
+        bien une chaîne de caractères en partant d'un fichier d'entrée d'extension *.shp"""
     try:
         vector = VectorSet.from_descriptor(
             "file://tests/fixtures/ARRONDISSEMENT.shp",
@@ -218,7 +242,8 @@ def test_vectorset_ok_parameters():
 
 
 def test_vector_ok_parameters():
-
+    """ tester que les attributs path et tables renvoyés par la méthode 'from_parameters()' de 'Vector()' sont
+         bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.csv"""
     try:
         vector5 = Vector.from_parameters(
             "file://tests/fixtures/vector2.csv",
@@ -238,6 +263,8 @@ def test_vector_ok_parameters():
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_vectorset_from_list_ok():
+    """ tester que la méthode 'from_list()' de 'VectorSet()' a bien le chemin défini donnant accès 
+        au jeu de données vecteur"""
     mocked_str = Mock()
     mocked_str.endswith.return_value = True # or something else you want
     mocked_str.endswith(".csv")
@@ -250,7 +277,8 @@ def test_vectorset_from_list_ok():
 
 @patch('rok4.vector.Table.__init__', return_value=Table)
 def test_table_init(mpatch):
-    """tester le constructeur __init__ pour vérifier que l'instance lié à la classe Table a bien été créée
+    """tester le constructeur __init__ pour vérifier que l'instance lié à la 
+        classe Table a bien été créée
 
     Args:
         mpatch (str): décorateur
@@ -278,6 +306,9 @@ def test_table_init(mpatch):
     clear=True,
 )
 def test_get_osgeo_path_s3_ok():
+    """tester que la méthode 'get_osgeo_path()' récupère bien le chemin donnant l'accès 
+        à l'objet vecteur du bucket S3'
+    """
     disconnect_s3_clients()
 
     try:
@@ -288,6 +319,9 @@ def test_get_osgeo_path_s3_ok():
 
 
 def test_get_osgeo_path_file_ok():
+    """tester que la méthode 'get_osgeo_path()' récupère bien le chemin donnant l'accès 
+        au fichier vecteur du bucket S3'
+    """
     try:
         path = get_osgeo_path("tests/fixtures/vector2.csv")
         assert path == "tests/fixtures/vector2.csv"
@@ -295,6 +329,8 @@ def test_get_osgeo_path_file_ok():
         assert False, f"FILE osgeo path raises an exception: {exc}"
 
 def test_data_content_vector_is_a_string_ok():
+    """tester que le fichier contenant de la donnée vecteur renvoyée par la méthode 'get_data_str()' est bien 
+        une chaîne de caractères"""
     try:
         path_to_data = get_osgeo_path("tests/fixtures/vector2.csv")
         data_content = get_data_str(path_to_data)
