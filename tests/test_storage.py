@@ -526,6 +526,7 @@ def test_copy_http_file_ok(mock_open, mock_requests):
     try:
         http_instance = MagicMock()
         http_instance.iter_content.return_value = ["data", "data2"]
+        http_instance.status_code = 200
         mock_requests.return_value = http_instance
 
         copy("http://path/to/source.ext", "file:///path/to/destination.ext")
