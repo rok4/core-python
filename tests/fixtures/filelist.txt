@@ -1,0 +1,3 @@
+tests/fixtures/martinique.gpkg
+tests/fixtures/states.geojson
+tests/fixtures/TM_WORLD_BORDERS-0.3.shp
