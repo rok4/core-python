@@ -8,16 +8,16 @@
 
 # standard library
 import os
-import pytest
 from unittest import mock
-from unittest.mock import MagicMock, patch, Mock, mock_open, PropertyMock
-from json.decoder import JSONDecodeError
+from unittest.mock import MagicMock, Mock, PropertyMock, mock_open, patch
+
+import pytest
+
+from rok4.storage import disconnect_s3_clients, get_osgeo_path
+from rok4.vector import Table, Vector, VectorSet
 
 # package
 
-from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str
-from rok4.vector import VectorSet, Vector, Table
-from rok4.exceptions import MissingAttributeError, FormatError
 
 
 def test_vectorset_from_list_listtxtpath_ok():
