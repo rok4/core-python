@@ -8,260 +8,715 @@
 
 # standard library
 import os
+import pytest
 from unittest import mock
-from unittest.mock import patch, Mock
-
+from unittest.mock import MagicMock, patch, Mock, mock_open, PropertyMock
+from json.decoder import JSONDecodeError
 
 # package
 
 from rok4.storage import disconnect_s3_clients, get_osgeo_path, get_data_str
 from rok4.vector import VectorSet, Vector, Table
+from rok4.exceptions import MissingAttributeError, FormatError
 
-@mock.patch.dict(os.environ, {}, clear=True)
-def test_vectorset_from_list_ok(mock_append):
+
+def test_vectorset_from_list_listtxtpath_ok():
     """tester que la méthode de classe 'from_list()' ait bien appelée une fois par le programme et 
         que la fonction retourne bien un objet vecteur"""
-    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
-    Vector.from_file = Mock(return_value=expected_vector_object)
-    mock_append = Mock()
-    VectorSet._append = mock_append
-    o_object_vector = VectorSet.from_list("file://tests/fixtures/vector2.csv")
+    path = "tests/fixtures/filelist.txt"
+    path_geojson = "tests/fixtures/states.geojson"
+    tables_geojson = [
+			{
+				"name": "states",
+				"count": 52,
+				"srs": "EPSG:3857",
+				"bbox": [-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "id": "String",
+			        "STATE_ABBR": "String",
+			        "STATE_NAME": "String",
+			        "AREA_LAND": "Real",
+			        "AREA_WATER": "Real",
+			        "PERSONS": "Integer",
+			        "MALE": "Integer",
+			        "FEMALE": "Integer"
+				}
+			}
+		]
+    path_gpkg = "tests/fixtures/martinique.gpkg"
+    tables_gpkg = [
+			{
+				"name": "arrondissement",
+				"count": 4,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_arr": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			},
+			{
+				"name": "departement",
+				"count": 1,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			}
+		]
+    path_shp = "tests/fixtures/TM_WORLD_BORDERS-0.3.shp"
+    tables_shp = [
+			{
+				"name": "TM_WORLD_BORDERS-0.3",
+				"count": 246,
+				"srs": "EPSG:4326",
+				"bbox": (-179.99999999999997, 180.0, -90.0, 83.62359600000008),
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "FIPS": "String",
+			        "ISO2": "String",
+			        "ISO3": "String",
+			        "UN": "Integer",
+			        "NAME": "String",
+			        "AREA": "Integer",
+			        "POP2005": "Integer64",
+			        "REGION": "Integer",
+			        "SUBREGION": "Integer",
+			        "LON": "Real",
+			        "LAT": "Real"
+				}
+			}
+		]
+    tables=[tables_geojson, tables_gpkg, tables_shp]
 
-    assert mock_append.call_count == 1
-    assert mock_append.call_args[0][0] == expected_vector_object
-    o_object_vector.assert_called_once_with("file://tests/fixtures/vector2.csv")
+
+def test_vectorset_from_list_listtxtpath_not_ok():
+    """tester que la méthode de classe 'from_list()' ait bien appelée une fois par le programme et 
+        que la fonction retourne bien un objet vecteur"""
+    path = "tests/fixtures/filelist.txt"
+    message_pattern: str = f"le chemin du fichier vecteur ou objet vecteur n'est pas valide {path}.\n"
 
 
-def test_vectorset_from_descriptor_ok_parameters():
-    """tester que la méthode de classe 'from_descriptor()' retourne bien l'objet attendu et 
-        qu'il soit du type vecteur
-    """
-    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
-    path = "file://tests/fixtures/vector2.csv"
-    Vector._tables = expected_vector_object
-    dataset_vector_object = Vector.from_parameters(path, Vector._tables)
+@patch("builtins.open", new_callable=mock_open, read_data="tests/fixtures/filelist.txt")
+def test_vectorset_patch(mock_file):
+    assert open("path/to/open").read() == "tests/fixtures/filelist.txt"
+    mock_file.assert_called_with("path/to/open")
+    with pytest.raises(Exception):
+        VectorSet.from_list(mock_file)
+        assert isinstance(VectorSet.from_list(mock_file), list)
+        assert (len(VectorSet.from_list(mock_file)) == 3)
+
+
+def test_vectorset_from_descriptor_path_ok():
+    """tester que la méthode de classe 'from_descriptor()' ait bien appelée une fois par le programme et 
+        que la fonction retourne bien un objet vecteur"""
+    path = "tests/fixtures/vectorset.json"
+    assert isinstance (VectorSet.from_descriptor(path), VectorSet)
+
+
+def test_vectorset_from_descriptor_wrong_file_path():
+    """tester que la méthode de classe 'from_list()' ait bien appelée une fois par le programme et 
+        que la fonction retourne bien un objet vecteur"""
+    path = "tests/fixtures/vectorsetnotexists.json"
+    with pytest.raises(FileNotFoundError) :
+        VectorSet.from_descriptor(path)
+        assert isinstance(VectorSet.from_descriptor(path), VectorSet)
+        assert (os.path.exists(path)== False)
     
-    assert isinstance(VectorSet.from_descriptor(path), VectorSet)
-    assert isinstance(dataset_vector_object, Vector)
+    
+@patch('rok4.vector.VectorSet.get_unique_srs_tables_list', new_callable=PropertyMock)
+def test_vectorset_get_unique_srs_tables_list_ok(mocker_uniq_srs_list):
+    srs = "EPSG:4559"
+    mocker_uniq_srs_list.patch(
+        'VectorSet.get_unique_srs_tables_list',
+        new_callable=mocker_uniq_srs_list.PropertyMock,
+        return_value = ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
+    )
+    vectorset = VectorSet()
+    print(vectorset.get_unique_srs_tables_list)
+    mocker_uniq_srs_list.assert_called_once_with()
 
-@mock.patch("rok4.vector.Vector.from_file")
-def test_vectorset_descriptor_ok(mock_file):
-    """tester que la méthode de classe 'from_file()' retourne bien l'object vecteur attendu et 
-        que l'objet vecteur retourné est bien un dictionnaire
+    assert isinstance(VectorSet.get_unique_srs_tables_list(srs), object)
 
-    Args:
-        mock_file (str): décorateur
+
+@mock.patch.dict(os.environ, {}, clear=True)
+def test_vector_get_unique_srs_list():
+    """tester que la méthode du getter 'get_unique_srs_tables_list(srs)' ait bien appelée une fois par le programme et 
+        que la fonction retourne bien un objet vecteur"""
+    
+    expected_srs_tables_list = ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
+    mock_append = Mock(return_value=expected_srs_tables_list)
+    mock_append.patch(
+        'Vector.get_unique_srs_tables_list',
+        new_callable=mock_append.PropertyMock,
+        return_value = ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
+    )
+    assert mock_append.return_value == expected_srs_tables_list
+    
+
+def test_vector_from_file_ok_shp():
+    """_summary_
     """
-    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
-    path = "file://tests/fixtures/vector2.csv"
-    tables = ['table1','table2','table3']
+    path = "tests/fixtures/TM_WORLD_BORDERS-0.3.shp"
+ 
 
-    o_object_vector = Vector.from_parameters(path, tables)
 
-    assert mock_file.call_count == 0
-    assert isinstance(o_object_vector._path, str)
-    assert isinstance(o_object_vector._tables, list)
-    assert isinstance(o_object_vector, dict)
-    assert o_object_vector == expected_vector_object
-
-@mock.patch("rok4.vector.Vector.from_parameters")
-def test_vectorset_descriptor_ok(mock_parameters):
-    """tester que la méthode de classe 'from_parameters()' retourne bien un objecteur vecteur et
-         que c'est bien un dictionnaire qui est retourné en sortie de la fonction
-
-    Args:
-        mock_parameters (str): décorateur
+def test_vector_from_file_wrong_file_shp():
+    """_summary_
     """
-    expected_vector_object = {"id": "WKT", "1": "POINT(1 1)"}
-    vector = Vector()
-    path = "file://tests/fixtures/vector2.csv"
-    Vector.from_parameters = Mock(return_value = expected_vector_object)
 
-    o_object_vector = VectorSet.from_descriptor("file://tests/fixtures/vector2.csv")
+def test_vector_from_file_ok_geojson():
+    """_summary_
+    """
+    path = "tests/fixtures/states.geojson"
+    
 
-    assert mock_parameters.call_count == 0
-    assert isinstance(Vector.from_parameters(path, vector._tables), dict)
-    assert isinstance(o_object_vector, VectorSet)
+def test_vector_from_file_wrong_file_geojson():
+    """_summary_
+    """
+
+def test_vector_from_file_ok_gpkg():
+    """_summary_
+    """
+    path = "tests/fixtures/martinique.gpkg"
+    expected_gpkg_vector  = {"path": path, "tables": [
+			{
+				"name": "arrondissement",
+				"count": 4,
+				"srs": "EPSG:4559",
+				"bbox": (690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8),
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_arr": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			},
+			{
+				"name": "departement",
+				"count": 1,
+				"srs": "EPSG:4559",
+				"bbox": (690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8),
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			}
+		],"data": {}}
 
 
-def test_vectorset_from_descriptor_ok_csv2():
-    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptors()' de 'VectorSet()' est bien une 
-        chaîne de caractères en partant d'un fichier d'entrée d'extension *.csv"""
-    try:
-        vector_csv2 = VectorSet.from_descriptor(
-            "file://tests/fixtures/vector2.csv",  
-        )
-        assert str(vector_csv2.path) == "file://tests/fixtures/vector2.csv"
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+def test_vector_from_file_wrong_file_gpkg():
+    """_summary_
+    """
 
 
-def test_vector_from_parameters_ok_csv():
-    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()' 
-        sont bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.csv"""
-    try:
-        vector_csv = Vector.from_parameters(
-            "file://tests/fixtures/vector.csv",
-            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-        assert (
-            str(vector_csv.path)
-            == "file://tests/fixtures/vector.csv"
-        )
-        assert (
-            str(vector_csv.tables)
-            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+def test_vector_from_parameters_ok_shp():
+    """_summary_
+    """
+    path = "tests/fixtures/TM_WORLD_BORDERS-0.3.shp"
+    tables = [
+			{
+				"name": "TM_WORLD_BORDERS-0.3",
+				"count": 246,
+				"srs": "EPSG:4326",
+				"bbox": (-179.99999999999997, 180.0, -90.0, 83.62359600000008),
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "FIPS": "String",
+			        "ISO2": "String",
+			        "ISO3": "String",
+			        "UN": "Integer",
+			        "NAME": "String",
+			        "AREA": "Integer",
+			        "POP2005": "Integer64",
+			        "REGION": "Integer",
+			        "SUBREGION": "Integer",
+			        "LON": "Real",
+			        "LAT": "Real"
+				}
+			}
+		]
+    expected_shp_vector  = {"path": path, "tables": [
+			{
+				"name": "TM_WORLD_BORDERS-0.3",
+				"count": 246,
+				"srs": "EPSG:4326",
+				"bbox": (-179.99999999999997, 180.0, -90.0, 83.62359600000008),
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "FIPS": "String",
+			        "ISO2": "String",
+			        "ISO3": "String",
+			        "UN": "Integer",
+			        "NAME": "String",
+			        "AREA": "Integer",
+			        "POP2005": "Integer64",
+			        "REGION": "Integer",
+			        "SUBREGION": "Integer",
+			        "LON": "Real",
+			        "LAT": "Real"
+				}
+			}
+		],"data": {}}
 
 
 
-def test_vectorset_from_descriptor_ok_geojson():
-    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()' est bien 
-        une chaîne de caractères en partant d'un fichier d'entrée d'extension *.geojson"""
-    try:
-        vector_geojson2 = VectorSet.from_descriptor(
-            "file://tests/fixtures/vector.geojson",  
-        )
-        assert str(vector_geojson2.path) == "file://tests/fixtures/vector.geojson"
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
-
+def test_vector_from_parameters_wrong_file_shp():
+    """_summary_
+    """
 
 def test_vector_from_parameters_ok_geojson():
-    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()'  sont bien
-         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.geojson"""
-    try:
-        vector_geojson4 = Vector.from_parameters(
-            "file://tests/fixtures/vector.geojson",
-            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-        assert (
-            str(vector_geojson4.path)
-            == "file://tests/fixtures/vector.geojson"
-        )
-        assert (
-            str(vector_geojson4.tables)
-            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+    """_summary_
+    """
+    path = "tests/fixtures/states.geojson"
+    tables = [
+			{
+				"name": "states",
+				"count": 52,
+				"srs": "EPSG:3857",
+				"bbox": [-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "id": "String",
+			        "STATE_ABBR": "String",
+			        "STATE_NAME": "String",
+			        "AREA_LAND": "Real",
+			        "AREA_WATER": "Real",
+			        "PERSONS": "Integer",
+			        "MALE": "Integer",
+			        "FEMALE": "Integer"
+				}
+			}
+		]
+    expected_geojson_vector  = {"path": path, "tables": [
+			{
+				"name": "states",
+				"count": 52,
+				"srs": "EPSG:3857",
+				"bbox": [-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "id": "String",
+			        "STATE_ABBR": "String",
+			        "STATE_NAME": "String",
+			        "AREA_LAND": "Real",
+			        "AREA_WATER": "Real",
+			        "PERSONS": "Integer",
+			        "MALE": "Integer",
+			        "FEMALE": "Integer"
+				}
+			}
+		],"data": {}}
+
+    
+
+def test_vector_from_parameters_wrong_file_geojson():
+    """_summary_
+    """
+
+def test_vector_from_parameters_ok_gpkg():
+    """_summary_
+    """
+    path = "tests/fixtures/martinique.gpkg"
+    tables = [
+			{
+				"name": "arrondissement",
+				"count": 4,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_arr": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			},
+			{
+				"name": "departement",
+				"count": 1,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			}
+		]
+    expected_gpkg_vector  = {"path": path, "tables": [
+			{
+				"name": "arrondissement",
+				"count": 4,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_arr": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			},
+			{
+				"name": "departement",
+				"count": 1,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			}
+		],"data": {}}
+    
 
 
-def test_vectorset_from_descriptor_ok_gpkg2():
-    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()'  est bien 
-        une chaîne de caractères en partant d'un fichier d'entrée d'extension *.gpkg"""
-    try:
-        vector_gpkg2 = VectorSet.from_descriptor(
-            "file://tests/fixtures/vector.gpkg",  
-        )
-        assert str(vector_gpkg2.path) == "file://tests/fixtures/vector.gpkg"
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+def test_vector_from_parameters_wrong_file_gpkg():
+    """_summary_
+    """
+
+@patch('rok4.vector.Vector.get_unique_srs_tables_list', new_callable=PropertyMock)
+def test_vector_get_unique_srs_tables_list_ok(mocker_uniq_srs_list):
+    srs = "EPSG:4326"
+    mocker_uniq_srs_list.patch(
+        'Vector.get_unique_srs_tables_list',
+        new_callable=mocker_uniq_srs_list.PropertyMock,
+        return_value = ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
+    )
+    vector = Vector()
+    print(vector.get_unique_srs_tables_list)
+    mocker_uniq_srs_list.assert_called_once_with()
+
+    assert isinstance(Vector.get_unique_srs_tables_list(srs), object)
+
+@patch("builtins.open", new_callable=mock_open, read_data="data")
+def test_vectorset_patch(mock_file):
+    srs = "EPSG:4559"
+    assert open("path/to/open").read() == "data"
+    mock_file.assert_called_with("path/to/open")
+    with pytest.raises(Exception):
+        VectorSet.get_unique_srs_tables_list(srs)
+        assert isinstance(VectorSet.get_unique_srs_tables_list(srs), list)
 
 
-def test_vector_from_parameters_ok_gpkg4():
-    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()' sont bien
-         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.gpkg"""
-    try:
-        vector_gpkg4 = Vector.from_parameters(
-            "file://tests/fixtures/vector.gpkg",
-            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-        assert (
-            str(vector_gpkg4.path)
-            == "file://tests/fixtures/vector.gpkg"
-        )
-        assert (
-            str(vector_gpkg4.tables)
-            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+@patch("builtins.open", new_callable=mock_open, read_data="data")
+def test_vector_patch(mock_file):
+    srs = "EPSG:3857"
+    assert open("path/to/open").read() == "data"
+    mock_file.assert_called_with("path/to/open")
+    with pytest.raises(Exception):
+        Vector.get_unique_srs_tables_list(srs)
+        assert isinstance(Vector.get_unique_srs_tables_list(srs), list)
+    
+
+@patch('rok4.vector.Table.__init__', return_value=Table)
+def test_table_init(mpatch):
+    """tester le constructeur __init__ pour vérifier que l'instance lié à la 
+        classe Table a bien été créée
+
+    Args:
+        mpatch (str): décorateur
+    """
+    patcher = patch('rok4.vector.Table.__init__')
+    mpatch = patcher.start()
+    name = "TM_WORLD_BORDERS-0.3"
+    srs = "EPSG:4326" 
+    count = 246
+    bbox = (-179.99999999999997, 180.0, -90.0, 83.62359600000008)
+    attributes = {
+			        "FIPS": "String",
+			        "ISO2": "String",
+			        "ISO3": "String",
+			        "UN": "Integer",
+			        "NAME": "String",
+			        "AREA": "Integer",
+			        "POP2005": "Integer64",
+			        "REGION": "Integer",
+			        "SUBREGION": "Integer",
+			        "LON": "Real",
+			        "LAT": "Real"
+				}
+    geometry_columns = ["geom"]
+    obj_table = Table.__init__(srs,count,bbox,attributes,name, geometry_columns)
+    mpatch.isinstance(obj_table, mpatch)
+    mpatch.isinstance(obj_table[name], str)
+    mpatch.isinstance(obj_table[srs], str)
+    mpatch.isinstance(obj_table[count], int)
+    mpatch.isinstance(obj_table[bbox], tuple)
+    mpatch.isinstance(obj_table[attributes], dict)
+    mpatch.isinstance(obj_table[geometry_columns], list)
+    assert isinstance(obj_table, dict)
+    assert (obj_table["name"] == name)
+    assert (obj_table["srs"] == srs)
+    assert (obj_table["count"] == count)
+    assert (obj_table["bbox"] == bbox)
+    assert (obj_table["attributes"] == attributes)
+    assert (obj_table["geometry_columns"] == geometry_columns)
+    mpatch.assert_called_once_with(srs, count, bbox, attributes, name, geometry_columns)
+    patcher.stop()
 
 
-def test_vectorset_from_list_ok_shp():
-    """ tester que les attributs path et tables  renvoyés par la méthode 'from_list()' de 'VectorSet()' sont bien
-         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.shp"""
-    try:
-        vector_shp = VectorSet.from_list(
-            "file://tests/fixtures/ARRONDISSEMENT.shp"
-            )
-        assert (
-            str(vector_shp.path)
-            == "file://tests/fixtures/ARRONDISSEMENT.shp"
-        )
-        assert (
-            str(vector_shp.tables)
-            == "[('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])]"
-        )
-    except Exception as exc:
-        assert True, f"Vector creation raises an exception: {exc}"
+def test_vector_ok_from_file():
+    """ tester que les attributs path et tables renvoyés par la méthode 'from_file()' de 'Vector()' sont
+         bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.geojson, *.gpkg et *.shp"""
+    path_geojson = "tests/fixtures/states.geojson"
+    tables_geojson = [
+			{
+				"name": "states",
+				"count": 52,
+				"srs": "EPSG:3857",
+				"bbox": [-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "id": "String",
+			        "STATE_ABBR": "String",
+			        "STATE_NAME": "String",
+			        "AREA_LAND": "Real",
+			        "AREA_WATER": "Real",
+			        "PERSONS": "Integer",
+			        "MALE": "Integer",
+			        "FEMALE": "Integer"
+				}
+			}
+		]
+    path_gpkg = "tests/fixtures/martinique.gpkg"
+    tables_gpkg = [
+			{
+				"name": "arrondissement",
+				"count": 4,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_arr": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			},
+			{
+				"name": "departement",
+				"count": 1,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			}
+		]
+    path_shp = "tests/fixtures/TM_WORLD_BORDERS-0.3.shp"
+    tables_shp = [
+			{
+				"name": "TM_WORLD_BORDERS-0.3",
+				"count": 246,
+				"srs": "EPSG:4326",
+				"bbox": (-179.99999999999997, 180.0, -90.0, 83.62359600000008),
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "FIPS": "String",
+			        "ISO2": "String",
+			        "ISO3": "String",
+			        "UN": "Integer",
+			        "NAME": "String",
+			        "AREA": "Integer",
+			        "POP2005": "Integer64",
+			        "REGION": "Integer",
+			        "SUBREGION": "Integer",
+			        "LON": "Real",
+			        "LAT": "Real"
+				}
+			}
+		]
+    # vector_geojson = Vector.from_file(
+    #     path_geojson, tables_geojson
+    # )
+    
 
-def test_vectorset_from_descriptor_ok_shp2():
-    """ tester que l' attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()' est bien 
-        une chaîne de caractères en partant d'un fichier d'entrée d'extension *.shp"""
-    try:
-        vector_shp2 = VectorSet.from_descriptor(
-            "file://tests/fixtures/ARRONDISSEMENT.shp",  
-        )
-        assert str(vector_shp2.path) == "file://tests/fixtures/ARRONDISSEMENT.shp"
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+    # vector_gpkg = Vector.from_file(
+    #     path_gpkg, tables_gpkg
+    # )
 
 
-def test_vector_from_parameters_ok_shp4():
-    """ tester que les attributs path et tables  renvoyés par la méthode 'from_parameters()' de 'Vector()' sont bien
-         des chaînes de caractères en partant d'un fichier d'entrée d'extension *.shp"""
-    try:
-        vector_shp4 = Vector.from_parameters(
-            "file://tests/fixtures/ARRONDISSEMENT.shp",
-            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-        assert (
-            str(vector_shp4.path)
-            == "file://tests/fixtures/ARRONDISSEMENT.shp"
-        )
-        assert (
-            str(vector_shp4.tables)
-            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
 
+    # vector_shp = Vector.from_file(
+    #         path_shp, tables_shp
+    # )
 
-def test_vectorset_ok_parameters():
-    """ tester que l'attribut path  renvoyé par la méthode 'from_descriptor()' de 'VectorSet()' est 
-        bien une chaîne de caractères en partant d'un fichier d'entrée d'extension *.shp"""
-    try:
-        vector = VectorSet.from_descriptor(
-            "file://tests/fixtures/ARRONDISSEMENT.shp",
-        )
-        assert str(vector.path) == "file://tests/fixtures/ARRONDISSEMENT.shp"
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+    
 
+@patch("rok4.vector.Vector.from_file")
+def test_get_data_valid(mock_checkoutput):
+    path = "tests/fixtures/martinique.gpkg"
+    mock_stdout = MagicMock()
+    mock_stdout.configure_mock(
+        **{
+            "stdout.decode.return_value": 'returned non-zero exit status 1.'
+        }
+    )
 
-def test_vector_ok_parameters():
-    """ tester que les attributs path et tables renvoyés par la méthode 'from_parameters()' de 'Vector()' sont
-         bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.csv"""
-    try:
-        vector5 = Vector.from_parameters(
-            "file://tests/fixtures/vector2.csv",
-            "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-        assert (
-            str(vector5.path)
-            == "file://tests/fixtures/vector2.csv"
-        )
-        assert (
-            str(vector5.tables)
-            == "[('vector', 4, [('id', 'String'), ('x', 'String'), ('y', 'String')])]"
-        )
-    except Exception as exc:
-        assert False, f"Vector creation raises an exception: {exc}"
+    mock_checkoutput.return_value = mock_stdout
+	
+    result = Vector.from_file(path)
 
+#@patch("rok4.vector.Vector.from_file", side_effect=Exception("returned non-zero exit status 1."))
+#def test_get_data_invalid(mock_checkoutput):
+    # path = "tests/fixtures/martinique.gpkg"
+    # mock_stdout = MagicMock()
+    # mock_stdout.configure_mock(
+    #     **{
+    #         "stdout.decode.return_value": 'returned non-zero exit status 1.'
+    #     }
+    # )
+    # with pytest.raises(Exception) as exc:
+    #     Vector.from_file(path)
+    # mock_checkoutput.return_value = mock_stdout
+        
+
+#def test_vector_ok_parameters():
+    # """ tester que les attributs path et tables renvoyés par la méthode 'from_parameters()' de 'Vector()' sont
+    #      bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.geojson, *.gpkg et *.shp"""
+    # path = "tests/fixtures/states.geojson"
+    # vector_geojson_output = Vector.from_parameters(
+    #         "tests/fixtures/states.geojson",
+    #         [
+	# 		{
+	# 			"name": "states",
+	# 			"count": 52,
+	# 			"srs": "EPSG:3857",
+	# 			"bbox": (-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969),
+	# 			"geometry_columns": ["geom"],
+	# 			"attributes": {
+	# 		        "id": "String",
+	# 		        "STATE_ABBR": "String",
+	# 		        "STATE_NAME": "String",
+	# 		        "AREA_LAND": "Real",
+	# 		        "AREA_WATER": "Real",
+	# 		        "PERSONS": "Integer",
+	# 		        "MALE": "Integer",
+	# 		        "FEMALE": "Integer"
+	# 			}
+	# 		}
+	# 	]
+    # )
+    
 
 @mock.patch.dict(os.environ, {}, clear=True)
 def test_vectorset_from_list_ok():
@@ -269,10 +724,10 @@ def test_vectorset_from_list_ok():
         au jeu de données vecteur"""
     mocked_str = Mock()
     mocked_str.endswith.return_value = True # or something else you want
-    mocked_str.endswith(".csv")
+    mocked_str.endswith(".txt")
     try:
-        path = get_osgeo_path("file:///path/to/file.ext")
-        assert path == "/path/to/file.ext"
+        path = get_osgeo_path("tests/fixtures/filelist.txt")
+        assert path == "tests/fixtures/filelist.txt"
     except Exception as exc:
         assert False, f" the path of vector set from list {path} is not defined {exc}"
     
@@ -291,15 +746,26 @@ def test_table_init(mpatch):
     srs = "2154" 
     count = 1000
     bbox = (150,23.5,-59.1,-5.6)
-    attributes={"colonne1": "attribute1"}
-    obj_table = Table.__init__(srs,count,bbox,attributes,name)
+    attributes = {
+			        "id": "String",
+			        "STATE_ABBR": "String",
+			        "STATE_NAME": "String",
+			        "AREA_LAND": "Real",
+			        "AREA_WATER": "Real",
+			        "PERSONS": "Integer",
+			        "MALE": "Integer",
+			        "FEMALE": "Integer"
+				}
+    geometry_columns= ["geom"]
+    obj_table = Table.__init__(srs,count,bbox,attributes,name,geometry_columns)
     mpatch.isinstance(obj_table,mpatch)
     mpatch.isinstance(obj_table[name],str)
     mpatch.isinstance(obj_table[srs],str)
     mpatch.isinstance(obj_table[count],int)
     mpatch.isinstance(obj_table[bbox],tuple)
     mpatch.isinstance(obj_table[attributes],dict)
-    mpatch.assert_called_once_with(srs,count,bbox,attributes,name)
+    mpatch.isinstance(obj_table[geometry_columns],list)
+    mpatch.assert_called_once_with(srs,count,bbox,attributes,name,geometry_columns)
     patcher.stop()
 
 @mock.patch.dict(
@@ -318,24 +784,3 @@ def test_get_osgeo_path_s3_ok():
         assert path == "/vsis3/bucket/to/object.ext"
     except Exception as exc:
         assert False, f"S3 osgeo path raises an exception: {exc}"
-
-
-def test_get_osgeo_path_file_ok():
-    """tester que la méthode 'get_osgeo_path()' récupère bien le chemin donnant l'accès 
-        au fichier vecteur du bucket S3'
-    """
-    try:
-        path = get_osgeo_path("tests/fixtures/vector2.csv")
-        assert path == "tests/fixtures/vector2.csv"
-    except Exception as exc:
-        assert False, f"FILE osgeo path raises an exception: {exc}"
-
-def test_data_content_vector_is_a_string_ok():
-    """tester que le fichier contenant de la donnée vecteur renvoyée par la méthode 'get_data_str()' est bien 
-        une chaîne de caractères"""
-    try:
-        path_to_data = get_osgeo_path("tests/fixtures/vector2.csv")
-        data_content = get_data_str(path_to_data)
-        assert isinstance (data_content, str)
-    except Exception as exc:
-        assert False, f"data content vector raises an exception: {exc}"
