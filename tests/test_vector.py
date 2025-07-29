@@ -19,7 +19,6 @@ from rok4.vector import Table, Vector, VectorSet
 # package
 
 
-
 def test_vectorset_from_list_listtxtpath_ok():
     """tester que la méthode de classe 'from_list()' ait bien appelée une fois par le programme et
     que la fonction retourne bien un objet vecteur"""
