@@ -50,7 +50,6 @@ class VectorSet:
         """Constructeur d'initialisation de la classe VectorSet"""
 
         self.__vectors: list["Vector"] = []
-        self.__tables: list = []
 
     @classmethod
     def from_list(
@@ -76,8 +75,6 @@ class VectorSet:
 
         vectorset = cls()
 
-        vectorset.__tables = tables
-
         # récupération de chacun des chemins des fichiers vecteurs à partir de la "filelist.txt"
         with open(path) as list_files:
             list_path_vector_files = list_files.readlines()
@@ -89,7 +86,7 @@ class VectorSet:
                 vectorset.__vectors.append(
                     [
                         {"path": list_path_vector_files[index_path_vector_file]},
-                        {"tables": vectorset.__tables[index_path_vector_file]},
+                        {"tables": tables[index_path_vector_file]},
                     ]
                 )
         except OSError as error_not_valid_path:
@@ -177,7 +174,7 @@ class Vector:
 
         self.__path_vector_file: Path = ""
         self.__tables: list = []
-        self.__counter_lines_txt_filelist: int = 0
+        self.__counter_vector_files_paths_filelist: int = 0
 
         # initialisation des dictionnaires des vecteurs de données
         self.__vector_geojson: dict = {}
@@ -212,7 +209,7 @@ class Vector:
         vector = cls()
 
         # affectation
-        index_path_vector_file = vector.__counter_lines_txt_filelist
+        index_path_vector_file = vector.__counter_vector_files_paths_filelist
 
         # incrémentation du compteur
         index_path_vector_file += 1
