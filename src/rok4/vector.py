@@ -57,7 +57,13 @@ class VectorSet:
         cls,
         path: str,
         tables: dict[
-            str, list[dict[str, Union[str, int, tuple[float, float, float, float], dict[str,str], list[str]]]]
+            str,
+            list[
+                dict[
+                    str,
+                    Union[str, int, tuple[float, float, float, float], dict[str, str], list[str]],
+                ]
+            ],
         ],
     ) -> "VectorSet":
         """Constructor method of a VectorSet from lists
@@ -170,8 +176,6 @@ class Vector:
         __tables (dict[str, Table]) : la clef est le nom de la table et la valeur de l'instance de Table
     """
 
-    
-
     def __init__(self) -> None:
         """Constructeur d'initialisation de la classe Vector"""
 
@@ -216,67 +220,83 @@ class Vector:
 
         # incrémentation du compteur
         index_path_vector_file += 1
-        
+
         # affectation
         # récupération de chacun des chemins des fichiers vecteurs à partir de la "filelist.txt"
-        vector.__path_vector_file = path 
+        vector.__path_vector_file = path
 
         # remplissage du dictionnaire : vector.__tables
-        for index_table in range(len(tables)-1):
+        for index_table in range(len(tables) - 1):
             if vector.__path_vector_file.endswith("gpkg"):
 
                 try:
-                    
-                    vector.__tables.append([{
-                        tables[index_path_vector_file][index_table]["name"]: Table(
-                            tables[index_path_vector_file][index_table]["name"],
-                            tables[index_path_vector_file][index_table]["srs"],
-                            tables[index_path_vector_file][index_table]["count"],
-                            tables[index_path_vector_file][index_table]["bbox"],
-                            tables[index_path_vector_file][index_table]["attributes"],
-                            tables[index_path_vector_file][index_table]["geometry_columns"],
-                        ).__dict__,
-                    }])
+
+                    vector.__tables.append(
+                        [
+                            {
+                                tables[index_path_vector_file][index_table]["name"]: Table(
+                                    tables[index_path_vector_file][index_table]["name"],
+                                    tables[index_path_vector_file][index_table]["srs"],
+                                    tables[index_path_vector_file][index_table]["count"],
+                                    tables[index_path_vector_file][index_table]["bbox"],
+                                    tables[index_path_vector_file][index_table]["attributes"],
+                                    tables[index_path_vector_file][index_table]["geometry_columns"],
+                                ).__dict__,
+                            }
+                        ]
+                    )
 
                 except KeyError as error_key:
                     raise MissingAttributeError(
                         f"l'attribut {error_key.args} est manquant dans le vecteur de données."
                     )
-                
+
             elif vector.__path_vector_file.endswith("geojson") and index_table == 0:
-                
+
                 try:
 
-                    vector.__tables.append([{
-                        tables[index_path_vector_file-1][index_table]["name"]: Table(
-                            tables[index_path_vector_file-1][index_table]["name"],
-                            tables[index_path_vector_file-1][index_table]["srs"],
-                            tables[index_path_vector_file-1][index_table]["count"],
-                            tables[index_path_vector_file-1][index_table]["bbox"],
-                            tables[index_path_vector_file-1][index_table]["attributes"],
-                            tables[index_path_vector_file-1][index_table]["geometry_columns"],
-                        ).__dict__,
-                    }])
+                    vector.__tables.append(
+                        [
+                            {
+                                tables[index_path_vector_file - 1][index_table]["name"]: Table(
+                                    tables[index_path_vector_file - 1][index_table]["name"],
+                                    tables[index_path_vector_file - 1][index_table]["srs"],
+                                    tables[index_path_vector_file - 1][index_table]["count"],
+                                    tables[index_path_vector_file - 1][index_table]["bbox"],
+                                    tables[index_path_vector_file - 1][index_table]["attributes"],
+                                    tables[index_path_vector_file - 1][index_table][
+                                        "geometry_columns"
+                                    ],
+                                ).__dict__,
+                            }
+                        ]
+                    )
 
                 except KeyError as error_key:
                     raise MissingAttributeError(
                         f"l'attribut {error_key.args} est manquant dans le vecteur de données."
                     )
             elif vector.__path_vector_file.endswith("shp") and index_table == 0:
-                
+
                 try:
 
-                    vector.__tables.append([{
-                        tables[index_path_vector_file+1][index_table]["name"]: Table(
-                            tables[index_path_vector_file+1][index_table]["name"],
-                            tables[index_path_vector_file+1][index_table]["srs"],
-                            tables[index_path_vector_file+1][index_table]["count"],
-                            tables[index_path_vector_file+1][index_table]["bbox"],
-                            tables[index_path_vector_file+1][index_table]["attributes"],
-                            tables[index_path_vector_file+1][index_table]["geometry_columns"],
-                        ).__dict__,
-                    }])
-                    
+                    vector.__tables.append(
+                        [
+                            {
+                                tables[index_path_vector_file + 1][index_table]["name"]: Table(
+                                    tables[index_path_vector_file + 1][index_table]["name"],
+                                    tables[index_path_vector_file + 1][index_table]["srs"],
+                                    tables[index_path_vector_file + 1][index_table]["count"],
+                                    tables[index_path_vector_file + 1][index_table]["bbox"],
+                                    tables[index_path_vector_file + 1][index_table]["attributes"],
+                                    tables[index_path_vector_file + 1][index_table][
+                                        "geometry_columns"
+                                    ],
+                                ).__dict__,
+                            }
+                        ]
+                    )
+
                 except KeyError as error_key:
                     raise MissingAttributeError(
                         f"l'attribut {error_key.args} est manquant dans le vecteur de données."
@@ -399,7 +419,7 @@ class Vector:
                 )
 
         else:
-            pass  
+            pass
 
         return vector
 
@@ -432,31 +452,40 @@ class Vector:
         for index_table in range(len(table)):
             if vector.__path_vector_file.endswith("gpkg"):
                 try:
-                    vector.__tables.append([
-                        {
-                        table[index_table]["name"]: Table(
-                            table[index_table]["name"],
-                            table[index_table]["srs"],
-                            table[index_table]["count"],
-                            table[index_table]["bbox"],
-                            table[index_table]["attributes"],
-                            table[index_table]["geometry_columns"],
-                        ).__dict__}])
+                    vector.__tables.append(
+                        [
+                            {
+                                table[index_table]["name"]: Table(
+                                    table[index_table]["name"],
+                                    table[index_table]["srs"],
+                                    table[index_table]["count"],
+                                    table[index_table]["bbox"],
+                                    table[index_table]["attributes"],
+                                    table[index_table]["geometry_columns"],
+                                ).__dict__
+                            }
+                        ]
+                    )
                 except KeyError as error_key:
                     raise MissingAttributeError(
                         f"l'attribut {error_key.args} est manquant dans le vecteur de données."
                     )
             else:
                 try:
-                    vector.__tables.append([{
-                        table[index_table-1]["name"]: Table(
-                            table[index_table-1]["name"],
-                            table[index_table-1]["srs"],
-                            table[index_table-1]["count"],
-                            table[index_table-1]["bbox"],
-                            table[index_table-1]["attributes"],
-                            table[index_table-1]["geometry_columns"],
-                        ).__dict__}]),
+                    vector.__tables.append(
+                        [
+                            {
+                                table[index_table - 1]["name"]: Table(
+                                    table[index_table - 1]["name"],
+                                    table[index_table - 1]["srs"],
+                                    table[index_table - 1]["count"],
+                                    table[index_table - 1]["bbox"],
+                                    table[index_table - 1]["attributes"],
+                                    table[index_table - 1]["geometry_columns"],
+                                ).__dict__
+                            }
+                        ]
+                    ),
                 except KeyError as error_key:
                     raise MissingAttributeError(
                         f"l'attribut {error_key.args} est manquant dans le vecteur de données."
