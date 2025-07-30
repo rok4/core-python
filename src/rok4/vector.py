@@ -21,7 +21,6 @@ import os
 import subprocess
 from json.decoder import JSONDecodeError
 from pathlib import Path
-import sys
 from typing import Union
 
 import geojson
@@ -292,7 +291,6 @@ class Vector:
         if vector.__path_vector_file.endswith("geojson"):
 
             try:
-
                 with open(vector.__path_vector_file) as f:
                     vector.geojson_data_content = geojson.load(f)
             except Exception as error_reading_geojson:
@@ -301,7 +299,6 @@ class Vector:
                 )
 
             try:
-
                 vector.__vector_geojson = {
                     "path": vector.__path_vector_file,
                     "tables": vector.__tables,
@@ -321,7 +318,6 @@ class Vector:
         elif vector.__path_vector_file.endswith("gpkg"):
 
             try:
-
                 vector.gpkg_data_content = subprocess.check_output(
                     "ogrinfo -json " + vector.__path_vector_file,
                     shell=True,
@@ -354,7 +350,6 @@ class Vector:
         elif vector.__path_vector_file.endswith("shp"):
 
             try:
-
                 vector.shp_data_content = subprocess.check_output(
                     "ogrinfo -json " + vector.__path_vector_file,
                     shell=True,
@@ -369,13 +364,11 @@ class Vector:
                 )
 
             try:
-
                 vector.__vector_shp = {
                     "path": vector.__path_vector_file,
                     "tables": vector.__tables,
                     "data": vector.shp_data_content,
                 }
-
                 print("[Vector/from_file] vector.__vector_shp == " + str(vector.__vector_shp))
                 print("\n")
 
@@ -392,7 +385,6 @@ class Vector:
                 vector.object_s3_data_content = get_data_str(geojson.load(geojson_file))
 
             try:
-
                 vector.__vector_object = {
                     "path": vector.path_to_object_file,
                     "tables": vector.__tables,
