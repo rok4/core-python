@@ -177,7 +177,19 @@ class Vector:
         """Constructeur d'initialisation de la classe Vector"""
 
         self.__path_vector_file: Path = ""
-        self.__tables: list[dict[str, list[dict[str,Union[str,int,tuple[float,float,float,float],dict[str,str],list[str]]]]]] = []
+        self.__tables: list[
+            dict[
+                str,
+                list[
+                    dict[
+                        str,
+                        Union[
+                            str, int, tuple[float, float, float, float], dict[str, str], list[str]
+                        ],
+                    ]
+                ],
+            ]
+        ] = []
         self.__counter_vector_files_paths_filelist: int = 0
 
         # initialisation des dictionnaires des vecteurs de données
