@@ -70,7 +70,7 @@ class VectorSet:
 
         Args:
             path (str): chemin du fichier vecteur ou objet vecteur (ex: "file://tests/fixtures/filelist.txt")
-            tables (dict[str, list[dict[str,Union[str,int,tuple[float,float,float,float],dict[str,str],list[str]]]]]): liste de paires clefs : nom de la table - valeurs associées à la table
+            tables (list[dict[str, list[dict[str,Union[str,int,tuple[float,float,float,float],dict[str,str],list[str]]]]]]): liste de paires clefs : nom de la table - valeurs associées à la table
 
         Raises:
             Exception: le chemin du fichier vecteur ou objet vecteur n'est pas valide
@@ -170,14 +170,14 @@ class Vector:
 
     Attributes:
         __path_vector_file (Path) : chemin du fichier/objet vecteur
-        __tables (dict[str, Table]) : la clef est le nom de la table et la valeur de l'instance de Table
+        __tables (list[dict[str, list[dict[str,Union[str,int,tuple[float,float,float,float],dict[str,str],list[str]]]]]]) : liste de dictionnaires associant paires clefs-valeurs : la clef est le nom de la table et la valeur de l'instance de Table
     """
 
     def __init__(self) -> None:
         """Constructeur d'initialisation de la classe Vector"""
 
         self.__path_vector_file: Path = ""
-        self.__tables: list = []
+        self.__tables: list[dict[str, list[dict[str,Union[str,int,tuple[float,float,float,float],dict[str,str],list[str]]]]]] = []
         self.__counter_vector_files_paths_filelist: int = 0
 
         # initialisation des dictionnaires des vecteurs de données
