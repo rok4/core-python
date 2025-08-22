@@ -15,24 +15,23 @@ cf : documentation de spécifications : module de chargement de données vecteur
 
 # -- IMPORTS --
 
+import json
+
 # standard library
 import os
-import json
 import subprocess
-import geojson
 import tempfile
+from json.decoder import JSONDecodeError
 from pathlib import Path
 from typing import Union
-from json.decoder import JSONDecodeError
+
+import geojson
 from osgeo import ogr
 
-# local : autres librairies de rok4
-from rok4.storage import (
-    copy,
-    get_data_str,
-    get_osgeo_path
-)
 from rok4.exceptions import FormatError, MissingAttributeError, StorageError
+
+# local : autres librairies de rok4
+from rok4.storage import copy, get_data_str, get_osgeo_path
 
 # -- GLOBALS --
 
@@ -52,12 +51,11 @@ class VectorSet:
 
         # Liste des instances de la classe Vector représentant chaque fichier/objet vecteur du jeu de données
         self.__vectors: list["Vector"] = []
-  
+
     @classmethod
     def from_list(
         cls,
         path_list_vector_files: str,
-
     ) -> "VectorSet":
         """Créer un VectorSet à partir de la liste des chemins des fichiers vecteurs.
 
@@ -82,7 +80,7 @@ class VectorSet:
             Exception: si l'instance de Vector est vide.
             Exception: si le jeu de données de fichiers/objets vecteur est vide.
             Exception: si le fichier ne contient aucun chemin de vecteur valide.
-    
+
         Returns:
             VectorSet: une instance de VectorSet créée à partir de la liste des chemins du fichier vecteur.
         """
@@ -101,12 +99,17 @@ class VectorSet:
         tmp_list_file = tmp_list_obj.name
 
         # Copie depuis l'emplacement source de la liste vers le fichier temporaire
-        try: 
+        try:
             # pour être copié, l'emplacement source de la liste doit être un fichier ou un objet et être lisible
-            if (Path(path_list_vector_files).is_file() or Path(path_list_vector_files).is_socket()) and os.access(path_list_vector_files, os.R_OK):
+            if (
+                Path(path_list_vector_files).is_file() or Path(path_list_vector_files).is_socket()
+            ) and os.access(path_list_vector_files, os.R_OK):
                 copy(path_list_vector_files, tmp_list_file)
         except Exception as error_copy:
-            raise StorageError("FILE", f"Cannot copy file {path_list_vector_files} to {tmp_list_file} : {error_copy}")
+            raise StorageError(
+                "FILE",
+                f"Cannot copy file {path_list_vector_files} to {tmp_list_file} : {error_copy}",
+            )
 
         tmp_list_obj.close()
 
@@ -116,8 +119,10 @@ class VectorSet:
 
         # on vérifie si le fichier 'filelist.txt' est un fichier
         if not Path(tmp_list_file).is_file():
-            raise Exception(f"le chemin du fichier 'filelist.txt' n'est pas un fichier {tmp_list_file}.")
-        
+            raise Exception(
+                f"le chemin du fichier 'filelist.txt' n'est pas un fichier {tmp_list_file}."
+            )
+
         # on vérifie si le fichier 'filelist.txt' est lisible
         if not os.access(tmp_list_file, os.R_OK):
             raise Exception(f"le fichier 'filelist.txt' n'est pas lisible {tmp_list_file}.")
@@ -133,10 +138,10 @@ class VectorSet:
             path_vector_file = path_vector_file.strip()
 
             # on remplace le chemin du fichier vecteur ou objet vecteur par le chemin du fichier de test "tests/fixtures"
-            path_vector_file = path_vector_file.replace('file://./data','tests/fixtures')
+            path_vector_file = path_vector_file.replace("file://./data", "tests/fixtures")
             print(f"[VectorSet/from_list] path_vector_file == {path_vector_file}")
 
-            # vérifier si les fichiers geojson, geopackage et shapefile dont les chemins 
+            # vérifier si les fichiers geojson, geopackage et shapefile dont les chemins
             # donnant accès à ces fichiers existent bien, sont lisibles et sont valides
 
             if path_vector_file.endswith(".geojson"):
@@ -144,9 +149,13 @@ class VectorSet:
                     with open(path_vector_file) as geojson_file:
                         data = geojson.load(geojson_file)
                     if "type" not in data or data["type"] != "FeatureCollection":
-                        raise Exception(f"{path_vector_file} is not a valid GeoJSON FeatureCollection.")
+                        raise Exception(
+                            f"{path_vector_file} is not a valid GeoJSON FeatureCollection."
+                        )
                     if "features" not in data or not isinstance(data["features"], list):
-                        raise Exception(f"{path_vector_file} does not contain a valid 'features' list.")
+                        raise Exception(
+                            f"{path_vector_file} does not contain a valid 'features' list."
+                        )
                 except Exception as e:
                     raise Exception(f"GeoJSON file {path_vector_file} is invalid: {e}")
 
@@ -158,7 +167,13 @@ class VectorSet:
                 raise Exception(f"Unsupported file type for {path_vector_file}")
 
             # Vérification du chemin du fichier ou objet vecteur
-            if not path_vector_file or path_vector_file.startswith("s3://") or not os.path.isfile(path_vector_file) or not os.path.exists(path_vector_file) or not os.access(path_vector_file, os.R_OK):
+            if (
+                not path_vector_file
+                or path_vector_file.startswith("s3://")
+                or not os.path.isfile(path_vector_file)
+                or not os.path.exists(path_vector_file)
+                or not os.access(path_vector_file, os.R_OK)
+            ):
                 print(f"[VectorSet/from_list] chemin de vecteur non valide : {path_vector_file}")
                 invalid_paths.append(path_vector_file)
                 continue
@@ -167,31 +182,39 @@ class VectorSet:
             if not path_vector_file:
                 print(f"[VectorSet/from_list] vector.__path_vector_file == {path_vector_file}")
                 raise Exception(f"le fichier vecteur ou objet vecteur {path_vector_file} est vide.")
-            
+
             # on vérifie si le chemin de l'objet vecteur est un objet S3
             if path_vector_file.startswith("s3://"):
                 print(f"[VectorSet/from_list] vector.__path_vector_file == {path_vector_file}")
                 raise Exception(f"l'objet vecteur {path_vector_file} est bien un objet S3.")
-            
+
             # on vérifie si le chemin du fichier vecteur est un fichier
             if not Path(path_vector_file).is_file():
                 print(f"[VectorSet/from_list] vector.__path_vector_file == {path_vector_file}")
-                raise Exception(f"le fichier vecteur ou objet vecteur {path_vector_file} n'est pas un fichier.")
-            
+                raise Exception(
+                    f"le fichier vecteur ou objet vecteur {path_vector_file} n'est pas un fichier."
+                )
+
             # on vérifie si le fichier vecteur ou objet vecteur existe
             if not Path(path_vector_file).exists():
                 print(f"[VectorSet/from_list] vector.__path_vector_file == {path_vector_file}")
-                raise Exception(f"le fichier vecteur ou objet vecteur {path_vector_file} n'existe pas.")
-            
+                raise Exception(
+                    f"le fichier vecteur ou objet vecteur {path_vector_file} n'existe pas."
+                )
+
             # on vérifie si le fichier vecteur ou objet vecteur est lisible
             if not os.access(path_vector_file, os.R_OK):
                 print(f"[VectorSet/from_list] vector.__path_vector_file == {path_vector_file}")
-                raise Exception(f"le fichier vecteur ou objet vecteur {path_vector_file} n'est pas lisible.")
-            print(f"[VectorSet/from_list] le fichier vecteur ou objet vecteur, {path_vector_file}, est lisible")
+                raise Exception(
+                    f"le fichier vecteur ou objet vecteur {path_vector_file} n'est pas lisible."
+                )
+            print(
+                f"[VectorSet/from_list] le fichier vecteur ou objet vecteur, {path_vector_file}, est lisible"
+            )
 
             # on crée une instance de Vector à partir du chemin du fichier vecteur
             # On fait appel au constructeur `Vector.from_file` avec ce chemin fichier ou objet.
-            # Le constructeur de Vector va alors convertir le chemin en chemin "osgeo" 
+            # Le constructeur de Vector va alors convertir le chemin en chemin "osgeo"
             # avec `get_osgeo_path` du module `storage`
             vector = Vector.from_file(get_osgeo_path(path_vector_file))
 
@@ -208,10 +231,12 @@ class VectorSet:
 
         # on vérifie si le jeu de données de fichiers/objets vecteur obtenu est vide
         if not self.__vectors:
-            raise Exception(f"le jeu de données de fichiers/objets vecteur obtenu est vide.")
-        
+            raise Exception("le jeu de données de fichiers/objets vecteur obtenu est vide.")
+
         if invalid_paths:
-            raise Exception(f"Le fichier 'filelist.txt' contient des chemins de vecteurs non valides : {invalid_paths}")
+            raise Exception(
+                f"Le fichier 'filelist.txt' contient des chemins de vecteurs non valides : {invalid_paths}"
+            )
 
         # on vérifie que toutes les clefs et valeurs de chaque instance de Vector sont toutes présentes
         # et on lève une exception si un attribut est manquant ou vide
@@ -223,48 +248,57 @@ class VectorSet:
                 for key_vector in REQUIRED_VECTOR_KEYS:
                     if key_vector not in vector or not vector[key_vector]:
                         raise MissingAttributeError(
-                            f"Key '{key_vector}' is missing or empty in vector at index {index_vector}: {vector}", missing=self.__vectors
+                            f"Key '{key_vector}' is missing or empty in vector at index {index_vector}: {vector}",
+                            missing=self.__vectors,
                         )
             elif isinstance(vector, list):
                 if not vector:
                     raise MissingAttributeError(
-                        f"Vector at index {index_vector} is an empty list: {vector}", missing=self.__vectors
+                        f"Vector at index {index_vector} is an empty list: {vector}",
+                        missing=self.__vectors,
                     )
                 for index_subvector, subvector in enumerate(vector):
                     if not isinstance(subvector, dict):
                         raise MissingAttributeError(
-                            f"Element at index {index_subvector} in vector list at index {index_vector} is not a dict: {subvector}", missing=self.__vectors
+                            f"Element at index {index_subvector} in vector list at index {index_vector} is not a dict: {subvector}",
+                            missing=self.__vectors,
                         )
                     for key_vector in REQUIRED_VECTOR_KEYS:
                         if key_vector not in subvector or not subvector[key_vector]:
                             raise MissingAttributeError(
-                                f"Key '{key_vector}' is missing or empty in subvector at index {index_subvector} of vector list at index {index_vector}: {subvector}", missing=self.__vectors
+                                f"Key '{key_vector}' is missing or empty in subvector at index {index_subvector} of vector list at index {index_vector}: {subvector}",
+                                missing=self.__vectors,
                             )
-            elif hasattr(vector, "_Vector__path_vector_file") and hasattr(vector, "_Vector__tables"):
+            elif hasattr(vector, "_Vector__path_vector_file") and hasattr(
+                vector, "_Vector__tables"
+            ):
                 if not getattr(vector, "_Vector__path_vector_file"):
                     raise MissingAttributeError(
-                        f"Attribute '_Vector__path_vector_file' is missing or empty in vector at index {index_vector}: {vector}", missing=self.__vectors
+                        f"Attribute '_Vector__path_vector_file' is missing or empty in vector at index {index_vector}: {vector}",
+                        missing=self.__vectors,
                     )
-                if not getattr(vector, "_Vector__tables") and not getattr(vector,"_Vector__tables") != "":
+                if (
+                    not getattr(vector, "_Vector__tables")
+                    and not getattr(vector, "_Vector__tables") != ""
+                ):
                     raise MissingAttributeError(
-                        f"Attribute '_Vector__tables' is missing in vector at index {index_vector}: {vector}", missing=self.__vectors
+                        f"Attribute '_Vector__tables' is missing in vector at index {index_vector}: {vector}",
+                        missing=self.__vectors,
                     )
             else:
                 raise MissingAttributeError(
-                    f"Vector at index {index_vector} is not a valid dict, list, or Vector instance: {vector}", missing=self.__vectors
+                    f"Vector at index {index_vector} is not a valid dict, list, or Vector instance: {vector}",
+                    missing=self.__vectors,
                 )
-            
+
         # on supprime le fichier temporaire
         os.remove(tmp_list_file)
 
-        print(
-            "[VectorSet/from_list] self.__vectors == "
-            + str(self.__vectors)
-        )
+        print("[VectorSet/from_list] self.__vectors == " + str(self.__vectors))
         print("\n")
 
         return self
-    
+
     @classmethod
     def from_descriptor(cls, path_descriptor_file: str) -> "VectorSet":
         """créer un VectorSet à partir du fichier du descriptor.
@@ -292,31 +326,40 @@ class VectorSet:
 
         # on vérifie si le fichier du descriptor est un fichier
         if not Path(path_descriptor_file).is_file():
-            raise Exception(f"le fichier du descriptor n'est pas un fichier {path_descriptor_file}.")
-        
+            raise Exception(
+                f"le fichier du descriptor n'est pas un fichier {path_descriptor_file}."
+            )
+
         # on vérifie si le fichier du descriptor est lisible
         if not os.access(path_descriptor_file, os.R_OK):
             raise Exception(f"le fichier du descriptor n'est pas lisible {path_descriptor_file}.")
-        
+
         # on valide le fichier du descriptor contenant des données JSON pour
         # s'assurer que le contenu du fichier est bien un document JSON valide.
         try:
-            subprocess.check_output("python3 -m json.tool "+path_descriptor_file, shell=True, stderr=subprocess.STDOUT
-                )
+            subprocess.check_output(
+                "python3 -m json.tool " + path_descriptor_file, shell=True, stderr=subprocess.STDOUT
+            )
         except subprocess.CalledProcessError as error:
             raise RuntimeError(
                 f"command '{error.cmd}' return with error (code {error.returncode}): {error.output}"
             )
-        
-        print("[VectorSet/from_descriptor] le fichier du descriptor contient bien des données JSON valides.""\n")
+
+        print(
+            "[VectorSet/from_descriptor] le fichier du descriptor contient bien des données JSON valides."
+            "\n"
+        )
 
         # on recourt à json.loads() pour lire le fichier JSON et le convertir en un objet Python correspondant sous forme d'une liste.
         try:
             vectorset.__descriptor_object = json.loads(get_data_str(path_descriptor_file))
         except JSONDecodeError as e:
             raise FormatError("JSON", vectorset.__descriptor_object, e)
-        
-        print("[VectorSet/from_descriptor] le fichier du descriptor a bien été converti en un objet Python correspondant sous forme d'une liste.""\n")
+
+        print(
+            "[VectorSet/from_descriptor] le fichier du descriptor a bien été converti en un objet Python correspondant sous forme d'une liste."
+            "\n"
+        )
 
         print(
             "[VectorSet/from_descriptor] vectorset.__descriptor_object == "
@@ -325,7 +368,7 @@ class VectorSet:
         print("\n")
 
         # On vérifie si toutes les clefs du vecteur et des tables du vecteur sont toutes présentes.
-        
+
         REQUIRED_VECTOR_KEYS = ["path", "tables"]
         REQUIRED_TABLE_KEYS = ["name", "srs", "count", "bbox", "attributes", "geometry_columns"]
 
@@ -335,38 +378,46 @@ class VectorSet:
             for key_vector in REQUIRED_VECTOR_KEYS:
                 if key_vector not in vector_desc or not vector_desc[key_vector]:
                     raise MissingAttributeError(
-                        f"Key '{key_vector}' is missing or empty in descriptor at index {index_desc}: {vector_desc}, missing={vector_desc}")
-            
+                        f"Key '{key_vector}' is missing or empty in descriptor at index {index_desc}: {vector_desc}, missing={vector_desc}"
+                    )
+
             # Vérifier les tables du vecteur
             tables = vector_desc["tables"]
             if not isinstance(tables, list) or not tables:
                 raise MissingAttributeError(
-                    f"'tables' is missing or empty in descriptor at index {index_desc}: {vector_desc}, missing={vector_desc}")
+                    f"'tables' is missing or empty in descriptor at index {index_desc}: {vector_desc}, missing={vector_desc}"
+                )
             for index_table, table in enumerate(tables):
                 if not isinstance(table, dict):
                     raise MissingAttributeError(
-                        f"Table at index {index_table} in descriptor at index {index_desc} is not a dict: {table}, missing={vector_desc}")
-            
+                        f"Table at index {index_table} in descriptor at index {index_desc} is not a dict: {table}, missing={vector_desc}"
+                    )
+
                 for key_table in REQUIRED_TABLE_KEYS:
                     if key_table not in table or table[key_table] in [None, "", [], {}]:
                         raise MissingAttributeError(
-                            f"Key '{key_table}' is missing or empty in table at index {index_table} of descriptor at index {index_desc}: {table}, missing={vector_desc}")
+                            f"Key '{key_table}' is missing or empty in table at index {index_table} of descriptor at index {index_desc}: {table}, missing={vector_desc}"
+                        )
 
-        # on obtient l'ensemble des jeux de données de fichier/objet vecteur à partir du fichier descriptor    
-        for index_descriptor_object in range(len(vectorset.__descriptor_object)): 
+        # on obtient l'ensemble des jeux de données de fichier/objet vecteur à partir du fichier descriptor
+        for index_descriptor_object in range(len(vectorset.__descriptor_object)):
             # on remplace le chemin du fichier vecteur ou objet vecteur par le chemin du fichier de test "tests/fixtures"
-            vectorset.__descriptor_object[index_descriptor_object]["path"] = vectorset.__descriptor_object[index_descriptor_object]["path"].replace('file://./data','tests/fixtures')
+            vectorset.__descriptor_object[index_descriptor_object]["path"] = (
+                vectorset.__descriptor_object[index_descriptor_object]["path"].replace(
+                    "file://./data", "tests/fixtures"
+                )
+            )
             # Pour chaque dictionnaire dans la liste, on fait appel au constructeur `Vector.from_parameters` avec ce dictionnaire
             # 1°) récupération de tous les attributs de Vector dans le dictionnaire en entrée (`path`)
             # 2°) puis, pour chaque table dans le champ `tables`, faire appel au constructeur de Table avec tous les éléments suivants:
-            vector = Vector.from_parameters(get_osgeo_path(vectorset.__descriptor_object[index_descriptor_object]["path"]), vectorset.__descriptor_object[index_descriptor_object]["tables"])
+            vector = Vector.from_parameters(
+                get_osgeo_path(vectorset.__descriptor_object[index_descriptor_object]["path"]),
+                vectorset.__descriptor_object[index_descriptor_object]["tables"],
+            )
             # On ajoute l'objet vector créé dans l'attribut `__vectors` du VectorSet
             vectorset.__vectors.append(vector)
 
-        print(
-            "[VectorSet/from_descriptor] vectorset.__vectors == "
-            + str(vectorset.__vectors)
-        )
+        print("[VectorSet/from_descriptor] vectorset.__vectors == " + str(vectorset.__vectors))
         print("\n")
 
         return vectorset
@@ -392,9 +443,12 @@ class VectorSet:
             # Cas où vector est une instance de Vector
             elif hasattr(vector, "get_uniq_srs_tables_list"):
                 uniq_srs_set_all_tables_of_all_vectors.add(vector.get_uniq_srs_tables_list)
-            
-        print("[Vectorset/get_uniq_srs_tables_list] uniq_srs_set_all_tables_of_all_vectors == "+str(list(uniq_srs_set_all_tables_of_all_vectors)))
-        
+
+        print(
+            "[Vectorset/get_uniq_srs_tables_list] uniq_srs_set_all_tables_of_all_vectors == "
+            + str(list(uniq_srs_set_all_tables_of_all_vectors))
+        )
+
         return list(uniq_srs_set_all_tables_of_all_vectors)
 
 
@@ -409,10 +463,22 @@ class Vector:
     def __init__(self) -> None:
         """Constructeur d'initialisation de la classe Vector"""
 
-        self.__tables: list[dict[str, list[dict[str,Union[str,int,tuple[float,float,float,float],dict[str,str],list[str]]]]]] = []
-     
+        self.__tables: list[
+            dict[
+                str,
+                list[
+                    dict[
+                        str,
+                        Union[
+                            str, int, tuple[float, float, float, float], dict[str, str], list[str]
+                        ],
+                    ]
+                ],
+            ]
+        ] = []
+
     @staticmethod
-    def scrub_data_content_list(data_list: list[str])-> list[str]:
+    def scrub_data_content_list(data_list: list[str]) -> list[str]:
         """remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
 
         Args:
@@ -421,22 +487,22 @@ class Vector:
         Returns:
             list[str]: nouvelle liste avec les valeurs vides supprimées de la liste
         """
-        
-        #print("[Vector/scrub_data_content_list] data_list == "+str(data_list))
-        
+
+        # print("[Vector/scrub_data_content_list] data_list == "+str(data_list))
+
         scrubbed_data_content_list = []
 
         for data_content in data_list:
             if isinstance(data_content, dict):
                 data_content = Vector.scrub_data_content_dict(data_content)
             scrubbed_data_content_list.append(data_content)
-        
-        #print("[Vector/scrub_data_content_list] scrubbed_data_content_list == "+str(scrubbed_data_content_list))
-        
+
+        # print("[Vector/scrub_data_content_list] scrubbed_data_content_list == "+str(scrubbed_data_content_list))
+
         return scrubbed_data_content_list
 
     @staticmethod
-    def scrub_data_content_dict(data_dict: dict[str,str]) -> dict[str,str]:
+    def scrub_data_content_dict(data_dict: dict[str, str]) -> dict[str, str]:
         """remplacer les éléments vides dans l'ancien dictionnaire par un nouveau dictionnaire sans élément vide
 
         Args:
@@ -445,9 +511,9 @@ class Vector:
         Returns:
             dict[str,str]: nouveau dictionnaire avec les valeurs vides supprimées du dictionnaire
         """
-        
-        #print("[Vector/scrub_data_content_dict] input data_dict == "+str(data_dict))
-        
+
+        # print("[Vector/scrub_data_content_dict] input data_dict == "+str(data_dict))
+
         data_without_empty_elements = {}
 
         for key_data, data_content in data_dict.items():
@@ -455,14 +521,14 @@ class Vector:
                 data_content = Vector.scrub_data_content_dict(data_content)
             if isinstance(data_content, list):
                 data_content = Vector.scrub_data_content_list(data_content)
-            if not data_content in (u'', None, {}, []):
+            if data_content not in ("", None, {}, []):
                 data_without_empty_elements[key_data] = data_content
 
         data_dict.clear()
         data_dict.update(data_without_empty_elements)
 
-        #print("[Vector/scrub_data_content_dict] ouput data_dict == "+str(data_dict))
-        
+        # print("[Vector/scrub_data_content_dict] ouput data_dict == "+str(data_dict))
+
         return data_dict
 
     @staticmethod
@@ -475,7 +541,7 @@ class Vector:
         Returns:
             str: type du fichier vecteur ou objet vecteur
         """
-        
+
         if path.endswith(".geojson"):
             return "geojson"
         elif path.endswith(".gpkg"):
@@ -486,7 +552,7 @@ class Vector:
             return "s3_object"
         else:
             return "unknown"
-        
+
     @classmethod
     def read_vector_data_content(cls, path: str) -> str:
         """lire le contenu des données vecteur à partir du chemin du fichier/objet vecteur
@@ -501,13 +567,13 @@ class Vector:
         Returns:
             str: contenu des données vecteur
         """
-        
+
         self = cls()
 
         if path.endswith(".geojson") or path.endswith(".gpkg") or path.endswith(".shp"):
             try:
                 self._vector_data_content = subprocess.check_output(
-                    'ogrinfo -json ' + path, shell=True, stderr=subprocess.STDOUT
+                    "ogrinfo -json " + path, shell=True, stderr=subprocess.STDOUT
                 )
             except subprocess.CalledProcessError as error:
                 raise RuntimeError(
@@ -524,7 +590,7 @@ class Vector:
         return self
 
     @classmethod
-    def add_instance_table_to_list_tables(cls, path: str) -> list[dict[str,"Table"]]:
+    def add_instance_table_to_list_tables(cls, path: str) -> list[dict[str, "Table"]]:
         """Ajouter une instance de Table à la liste des tables du vecteur.
 
         Args:
@@ -559,7 +625,11 @@ class Vector:
             for j in range(layer_defn.GetFieldCount()):
                 field_defn = layer_defn.GetFieldDefn(j)
                 attributes[field_defn.GetName()] = field_defn.GetFieldTypeName(field_defn.GetType())
-            geometry_columns = [layer_defn.GetGeomFieldDefn(0).GetName()] if layer_defn.GetGeomFieldCount() > 0 else []
+            geometry_columns = (
+                [layer_defn.GetGeomFieldDefn(0).GetName()]
+                if layer_defn.GetGeomFieldCount() > 0
+                else []
+            )
 
             # on créé l'instance Table
             table_instance = Table(
@@ -568,10 +638,10 @@ class Vector:
                 count=count,
                 bbox=bbox,
                 attributes=attributes,
-                geometry_columns=geometry_columns
+                geometry_columns=geometry_columns,
             )
             # on ajoute l'instance Table à la liste des tables
-            vector.__tables.append([{name : table_instance}])
+            vector.__tables.append([{name: table_instance}])
 
         return vector.__tables
 
@@ -605,16 +675,22 @@ class Vector:
         # on récupère le type du fichier vecteur ou objet vecteur
         self.type_vector = Vector.get_type_vector_data(self.__path_vector_file)
         print(f"[Vector/from_file] le type de données vecteur est : {self.type_vector}")
-        
+
         # on vérifie le type de données vecteur
-        if Vector.get_type_vector_data(self.__path_vector_file) == "shapefile" or Vector.get_type_vector_data(self.__path_vector_file) == "gpkg" or Vector.get_type_vector_data(self.__path_vector_file) == "geojson":
+        if (
+            Vector.get_type_vector_data(self.__path_vector_file) == "shapefile"
+            or Vector.get_type_vector_data(self.__path_vector_file) == "gpkg"
+            or Vector.get_type_vector_data(self.__path_vector_file) == "geojson"
+        ):
             print("[Vector/from_file] c'est un fichier vecteur")
-        
+
         elif Vector.get_type_vector_data(get_osgeo_path(self.__path_vector_file)) == "s3_object":
             print("[Vector/from_file] c'est un objet S3")
-        
+
         else:
-            print("[Vector/from_file] c'est un fichier inconnu : ce n'est ni un fichier vecteur ni un objet vecteur !")
+            print(
+                "[Vector/from_file] c'est un fichier inconnu : ce n'est ni un fichier vecteur ni un objet vecteur !"
+            )
 
         # on vérifie si le chemin de l'objet vecteur est un objet S3
         if self.__path_vector_file.startswith("s3://"):
@@ -625,18 +701,22 @@ class Vector:
 
         # on vérifie si le chemin du fichier vecteur ou objet vecteur est valide
         if not Path(path).exists():
-            raise Exception(f"le chemin du fichier vecteur ou objet vecteur n'est pas valide {path}.")
+            raise Exception(
+                f"le chemin du fichier vecteur ou objet vecteur n'est pas valide {path}."
+            )
 
         # on vérifie si le chemin du fichier vecteur ou objet vecteur est un fichier
         if not Path(path).is_file():
-            raise Exception(f"le chemin du fichier vecteur ou objet vecteur n'est pas un fichier {path}.")
-        
+            raise Exception(
+                f"le chemin du fichier vecteur ou objet vecteur n'est pas un fichier {path}."
+            )
+
         # on vérifie si le fichier vecteur ou objet vecteur est lisible
         if not os.access(path, os.R_OK):
             raise Exception(f"le fichier vecteur ou objet vecteur n'est pas lisible {path}.")
-        
+
         print(f"[Vector/from_file] le fichier vecteur ou objet vecteur, {path}, est lisible")
-       
+
         # on ajoute une instance de Table à la liste des tables du vecteur pour chaque fichier/objet vecteur.
         # si on charge un fichier vecteur de type geojson => fichier d'extension *.geojson (ex : states.geojson)
         if self.__path_vector_file.endswith(".geojson"):
@@ -645,7 +725,7 @@ class Vector:
                 self.vector_geojson = {
                     "path": self.__path_vector_file,
                     "tables": self.add_instance_table_to_list_tables(path=self.__path_vector_file),
-                    "data" : Vector.read_vector_data_content(self.__path_vector_file).__dict__,
+                    "data": Vector.read_vector_data_content(self.__path_vector_file).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_geojson["tables"])
@@ -666,7 +746,7 @@ class Vector:
                 self.vector_gpkg = {
                     "path": self.__path_vector_file,
                     "tables": self.add_instance_table_to_list_tables(path=self.__path_vector_file),
-                    "data": Vector.read_vector_data_content(self.__path_vector_file).__dict__, 
+                    "data": Vector.read_vector_data_content(self.__path_vector_file).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_gpkg["tables"])
@@ -687,7 +767,7 @@ class Vector:
                 self.vector_shp = {
                     "path": self.__path_vector_file,
                     "tables": self.add_instance_table_to_list_tables(path=self.__path_vector_file),
-                    "data" : Vector.read_vector_data_content(self.__path_vector_file).__dict__,
+                    "data": Vector.read_vector_data_content(self.__path_vector_file).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_shp["tables"])
@@ -703,12 +783,12 @@ class Vector:
 
         # si on charge un objet vecteur de type objet S3
         elif self.__path_vector_file.startswith("s3://"):
-                
+
             try:
                 self.vector_object = {
                     "path": self.path_to_object_file,
                     "tables": self.add_instance_table_to_list_tables(path=self.path_to_object_file),
-                    "data" : Vector.read_vector_data_content(self.__path_vector_file).__dict__,
+                    "data": Vector.read_vector_data_content(self.__path_vector_file).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_object["tables"])
@@ -798,16 +878,13 @@ class Vector:
                 self.vector_geojson = {
                     "path": path,
                     "tables": self.__tables,
-                    "data": Vector.read_vector_data_content(path).__dict__
+                    "data": Vector.read_vector_data_content(path).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_geojson["tables"])
                 # remplacer les éléments vides dans l'ancien dictionnaire par un nouveau dictionnaire sans élément vide
                 Vector.scrub_data_content_dict(self.vector_geojson["data"])
-                print(
-                    "[Vector/from_parameters] self.vector_geojson == "
-                    + str(self.vector_geojson)
-                )
+                print("[Vector/from_parameters] self.vector_geojson == " + str(self.vector_geojson))
                 print("\n")
             except KeyError as error_key:
                 raise MissingAttributeError(
@@ -819,15 +896,13 @@ class Vector:
                 self.vector_gpkg = {
                     "path": path,
                     "tables": self.__tables,
-                    "data": Vector.read_vector_data_content(path).__dict__
+                    "data": Vector.read_vector_data_content(path).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_gpkg["tables"])
                 # remplacer les éléments vides dans l'ancien dictionnaire par un nouveau dictionnaire sans élément vide
                 Vector.scrub_data_content_dict(self.vector_gpkg["data"])
-                print(
-                    "[Vector/from_parameters] self.vector_gpkg == " + str(self.vector_gpkg)
-                )
+                print("[Vector/from_parameters] self.vector_gpkg == " + str(self.vector_gpkg))
                 print("\n")
             except KeyError as error_key:
                 raise MissingAttributeError(
@@ -839,7 +914,7 @@ class Vector:
                 self.vector_shp = {
                     "path": path,
                     "tables": self.__tables,
-                    "data": Vector.read_vector_data_content(path).__dict__
+                    "data": Vector.read_vector_data_content(path).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_shp["tables"])
@@ -857,16 +932,13 @@ class Vector:
                 self.vector_object = {
                     "path": path,
                     "tables": self.__tables,
-                    "data": Vector.read_vector_data_content(path).__dict__
+                    "data": Vector.read_vector_data_content(path).__dict__,
                 }
                 # remplacer les éléments vides dans l'ancienne liste par une nouvelle liste sans élément vide
                 Vector.scrub_data_content_list(self.vector_object["tables"])
                 # remplacer les éléments vides dans l'ancien dictionnaire par un nouveau dictionnaire sans élément vide
                 Vector.scrub_data_content_dict(self.vector_object["data"])
-                print(
-                    "[Vector/from_parameters] self.vector_object == "
-                    + str(self.vector_object)
-                )
+                print("[Vector/from_parameters] self.vector_object == " + str(self.vector_object))
                 print("\n")
             except KeyError as error_key:
                 raise MissingAttributeError(
@@ -877,10 +949,9 @@ class Vector:
 
         return self
 
-    
     @property
     def get_uniq_srs_tables_list(self) -> list[str]:
-        """Obtenir la liste des SRS uniques des tables du vecteur.  
+        """Obtenir la liste des SRS uniques des tables du vecteur.
 
         Returns:
             list[str]: la liste des SRS uniques des tables du vecteur.
@@ -888,19 +959,22 @@ class Vector:
 
         # on initialise le set de srs des tables du vecteur
         uniq_srs_set_all_tables_of_one_vector = set()
-        
+
         for table_list in self.__tables:
             for table_dict in table_list:
                 for table in table_dict.values():
                     # Si table est une instance de Table, alors on ajoute table['_Table__attributes'] au set de srs
                     if isinstance(table, Table):
-                        uniq_srs_set_all_tables_of_one_vector.add(table['_Table__attributes'])
-                    # Si table est un dictionnaire (comme dans from_parameters()), 
+                        uniq_srs_set_all_tables_of_one_vector.add(table["_Table__attributes"])
+                    # Si table est un dictionnaire (comme dans from_parameters()),
                     # alors on ajoute l'élément "_Table__attributes" du dictionnaire de table dans le set de srs
                     elif isinstance(table, dict) and "_Table__attributes" in table:
                         uniq_srs_set_all_tables_of_one_vector.add(table["_Table__attributes"])
 
-        print("[Vector/get_uniq_srs_tables_list] list(uniq_srs_set_all_tables_of_one_vector) == "+str(list(uniq_srs_set_all_tables_of_one_vector)))
+        print(
+            "[Vector/get_uniq_srs_tables_list] list(uniq_srs_set_all_tables_of_one_vector) == "
+            + str(list(uniq_srs_set_all_tables_of_one_vector))
+        )
         print("\n")
 
         return list(uniq_srs_set_all_tables_of_one_vector)
@@ -964,7 +1038,6 @@ class Table:
         self.__bbox = bbox
         self.__geometry_columns = geometry_columns
 
-
     def __repr__(self) -> str:
         """représentation de la classe Table
 
@@ -1002,7 +1075,9 @@ class Table:
     def geometry_columns(self) -> list[str]:
         """noms des colonnes géométriques"""
         return self.__geometry_columns
-"""   
+
+
+"""
 
 if __name__ == "__main__":
 
@@ -1115,7 +1190,7 @@ if __name__ == "__main__":
     # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaires) -> Table
     vectorset.from_list(pathtofilelisttxt)
     Vector.from_file(pathtogeojsonfilename)
-    
+
     # On veut récupérer les informations à partir d'un fichier geojson : Vector.from_file(pathtogeojsonfilename) -> Table
     # VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
     # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
@@ -1176,7 +1251,7 @@ if __name__ == "__main__":
     srs_uniques = vector_geojson.get_uniq_srs_tables_list
     print("srs uniques de vector_geojson.get_uniq_srs_tables_list == "+str(srs_uniques))
     print("\n")
-    
+
     vector_gpkg = Vector.from_parameters(pathtogpkgfilename, table_gpkg)
     srs_uniques = vector_gpkg.get_uniq_srs_tables_list
     print("srs uniques de vector_gpkg.get_uniq_srs_tables_list == "+str(srs_uniques))
