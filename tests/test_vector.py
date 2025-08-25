@@ -23,7 +23,7 @@ import pytest  # type: ignore
 # local : autres librairies de rok4
 from rok4.storage import get_osgeo_path
 
-# import des classes de la librairie 'vector' de rok4 pour lesquelles on doit tester leurs fonctions
+# import des classes de la librairie 'vector' de rok4 pour lesquelles on doit tester leurs fonctions 
 from rok4.vector import Table, Vector, VectorSet
 
 
