@@ -1086,7 +1086,9 @@ class Table:
     def geometry_columns(self) -> list[str]:
         """noms des colonnes géométriques"""
         return self.__geometry_columns
-""" 
+
+
+"""
 if __name__ == "__main__":
 
     pathtoparentdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
