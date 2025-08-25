@@ -157,7 +157,9 @@ class VectorSet:
                             f"{path_vector_file} does not contain a valid 'features' list."
                         )
                 except Exception as error_geojson_loading:
-                    raise Exception(f"GeoJSON file {path_vector_file} is invalid: {error_geojson_loading}")
+                    raise Exception(
+                        f"GeoJSON file {path_vector_file} is invalid: {error_geojson_loading}"
+                    )
 
             elif path_vector_file.endswith(".gpkg") or path_vector_file.endswith(".shp"):
                 datasource = ogr.Open(path_vector_file)
@@ -1075,7 +1077,9 @@ class Table:
     def geometry_columns(self) -> list[str]:
         """noms des colonnes géométriques"""
         return self.__geometry_columns
-""" 
+
+
+"""
 if __name__ == "__main__":
 
     pathtoparentdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
@@ -1204,9 +1208,9 @@ if __name__ == "__main__":
             },
         }
     ]
-    
+
     # tables = [table_gpkg, table_geojson, table_shp]
-    
+
     pathtogeojsonfilename = os.path.join(pathtoparentdir, "tests/fixtures/states.geojson")
     vector_geojson = Vector.from_parameters(pathtogeojsonfilename, table_geojson)
     srs_uniques = vector_geojson.get_uniq_srs_tables_list
