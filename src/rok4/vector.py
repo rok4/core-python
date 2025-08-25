@@ -11,6 +11,15 @@ The module contains the three classes as follows :
 
 These classes would be necessary to make easily interactions between tools with these data.
 cf : documentation de spécifications : module de chargement de données vecteur issue #97 datant du 5 juin 2025
+=> nouvelle implémentation avec trois classes : 'VectorSet', 'Vector' et 'Table' avec l'idée est de ne faire appel qu'à VectorSet. 
+On doit pouvoir faire appel aux deux constructeur suivants et avoir le même état à la fin tel que :
+```python
+from rok4.vector import VectorSet
+
+vectorset = VectorSet.from_list("file://./filelist.txt")
+# ou
+vectorset = VectorSet.from_descriptor("file://./vectorset.json")
+```  
 """
 
 # -- IMPORTS --
