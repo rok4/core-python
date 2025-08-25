@@ -4,8 +4,8 @@ The aim is to have one module who allows to load important informations of a set
 Data can be vector files or S3 vector objects.
 The module contains the three classes as follows :
 
-- `VectorSet` - Vector Data (Files or Objects) Set
-- `Vector` - Vector Data (File or Object)
+- `VectorSet` - Vector Data (Files/Objects) Set
+- `Vector` - Vector Data (File/Object)
 - `Table` - Table (name (name of the table), attributes ({names of columns : their types}), count (number of objects),
    srs (coordinates reference system), bbox (boundary box surrounding), geometry_columns (names of geometry columns))
 
