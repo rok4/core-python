@@ -1,5 +1,4 @@
-"""Provide functions to manipulate OGR / OSR entities
-"""
+"""Provide functions to manipulate OGR / OSR entities"""
 
 # -- IMPORTS --
 
