@@ -76,26 +76,19 @@ class VectorSet:
         tmp_list_file = tmp_list_obj.name
 
         # Copie depuis l'emplacement source de la liste vers le fichier temporaire
-        try:
-            copy(working_path, tmp_list_file)
-        except Exception as error_copy:
-            raise StorageError(
-                "FILE",
-                f"Cannot copy file {working_path} to {tmp_list_file} : {error_copy}",
-            )
-        print(f"Temporary file created : {tmp_list_file}")
+        copy(working_path, tmp_list_file)
+
         print(f"[VectorSet/from_list] Temporary file used : {tmp_list_file}")
         print(f"[VectorSet/from_list] List file used : {working_path}")
+
         # lecture du fichier temporaire
-        try:
-            with open(tmp_list_file, "r") as file:
-                for line in file:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        vector = Vector.from_file(line)
-                        self.vectors.append(vector)
-        except Exception as e:
-            raise StorageError("FILE", f"Cannot read file {tmp_list_file} : {e}")
+        with open(tmp_list_file, "r") as file:
+            for line in file:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    vector = Vector.from_file(line)
+                    self.vectors.append(vector)
+        
         print(f"[VectorSet/from_list] Number of vector data in the set : {len(self.vectors)}")
         print(f"[VectorSet/from_list] List of vector data in the set : {self.vectors}")
         print("\n")
