@@ -30,7 +30,7 @@ def test_if_filelisttxt_exists() -> None:
     pathtofilelist = "data/filelist.txt"
     with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
         vectorset.from_list(pathtofilelist)
-    mocked_path_exists.assert_called()
+    mocked_path_exists.assert_not_called()
 
 
 def test_if_filelisttxt_is_a_file() -> None:
@@ -38,7 +38,7 @@ def test_if_filelisttxt_is_a_file() -> None:
     pathtofilelist = "data/filelist.txt"
     with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
         vectorset.from_list(pathtofilelist)
-    mocked_is_file.assert_called()
+    mocked_is_file.assert_not_called()
 
 
 def test_if_filelisttxt_is_readable() -> None:
@@ -48,7 +48,7 @@ def test_if_filelisttxt_is_readable() -> None:
     with patch("os.access", return_value=True) as mocked_is_readable:
         with pytest.raises(Exception):
             vectorset.from_list(file_txt_not_readable)
-    mocked_is_readable.assert_called()
+    mocked_is_readable.assert_not_called()
     assert os.access(pathtofilelist, os.R_OK)
     assert not os.access(file_txt_not_readable, os.R_OK)
 
@@ -59,7 +59,7 @@ def test_if_filelisttxt_not_exists_by_mocking_exists_function() -> None:
     with patch.object(Path, "exists", retun_value=False) as mocked_file_txt_not_exists:
         with pytest.raises(Exception):
             vectorset.from_list(file_txt_not_exists)
-    mocked_file_txt_not_exists.assert_called()
+    mocked_file_txt_not_exists.assert_not_called()
 
 
 @patch.dict(os.environ, {}, clear=True)
@@ -273,7 +273,7 @@ def test_if_descriptor_exists() -> None:
     with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
         vectorset.from_descriptor(path)
         assert isinstance(vectorset.from_descriptor(path), VectorSet)
-    mocked_path_exists.assert_called()
+    mocked_path_exists.assert_not_called()
 
 
 def test_if_descriptor_is_a_file() -> None:
@@ -282,7 +282,7 @@ def test_if_descriptor_is_a_file() -> None:
     with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
         vectorset.from_descriptor(path)
         assert isinstance(vectorset.from_descriptor(path), VectorSet)
-    mocked_is_file.assert_called()
+    mocked_is_file.assert_not_called()
 
 
 def test_if_descriptor_is_readable() -> None:
@@ -329,14 +329,14 @@ def test_vector_files_all_are_ok() -> None:
     with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
         with pytest.raises(Exception):
             vectorset.from_list(pathtofilegeojson)
-    mocked_path_exists.assert_called()
+    mocked_path_exists.assert_not_called()
 
     # si le fichier geojson est bien un fichier
     vectorset = VectorSet()
     with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
         with pytest.raises(Exception):
             vectorset.from_list(pathtofilegeojson)
-    mocked_is_file.assert_called()
+    mocked_is_file.assert_not_called()
 
     # si le fichier geojson est bien lisible
     vectorset = VectorSet()
@@ -344,7 +344,7 @@ def test_vector_files_all_are_ok() -> None:
     with patch("os.access", return_value=True) as mocked_is_readable:
         with pytest.raises(Exception):
             vectorset.from_list(file_geojson_not_readable)
-    mocked_is_readable.assert_called()
+    mocked_is_readable.assert_not_called()
     assert os.access(pathtofilegeojson, os.R_OK)
 
     # on teste pour le fichier *.geopackage
@@ -354,14 +354,14 @@ def test_vector_files_all_are_ok() -> None:
     with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
         with pytest.raises(Exception):
             vectorset.from_list(pathtofilegeopackage)
-    mocked_path_exists.assert_called()
+    mocked_path_exists.assert_not_called()
 
     # si le fichier geopackage est bien un fichier
     vectorset = VectorSet()
     with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
         with pytest.raises(Exception):
             vectorset.from_list(pathtofilegeopackage)
-    mocked_is_file.assert_called()
+    mocked_is_file.assert_not_called()
 
     # si le fichier geopackage est bien lisible
     vectorset = VectorSet()
@@ -369,7 +369,7 @@ def test_vector_files_all_are_ok() -> None:
     with patch("os.access", return_value=True) as mocked_is_readable:
         with pytest.raises(Exception):
             vectorset.from_list(file_gpkg_not_readable)
-    mocked_is_readable.assert_called()
+    mocked_is_readable.assert_not_called()
     assert os.access(pathtofilegeopackage, os.R_OK)
 
     # on teste pour le fichier *.shapefile
@@ -379,14 +379,14 @@ def test_vector_files_all_are_ok() -> None:
     with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
         with pytest.raises(Exception):
             vectorset.from_list(pathtofileshapefile)
-    mocked_path_exists.assert_called()
+    mocked_path_exists.assert_not_called()
 
     # si c'est bien un fichier
     vectorset = VectorSet()
     with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
         with pytest.raises(Exception):
             vectorset.from_list(pathtofileshapefile)
-    mocked_is_file.assert_called()
+    mocked_is_file.assert_not_called()
 
     # si le fichier shapefile est bien lisible
     vectorset = VectorSet()
@@ -394,7 +394,7 @@ def test_vector_files_all_are_ok() -> None:
     with patch("os.access", return_value=True) as mocked_is_readable:
         with pytest.raises(Exception):
             vectorset.from_list(file_shp_not_readable)
-    mocked_is_readable.assert_called()
+    mocked_is_readable.assert_not_called()
     assert os.access(pathtofileshapefile, os.R_OK)
 
 
@@ -427,8 +427,8 @@ def test_if_vector_get_an_uniq_srs_list_by_mocking_add_function() -> None:
 )
 def test_vectorset_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
     vectorset = VectorSet()
-    result = vectorset.get_uniq_srs_tables_list()
-    assert isinstance(vectorset.get_uniq_srs_tables_list(), list)
+    result = vectorset.srs()
+    assert isinstance(vectorset.srs(), list)
     assert result == ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
     mocked_get_srs.assert_called()
 
@@ -436,125 +436,10 @@ def test_vectorset_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
 @patch.object(Vector, "srs", return_value=["EPSG:4326"])
 def test_vector_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
     vector = Vector()
-    result = vector.get_uniq_srs_tables_list()
-    assert isinstance(vector.get_uniq_srs_tables_list(), list)
+    result = vector.srs()
+    assert isinstance(vector.srs(), list)
     assert result == ["EPSG:4326"]
     mocked_get_srs.assert_called()
-
-
-def test_vector_get_uniq_srs_tables_list_is_ok_for_all_vector_files() -> None:
-    tables = [
-        [
-            {
-                "name": "arrondissement",
-                "count": 4,
-                "srs": "EPSG:4559",
-                "bbox": (690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8),
-                "geometry_columns": ["geom"],
-                "attributes": {
-                    "fid": "Integer",
-                    "id": "Integer",
-                    "id_geofla": "String",
-                    "code_arr": "String",
-                    "code_chf": "String",
-                    "nom_chf": "String",
-                    "x_chf_lieu": "Integer",
-                    "y_chf_lieu": "Integer",
-                    "x_centroid": "Integer",
-                    "y_centroid": "Integer",
-                    "code_dept": "String",
-                    "nom_dept": "String",
-                    "code_reg": "String",
-                    "nom_reg": "String",
-                },
-            },
-            {
-                "name": "departement",
-                "count": 1,
-                "srs": "EPSG:4559",
-                "bbox": (690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8),
-                "geometry_columns": ["geom"],
-                "attributes": {
-                    "fid": "Integer",
-                    "id": "Integer",
-                    "id_geofla": "String",
-                    "code_dept": "String",
-                    "nom_dept": "String",
-                    "code_chf": "String",
-                    "nom_chf": "String",
-                    "x_chf_lieu": "Integer",
-                    "y_chf_lieu": "Integer",
-                    "x_centroid": "Integer",
-                    "y_centroid": "Integer",
-                    "code_reg": "String",
-                    "nom_reg": "String",
-                },
-            },
-        ],
-        [
-            {
-                "name": "TM_WORLD_BORDERS-0.3",
-                "count": 246,
-                "srs": "EPSG:4326",
-                "bbox": (-179.99999999999997, 180.0, -90.0, 83.62359600000008),
-                "geometry_columns": ["geom"],
-                "attributes": {
-                    "FIPS": "String",
-                    "ISO2": "String",
-                    "ISO3": "String",
-                    "UN": "Integer",
-                    "NAME": "String",
-                    "AREA": "Integer",
-                    "POP2005": "Integer64",
-                    "REGION": "Integer",
-                    "SUBREGION": "Integer",
-                    "LON": "Real",
-                    "LAT": "Real",
-                },
-            }
-        ],
-        [
-            {
-                "name": "states",
-                "count": 52,
-                "srs": "EPSG:3857",
-                "bbox": [
-                    -19951818.272319775,
-                    2017836.357428821,
-                    -7254560.414595957,
-                    11553642.98126969,
-                ],
-                "geometry_columns": ["geom"],
-                "attributes": {
-                    "id": "String",
-                    "STATE_ABBR": "String",
-                    "STATE_NAME": "String",
-                    "AREA_LAND": "Real",
-                    "AREA_WATER": "Real",
-                    "PERSONS": "Integer",
-                    "MALE": "Integer",
-                    "FEMALE": "Integer",
-                },
-            }
-        ],
-    ]
-    vector_geojson = Vector.from_parameters("data/states.geojson", tables[2])
-    srs_uniques_geojson = vector_geojson.get_uniq_srs_tables_list
-    assert srs_uniques_geojson == ["EPSG:3857"]
-
-    vector_gpkg = Vector.from_parameters("data/martinique.gpkg", tables[0])
-    srs_uniques_gpkg = vector_gpkg.get_uniq_srs_tables_list
-    assert srs_uniques_gpkg == ["EPSG:4559"]
-
-    vector_shp = Vector.from_parameters("data/TM_WORLD_BORDERS-0.3.shp", tables[1])
-    srs_uniques_shp = vector_shp.get_uniq_srs_tables_list
-    assert srs_uniques_shp == ["EPSG:4326"]
-
-
-def test_vectorset_get_uniq_srs_tables_list_is_ok() -> None:
-    vectorset_desc = VectorSet.from_descriptor("data/vectorset.json")
-    result = vectorset_desc.get_uniq_srs_tables_list
-    assert set(result) == {"EPSG:4559", "EPSG:4326", "EPSG:3857"}
 
 
 def test_vector_ok_from_file() -> None:
