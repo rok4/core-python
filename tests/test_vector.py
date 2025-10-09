@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# PROGRAMM NAME : test_vector.py
+# PROGRAM NAME : test_vector.py
 # CONTEXT : These core-python libraries facilitate the manipulation of entities in the ROK4 project such as
 # Tile Matrix Sets, pyramids, and layers, as well as the manipulation of associated storage.
 # MAIN : write unit tests and integration tests for the vector data loading module 'vector.py'
@@ -17,6 +17,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest  # type: ignore
 
 # local : other rok4 libraries
+from rok4.exceptions import StorageError
 from rok4.storage import get_osgeo_path
 
 # import of classes from the 'vector' library of rok4 for which we need to test their functions
@@ -128,6 +129,23 @@ def test_write_descriptor_prints_when_path_none():
         vectorset.write_descriptor(path=None)
     mock_print.assert_called_once()
 
+
+def test_write_descriptor_calls_put_data_str():
+    vectorset = VectorSet()
+    vectorset.write_descriptor(path="output.json") == {"vectors": [1, 2, 3]}  # Mock serializable property
+
+    with patch("rok4.vector.put_data_str") as mock_put:
+        vectorset.write_descriptor(path="output.json")
+        # Check that put_data_str was called once with the correct arguments
+        args, kwargs = mock_put.call_args
+        assert args[1] == "output.json"
+        assert isinstance(args[0], str)  # The content should be a JSON string
+
+def test_vector_from_file_raises_storageerror_on_none_datasource():
+    with patch("rok4.vector.ogr.Open", return_value=None):
+        with pytest.raises(StorageError) as excinfo:
+            Vector.from_file("dummy_path.geojson")
+        assert "Cannot open vector file/object" in str(excinfo.value)
 
 @patch.dict(os.environ, {}, clear=True)
 def test_filelistpath_is_ok_by_equals_assertion() -> None:
