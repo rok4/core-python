@@ -66,22 +66,31 @@ class VectorSet:
         """
 
         self  = cls()
-        # Récupération du chemin vers le fichier ou l'objet
+        self.vectors = []
+
+        print(f"[VectorSet/from_list] List file used : {path}")
+        print(f"[VectorSet/from_list] Initial number of vector data in the set : {len(self.vectors)}")
+        print(f"[VectorSet/from_list] Initial list of vector data in the set : {self.vectors}")
+        print("\n")
+
+        # we want to read the list of path to vector data
+        # each line of the file contains one path to vector data
+        # retrieve path to the file or object
         working_path = get_osgeo_path(path)
 
-        # Création du fichier temporaire
+        # create temporary file
         tmp_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
 
-        # Récupération du chemin vers le fichier temporaire
+        # retrieve path to the temporary file
         tmp_list_file = tmp_list_obj.name
 
-        # Copie depuis l'emplacement source de la liste vers le fichier temporaire
+        # Copy from the source location of the list to the temporary file
         copy(working_path, tmp_list_file)
 
         print(f"[VectorSet/from_list] Temporary file used : {tmp_list_file}")
         print(f"[VectorSet/from_list] List file used : {working_path}")
 
-        # lecture du fichier temporaire
+        # read temporary file
         with open(tmp_list_file, "r") as file:
             for line in file:
                 line = line.strip()
@@ -93,12 +102,13 @@ class VectorSet:
         print(f"[VectorSet/from_list] List of vector data in the set : {self.vectors}")
         print("\n")
 
-        # une fois les informations récupérées
-        # on peut fermer le fichier temporaire
+        # once the information is retrieved
+        # we can close the temporary file
         tmp_list_obj.close()
 
-        # on supprime le fichier temporaire
+        # we delete the temporary file
         os.remove(tmp_list_file)
+
         return self
 
     @classmethod
@@ -111,34 +121,36 @@ class VectorSet:
      
         vectorset  = cls()
         descriptor_file = path
-        # Récupération du chemin vers le fichier ou l'objet
+
+        # retrieve path to the file or object
         working_path = get_osgeo_path(descriptor_file)
         descriptor_file = working_path
-        # lecture du descripteur
+        print(f"[VectorSet/from_descriptor] Descriptor file used : {descriptor_file}")
+
+        # read descriptor
         try:
             vectorset.descriptor_object = json.loads(get_data_str(descriptor_file))
         except json.JSONDecodeError as e:
             raise FormatError("JSON", vectorset.descriptor_object, e)
         print(f"[VectorSet/from_descriptor] Descriptor object : {vectorset.descriptor_object}")
-        # on obtient l'ensemble des jeux de données de fichier/objet vecteur à partir du fichier descriptor
+        
+        # we retrieve all the vector data file/object sets from the descriptor file
         for index_descriptor_object in range(len(vectorset.descriptor_object)):
-            print(f"[VectorSet/from_descriptor] Descriptor object {index_descriptor_object} : {vectorset.descriptor_object[index_descriptor_object]}")
-            # Pour chaque dictionnaire dans la liste, on fait appel au constructeur `Vector.from_parameters` avec ce dictionnaire
-            # 1°) récupération de tous les attributs de Vector dans le dictionnaire en entrée (`path`)
-            # 2°) puis, pour chaque table dans le champ `tables`, faire appel au constructeur de Table avec tous les éléments suivants:
+            # For each dictionary in the list, we call the `Vector.from_parameters` constructor with this dictionary
+            # 1°) retrieve all the attributes of Vector from the input dictionary (`path`)
+            # 2°) then, for each table in the `tables` field, call the Table constructor with all the following elements:
             vector = Vector.from_parameters(
                 vectorset.descriptor_object[index_descriptor_object]["path"],
                 vectorset.descriptor_object[index_descriptor_object]["tables"],
             )
-            # On ajoute l'objet vector créé dans l'attribut `__vectors` du VectorSet
+            # We add the created vector object to the `__vectors` attribute of the VectorSet
             vectorset.__vectors.append(vector)
 
         print("[VectorSet/from_descriptor] vectorset.__vectors == " + str(vectorset.__vectors))
-        print("\n")
         print(f"[VectorSet/from_descriptor] Number of vector data in the set : {len(vectorset.vectors)}")
         print(f"[VectorSet/from_descriptor] List of vector data in the set : {vectorset.vectors}")
+        
         return vectorset
-    
 
     @property
     def srs(self)-> List[str]:
@@ -148,7 +160,10 @@ class VectorSet:
         :return: List of SRS
         :rtype: List[str]
         """
+
         srs_list = []
+
+        # for each vector in the set, we get its SRS
         for vector in self.vectors:
             for srs in vector.srs:
                 if srs not in srs_list:
@@ -162,26 +177,11 @@ class VectorSet:
         Returns:
             Dict[str, Union[str, List[str]]]: Get the dictionary version compliant to the descriptor of the vector set
         """
-        
-        # OLD VERSION WITH RASTER DATA
-        # serialization = {"bbox": list(self.bbox), "srs": self.srs, "colors": [], "raster_list": []}
-        # for color in self.colors:
-        #     color_serial = {"bands": color[0], "format": color[1].name}
-        #     serialization["colors"].append(color_serial)
-        # for raster in self.raster_list:
-        #     raster_dict = {
-        #         "path": raster.path,
-        #         "dimensions": list(raster.dimensions),
-        #         "bbox": list(raster.bbox),
-        #         "bands": raster.bands,
-        #         "format": raster.format.name,
-        #     }
-        #     if raster.mask is not None:
-        #         raster_dict["mask"] = raster.mask
-        #     serialization["raster_list"].append(raster_dict)
 
         # Get the dict version corresponding to the descriptor of the vector data
         serialization = {"vectors": []}
+
+        # for each vector in the set, we get its serializable version
         for vector in self.vectors:
             serialization["vectors"].append(vector.serializable)
 
@@ -194,6 +194,7 @@ class VectorSet:
             path (str, optional): Complete path (file or object) where to print the JSON. Defaults to None, JSON is printed to standard output.
         """
         content = json.dumps(self.serializable, sort_keys=True)
+
         if path is None:
             print(content)
         else:
@@ -209,6 +210,7 @@ class Vector:
         """
         to retrieve information directly
         """
+
         self.path = Vector.__path
         self.tables = Vector.__tables
 
@@ -225,65 +227,65 @@ class Vector:
 
         working_path = get_osgeo_path(path)
         datasource = ogr.Open(working_path)
+
         if datasource is None:
             raise StorageError("FILE", f"Cannot open vector file/object {working_path}")
         print(f"[Vector/from_file] Vector file/object used : {working_path}")
-        # parcours des couches
+
+        # initialization of the tables dictionary
+        self.tables = {}
+
+        # initialization of the attributes dictionary
+        attributes = {}
+
+        # initialization of the geometry columns list
+        geometry_columns = []
+
+        # we want to retrieve information for each layer in the datasource
         for i in range(datasource.GetLayerCount()):
-            layer = datasource.GetLayerByIndex(i)
+
+            layer = datasource.GetLayer(i)
             name = layer.GetName()
             count = layer.GetFeatureCount()
-            srs = layer.GetSpatialRef().GetAttrValue("AUTHORITY", 1)
-            extent = layer.GetExtent()
-            bbox = (extent[0], extent[2], extent[1], extent[3])  # minX, minY, maxX, maxY
-            # parcours des champs
-            attributes = {}
-            layer_defn = layer.GetLayerDefn()
-            for j in range(layer_defn.GetFieldCount()):
-                field_defn = layer_defn.GetFieldDefn(j)
-                field_name = field_defn.GetName()
-                field_type = field_defn.GetTypeName()
-                attributes[field_name] = field_type
-            # parcours des colonnes de géométrie
-            geometry_columns = {}
-            geom_field_count = layer_defn.GetGeomFieldCount()
-            for k in range(geom_field_count):
-                geom_field_defn = layer_defn.GetGeomFieldDefn(k)
-                geom_field_name = geom_field_defn.GetName()
-                geom_field_type = ogr.GeometryTypeToName(geom_field_defn.GetType())
-                geometry_columns[geom_field_name] = geom_field_type
-            # création de l'instance de Table
+            srs = f"{layer.GetSpatialRef().GetAuthorityName(None)}:{layer.GetSpatialRef().GetAuthorityCode(None)}"
+            # we want bbox in the following order xmin ymin xmax ymax
+            bbox = (layer.GetExtent()[0], layer.GetExtent()[2], layer.GetExtent()[1], layer.GetExtent()[3])
+            geometry_columns.append(layer.GetGeometryColumn())
+
+            print(f"Name: {layer.GetName()}")
+            print(f"Bbox: {layer.GetExtent()[0]},{layer.GetExtent()[2]} {layer.GetExtent()[1]},{layer.GetExtent()[3]}")
+            print(f"Count: {layer.GetFeatureCount()}")
+            print(f"Geometry column: {layer.GetGeometryColumn()}")
+            print(f"SRS: {layer.GetSpatialRef().GetAuthorityName(None)}:{layer.GetSpatialRef().GetAuthorityCode(None)}")
+
+            # Field recognized as FID is not the field in GetFieldDefn
+            if layer.GetFIDColumn() != "":
+                print(f" \"{layer.GetFIDColumn()}\": \"Integer\"")
+
+            for j in range(layer.GetLayerDefn().GetFieldCount()):
+                field = layer.GetLayerDefn().GetFieldDefn(j)
+                attributes[field.GetName()] = field.GetTypeName()
+                print(f"   \"{field.GetName()}\": \"{field.GetTypeName()}\"")
+
+            print("\n")
+
+            # we create an instance of Table class
             table_instance = Table(name, count, srs, bbox, attributes, geometry_columns)
             self.tables[name] = table_instance
-    
+            
+        # printing out the retrieved information
         print(f"[Vector/from_file] Vector data loaded : {self.path} with {len(self.tables)} tables")
-        
-        # affichage des informations récupérées
-        for i in range(datasource.GetLayerCount()):
-            layer = datasource.GetLayer(i)
-            print(f"Name: {layer.GetName()}")
-            # Attention, GetExtent retourne dans l'ordre xmin xmax ymin ymax, et nous on veut les bbox dans l'ordre xmin ymin xmax ymax
-            print(f"    Bbox: {layer.GetExtent()[0]},{layer.GetExtent()[2]} {layer.GetExtent()[1]},{layer.GetExtent()[3]}")
-            print(f"    Count: {layer.GetFeatureCount()}")
-            print(f"    Geometry column: {layer.GetGeometryColumn()}")
-            print(f"    SRS: {layer.GetSpatialRef().GetAuthorityName(None)}:{layer.GetSpatialRef().GetAuthorityCode(None)}")
-
-            # Le champ détecté comme FID n'est pas dans les champs récupérés avec GetFieldDefn
-            if layer.GetFIDColumn() != "":
-                print(f"        \"{layer.GetFIDColumn()}\": \"Integer\"")
-
-        for j in range(layer.GetLayerDefn().GetFieldCount()):
-            field = layer.GetLayerDefn().GetFieldDefn(j)
-            print(f"        \"{field.GetName()}\": \"{field.GetTypeName()}\"")
-
         print("\n")
-
-        print(f"[Vector/from_file] List of tables in the vector data : {self.tables}")
+        
+        for table_name, table_instance in self.tables.items():
+            print(f"[Vector/from_file] List of tables in the vector data : \"{table_name}\" + {list(table_instance.__dict__.values()).__str__()}")
         print(f"[Vector/from_file] List of SRS in the vector data : {self.srs}")
         print(f"[Vector/from_file] List of geometries in the vector data : {geometry_columns}")
         print(f"[Vector/from_file] List of attributes in the vector data : {attributes}")
         print(f"[Vector/from_file] List of vector data in the set : {self}")
-        # fermeture de la datasource
+
+        # once the information is retrieved
+        # we can close the datasource
         datasource = None
 
         return self
@@ -315,6 +317,7 @@ class Vector:
         :rtype: List[str]
         """
         srs_list = []
+        # for each table in the vector data, we get its SRS
         for table in self.tables.values():
             if table.srs not in srs_list:
                 srs_list.append(table.srs)
@@ -326,6 +329,7 @@ class Vector:
         Get the dictiionary version corresponding to the descriptor of the vector data
         """
         serialization = {"path": self.path, "tables": []}
+        # for each table in the vector data, we get its serializable version
         for table in self.tables.values():
             serialization["tables"].append(table.serializable)
         return serialization
@@ -357,13 +361,14 @@ class Table:
         Returns:
             Dict[str, Union[str, int, Tuple[float, float, float, float], List[str]]]: dictionary corresponding to the descriptor of the table
         """
+
         serialization = {
             "name": self.name,
             "count": self.count,
             "srs": self.srs,
-            "bbox": Tuple(self.bbox),
+            "bbox": tuple(self.bbox),
             "attributes": self.attributes,
-            "geometry_colums": self.geometry_colums,
+            "geometry_columns": self.geometry_columns,
         }
         return serialization
 
@@ -371,11 +376,11 @@ if __name__ == "__main__":
 
     pathtoparentdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
-    # Ci-dessous deux usages pour le chargement de données vecteur à partir de 'vectorset':
+    # Below two usages for loading vector data from 'vectorset':
     ############################################################################################################
-    # EXEMPLE 1 : FICHIER D'ENTREE => FICHIER CONTENANT LES CHEMINS DES DONNEES VECTEUR : 'filelist.txt'       #
+    # EXAMPLE 1 : INPUT FILE => FILE CONTAINING THE PATHS OF VECTOR DATA : 'filelist.txt'       #
     ############################################################################################################
-    # entrées
+    # inputs
     pathtofilelisttxt = os.path.abspath(
         os.path.join(pathtoparentdir, "data/filelist.txt")
     )
@@ -385,12 +390,12 @@ if __name__ == "__main__":
     vectorset.from_list(pathtofilelisttxt)
 
     ###################################################################################
-    # EXEMPLE 2 : FICHIER D'ENTREE => FICHIER DU DESCRIPTEUR : 'vectorset.json'       #
+    # EXAMPLE 2 : INPUT FILE => FILE OF THE DESCRIPTOR : 'vectorset.json'       #
     ###################################################################################
-    # entrées
+    # inputs
     pathtodescriptor = os.path.join(pathtoparentdir, "data/vectorset.json")
     vectorset = VectorSet()
-    # On veut récupérer les informations à partir d'un fichier geojson : Vector.from_file(pathtogeojsonfilename) -> Table
-    # VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
-    # On veut récupérer les informations à partir d'un descripteur : VectorSet.from_descriptor (lecture de toutes les informations dans le descripteur) -> Vector.from_parameters -> Table
+    # We want to retrieve information from a geojson file : Vector.from_file(pathtogeojsonfilename) -> Table
+    # VectorSet.from_descriptor (reading all information from the descriptor) -> Vector.from_parameters -> Table
+    # We want to retrieve information from a descriptor : VectorSet.from_descriptor (reading all information from the descriptor) -> Vector.from_parameters -> Table
     vectorset.from_descriptor(pathtodescriptor)
