@@ -100,6 +100,8 @@ def test_vectorset_srs_property():
 
 
 class FakeVectorSerializable:
+    """A fake vector class for testing purposes.
+    """
     def __init__(self, serializable):
         self._serializable = serializable
     @property
@@ -107,6 +109,8 @@ class FakeVectorSerializable:
         return self._serializable
 
 def test_vectorset_serializable():
+    """Test that the VectorSet class is serializable.
+    """
     v1 = FakeVectorSerializable({"path": "a.geojson", "tables": []})
     v2 = FakeVectorSerializable({"path": "b.geojson", "tables": []})
     vectorset = VectorSet()
@@ -235,6 +239,10 @@ def test_by_mocking_open_function_with_a_not_valid_geojson(mocked_file_geojson_n
 
 @patch("builtins.open", new_callable=mock_open, read_data="fake.gpkg")
 def test_by_mocking_open_function_with_a_not_valid_gpkg(mocked_file_gpkg_not_valid) -> None:
+    """Test that Vector.from_file raises StorageError when ogr.Open returns None.
+    Args:
+        mocked_file_gpkg_not_valid (str): a mocked file path to a non valid geopackage file
+    """
     vectorset = VectorSet()
     assert open("path/to/open").read() == "fake.gpkg"
     with pytest.raises(Exception):
