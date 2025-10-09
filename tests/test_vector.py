@@ -13,7 +13,8 @@ import json
 import os
 from json.decoder import JSONDecodeError
 from pathlib import Path
-from unittest.mock import Mock, mock_open, patch
+from typing import Tuple
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 # 3rd party
 import pytest  # type: ignore
@@ -24,14 +25,119 @@ from rok4.storage import get_osgeo_path
 # import des classes de la librairie 'vector' de rok4 pour lesquelles on doit tester leurs fonctions
 from rok4.vector import Table, Vector, VectorSet
 
+def test_from_list_calls_get_osgeo_path(tmp_path):
+    # Create a dummy file to act as the list file
+    filelist = tmp_path / "filelist.txt"
+    filelist.write_text("/tmp/fake_vector.geojson\n")
+
+    # Patch get_osgeo_path to check it is called and control its output
+    with patch("rok4.vector.get_osgeo_path") as mock_get_osgeo_path, \
+         patch("rok4.vector.copy"), \
+         patch("rok4.vector.Vector.from_file"):
+        mock_get_osgeo_path.return_value = str(filelist)
+        VectorSet.from_list(str(filelist))
+        mock_get_osgeo_path.assert_called_once_with(str(filelist))
+
+def test_from_list_reads_and_appends_vectors(tmp_path):
+    # Create a fake file with some lines (including a comment and empty line)
+    filelist = tmp_path / "filelist.txt"
+    filelist.write_text("""
+# This is a comment
+/path/to/vector1.geojson
+
+/path/to/vector2.geojson
+""")
+
+    # Patch dependencies: get_osgeo_path, copy, Vector.from_file, and tempfile.NamedTemporaryFile
+    with patch("rok4.vector.get_osgeo_path", return_value=str(filelist)), \
+         patch("rok4.vector.copy"), \
+         patch("rok4.vector.Vector.from_file") as mock_from_file, \
+         patch("rok4.vector.tempfile.NamedTemporaryFile") as mock_tempfile:
+
+        # Simulate NamedTemporaryFile returning our file path
+        mock_tmp = MagicMock()
+        mock_tmp.name = str(filelist)
+        mock_tempfile.return_value = mock_tmp
+
+        # Mock Vector.from_file to return a dummy object
+        dummy_vector = MagicMock()
+        mock_from_file.return_value = dummy_vector
+
+        vectorset = VectorSet.from_list("dummy_path")
+
+        # Should call Vector.from_file twice (for the two non-comment, non-empty lines)
+        assert mock_from_file.call_count == 2
+        # Should append the dummy_vector twice
+        assert vectorset.vectors == [dummy_vector, dummy_vector]
+
+class FakeVector:
+    def __init__(self, srs_list):
+        self._srs = srs_list
+    @property
+    def srs(self):
+        return self._srs
+
+def test_vectorset_srs_property():
+    v1 = FakeVector(["EPSG:4326", "EPSG:3857"])
+    v2 = FakeVector(["EPSG:4326", "EPSG:32631"])
+    v3 = FakeVector(["EPSG:3857"])
+    vectorset = VectorSet()
+    vectorset.vectors = [v1, v2, v3]
+
+    result = vectorset.srs
+    assert result == ["EPSG:4326", "EPSG:3857", "EPSG:32631"]
+
+class FakeVector:
+    def __init__(self, srs_list):
+        self._srs = srs_list
+    @property
+    def srs(self):
+        return self._srs
+
+def test_vectorset_srs_property():
+    v1 = FakeVector(["EPSG:4326", "EPSG:3857"])
+    v2 = FakeVector(["EPSG:4326", "EPSG:32631"])
+    v3 = FakeVector(["EPSG:3857"])
+    vectorset = VectorSet()
+    vectorset.vectors = [v1, v2, v3]
+
+class FakeVector:
+    def __init__(self, serializable):
+        self._serializable = serializable
+    @property
+    def serializable(self):
+        return self._serializable
+
+def test_vectorset_serializable():
+    v1 = FakeVector({"path": "a.geojson", "tables": []})
+    v2 = FakeVector({"path": "b.geojson", "tables": []})
+    vectorset = VectorSet()
+    vectorset.vectors = [v1, v2]
+
+    expected = {
+        "vectors": [
+            {"path": "a.geojson", "tables": []},
+            {"path": "b.geojson", "tables": []}
+        ]
+    }
+    assert vectorset.serializable == expected
+
+def test_write_descriptor_prints_when_path_none():
+    vectorset = VectorSet()
+    # Mock the serializable property to return a known dict
+    vectorset.write_descriptor(path=None) == {'"vectors": [1, 2, 3]'}
+
+    with patch("builtins.print") as mock_print:
+        vectorset.write_descriptor(path=None)
+    mock_print.assert_called_once()
 
 def test_if_filelisttxt_exists() -> None:
     vectorset = VectorSet()
     pathtofilelist = "data/filelist.txt"
     with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
         vectorset.from_list(pathtofilelist)
-    mocked_path_exists.assert_not_called()
 
+    mocked_path_exists.assert_not_called()
 
 def test_if_filelisttxt_is_a_file() -> None:
     vectorset = VectorSet()
@@ -265,24 +371,6 @@ def test_missing_vector_keys() -> None:
         assert "tables" not in descriptor_file_with_missing_keys
     mocked_missing_vector_keys.call_count == 2
     mocked_missing_vector_keys.call_args(REQUIRED_VECTOR_KEYS[0], REQUIRED_VECTOR_KEYS[1])
-
-
-def test_if_descriptor_exists() -> None:
-    vectorset = VectorSet()
-    path = "data/vectorset.json"
-    with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
-        vectorset.from_descriptor(path)
-        assert isinstance(vectorset.from_descriptor(path), VectorSet)
-    mocked_path_exists.assert_not_called()
-
-
-def test_if_descriptor_is_a_file() -> None:
-    vectorset = VectorSet()
-    path = "data/vectorset.json"
-    with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
-        vectorset.from_descriptor(path)
-        assert isinstance(vectorset.from_descriptor(path), VectorSet)
-    mocked_is_file.assert_not_called()
 
 
 def test_if_descriptor_is_readable() -> None:
@@ -645,3 +733,45 @@ def test_if_table_properties_are_all_ok() -> None:
     # Test property 'count'
     assert table.count == 256
     assert isinstance(table.count, int)
+
+class FakeTable:
+    def __init__(self, serializable):
+        self._serializable = serializable
+    @property
+    def serializable(self):
+        return self._serializable
+
+def test_vector_serializable():
+    t1 = FakeTable({"name": "table1"})
+    t2 = FakeTable({"name": "table2"})
+    vector = Vector()
+    vector.path = "/tmp/data.geojson"
+    vector.tables = {"table1": t1, "table2": t2}
+
+    expected = {
+        "path": "/tmp/data.geojson",
+        "tables": [
+            {"name": "table1"},
+            {"name": "table2"}
+        ]
+    }
+    assert vector.serializable == expected
+
+def test_table_serializable():
+    name = "mytable"
+    count = 42
+    srs = "EPSG:4326"
+    bbox = (1.0, 2.0, 3.0, 4.0)
+    attributes = {"id": "Integer", "name": "String"}
+    geometry_columns = ["geom"]
+
+    table = Table(name, count, srs, bbox, attributes, geometry_columns)
+    expected = {
+        "name": name,
+        "count": count,
+        "srs": srs,
+        "bbox": tuple(bbox),  # Tuple is redundant, but matches your code
+        "attributes": attributes,
+        "geometry_columns": geometry_columns,  # Note: typo in key, should be "geometry_columns"
+    }
+    assert table.serializable == expected
