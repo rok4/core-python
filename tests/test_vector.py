@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest  # type: ignore
 
 # local : other rok4 libraries
-from rok4.exceptions import StorageError
+from rok4.exceptions import FormatError, StorageError
 from rok4.storage import get_osgeo_path
 
 # import of classes from the 'vector' library of rok4 for which we need to test their functions
@@ -68,6 +68,14 @@ def test_from_list_reads_and_appends_vectors(tmp_path):
         # Should append the dummy_vector twice
         assert vectorset.vectors == [dummy_vector, dummy_vector]
 
+def test_from_descriptor_raises_formaterror_on_jsondecodeerror():
+    # Patch get_osgeo_path to avoid file system dependency
+    with patch("rok4.vector.get_osgeo_path", return_value="dummy.json"), \
+         patch("rok4.vector.get_data_str", return_value="{invalid json}"):
+        with pytest.raises(FormatError) as excinfo:
+            VectorSet.from_descriptor("dummy.json")
+        assert "JSON" in str(excinfo.value)
+
 class FakeVector:
     def __init__(self, srs_list):
         self._srs = srs_list
@@ -84,6 +92,7 @@ def test_vectorset_srs_property():
 
     result = vectorset.srs
     assert result == ["EPSG:4326", "EPSG:3857", "EPSG:32631"]
+    assert isinstance(vectorset.srs, list)
 
 class FakeVector:
     def __init__(self, srs_list):
