@@ -121,6 +121,7 @@ class VectorSet:
      
         vectorset  = cls()
         descriptor_file = path
+        vectorset.descriptor_object = []
 
         # retrieve path to the file or object
         working_path = get_osgeo_path(descriptor_file)
