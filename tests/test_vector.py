@@ -77,6 +77,8 @@ def test_from_descriptor_raises_formaterror_on_jsondecodeerror():
         assert "JSON" in str(excinfo.value)
 
 class FakeVector:
+    """Fake Vector class for testing purposes.
+    """
     def __init__(self, srs_list):
         self._srs = srs_list
     @property
@@ -84,6 +86,8 @@ class FakeVector:
         return self._srs
 
 def test_vectorset_srs_property():
+    """Test the srs property of VectorSet to ensure it aggregates unique SRS from its vectors.
+    """
     v1 = FakeVector(["EPSG:4326", "EPSG:3857"])
     v2 = FakeVector(["EPSG:4326", "EPSG:32631"])
     v3 = FakeVector(["EPSG:3857"])
@@ -94,21 +98,8 @@ def test_vectorset_srs_property():
     assert result == ["EPSG:4326", "EPSG:3857", "EPSG:32631"]
     assert isinstance(vectorset.srs, list)
 
-class FakeVector:
-    def __init__(self, srs_list):
-        self._srs = srs_list
-    @property
-    def srs(self):
-        return self._srs
 
-def test_vectorset_srs_property():
-    v1 = FakeVector(["EPSG:4326", "EPSG:3857"])
-    v2 = FakeVector(["EPSG:4326", "EPSG:32631"])
-    v3 = FakeVector(["EPSG:3857"])
-    vectorset = VectorSet()
-    vectorset.vectors = [v1, v2, v3]
-
-class FakeVector:
+class FakeVectorSerializable:
     def __init__(self, serializable):
         self._serializable = serializable
     @property
@@ -116,8 +107,8 @@ class FakeVector:
         return self._serializable
 
 def test_vectorset_serializable():
-    v1 = FakeVector({"path": "a.geojson", "tables": []})
-    v2 = FakeVector({"path": "b.geojson", "tables": []})
+    v1 = FakeVectorSerializable({"path": "a.geojson", "tables": []})
+    v2 = FakeVectorSerializable({"path": "b.geojson", "tables": []})
     vectorset = VectorSet()
     vectorset.vectors = [v1, v2]
 
@@ -130,9 +121,11 @@ def test_vectorset_serializable():
     assert vectorset.serializable == expected
 
 def test_write_descriptor_prints_when_path_none():
+    """Test that write_descriptor prints output when path is None.
+    """
     vectorset = VectorSet()
     # Mock the serializable property to return a known dict
-    vectorset.write_descriptor(path=None) == {'"vectors": [1, 2, 3]'}
+    vectorset.write_descriptor(path=None) == {"vectors": [1, 2, 3]}
 
     with patch("builtins.print") as mock_print:
         vectorset.write_descriptor(path=None)
@@ -140,6 +133,8 @@ def test_write_descriptor_prints_when_path_none():
 
 
 def test_write_descriptor_calls_put_data_str():
+    """Test that write_descriptor calls put_data_str with correct arguments when path is given.
+    """
     vectorset = VectorSet()
     vectorset.write_descriptor(path="output.json") == {"vectors": [1, 2, 3]}  # Mock serializable property
 
@@ -151,6 +146,8 @@ def test_write_descriptor_calls_put_data_str():
         assert isinstance(args[0], str)  # The content should be a JSON string
 
 def test_vector_from_file_raises_storageerror_on_none_datasource():
+    """Test that Vector.from_file raises StorageError when ogr.Open returns None.
+    """
     with patch("rok4.vector.ogr.Open", return_value=None):
         with pytest.raises(StorageError) as excinfo:
             Vector.from_file("dummy_path.geojson")
@@ -224,6 +221,11 @@ def test_get_osgeo_path_for_s3_vector_object_is_ok() -> None:
 
 @patch("builtins.open", new_callable=mock_open, read_data="fake.geojson")
 def test_by_mocking_open_function_with_a_not_valid_geojson(mocked_file_geojson_not_valid) -> None:
+    """Test that Vector.from_file raises StorageError when ogr.Open returns None.
+
+    Args:
+        mocked_file_geojson_not_valid (str): a mocked file path to a non valid geojson file
+    """
     vectorset = VectorSet()
     assert open("path/to/open").read() == "fake.geojson"
     with pytest.raises(Exception):
@@ -242,6 +244,7 @@ def test_by_mocking_open_function_with_a_not_valid_gpkg(mocked_file_gpkg_not_val
 
 @patch("builtins.open", new_callable=mock_open, read_data="fake.shp")
 def test_by_mocking_open_function_with_a_not_valid_shp(mocked_file_shp_not_valid) -> None:
+    """Test that Vector.from_file raises StorageError when ogr.Open returns None."""
     vectorset = VectorSet()
     assert open("path/to/open").read() == "fake.shp"
     with pytest.raises(Exception):
@@ -253,6 +256,7 @@ def test_by_mocking_open_function_with_a_not_valid_shp(mocked_file_shp_not_valid
 def test_by_mocking_open_function_with_a_not_valid_vector_object(
     mocked_file_s3_vector_object_not_valid,
 ) -> None:
+    """Test that Vector.from_file raises StorageError when ogr.Open returns None."""
     vectorset = VectorSet()
     assert open("path/to/open").read() == "fake.s3_vector_object"
     with pytest.raises(Exception):
@@ -268,6 +272,8 @@ def test_by_mocking_open_function_with_a_not_valid_vector_object(
 def test_reading_vector_files_by_mocking_open_function_all_parameters_ok(
     mocked_file_open_geojson, mocked_file_open_shp, mocked_file_open_gpkg
 ) -> None:
+    """test that the path and tables attributes returned by the 'from_file()' method of 'Vector()' are"""
+    """indeed strings starting from an input file with extensions *.geojson, *.gpkg, and *.shp"""
     output_geojson = mocked_file_open_geojson().read()
     mocked_file_open_geojson.assert_called_once_with()
     output_shp = mocked_file_open_shp().read()
@@ -304,11 +310,15 @@ def test_reading_vector_files_by_mocking_open_function_all_parameters_ok(
 
 @patch("builtins.open", new_callable=mock_open, read_data="data/filelist.txt")
 def test_if_filelist_txt_is_ok_by_mocking_open_function_with_a_valid_filelist(mocked_file) -> None:
+    """test that the path and tables attributes returned by the 'from_list()' method of 'VectorSet()' are
+    indeed strings starting from an input file with extension *.txt
+    """
     assert open("path/to/open").read() == "data/filelist.txt"
     mocked_file.assert_called_with("path/to/open")
 
 
 def test_bad_json() -> None:
+    """Test that from_descriptor raises an exception on bad JSON structure."""
     vectorset = VectorSet()
     path_to_descriptor_file = "data/vectorset.json"
     bad_json = {
@@ -331,6 +341,7 @@ def test_bad_json() -> None:
 
 
 def test_missing_vector_keys() -> None:
+    """Test that from_descriptor raises an exception when required keys are missing."""
     vectorset = VectorSet()
     descriptor_file_with_missing_keys = [
         {
@@ -350,6 +361,7 @@ def test_missing_vector_keys() -> None:
 
 @patch("json.loads", return_value=dict({"the_data": "This is fake data"}))
 def test_descriptor_is_not_valid_with_a_fake_file_path(mocked_json_loads) -> None:
+    """Test that from_descriptor raises an exception on invalid file path."""
     vectorset = VectorSet()
     path_to_fake_descriptor = "/non_exists/fake_descriptor.json"
     mocked_json_loads.side_effect = json.loads(JSONDecodeError("JSON", path_to_fake_descriptor, 1))
@@ -360,6 +372,7 @@ def test_descriptor_is_not_valid_with_a_fake_file_path(mocked_json_loads) -> Non
 
 @patch.object(Vector, "srs", return_value=["EPSG:4326"])
 def test_vector_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
+    """test that the 'srs' property of the 'Vector()' class correctly retrieves the list of unique SRS"""
     vector = Vector()
     result = vector.srs()
     assert isinstance(vector.srs(), list)
@@ -593,6 +606,8 @@ def test_if_table_properties_are_all_ok() -> None:
     assert isinstance(table.count, int)
 
 class FakeTable:
+    """A fake table class for testing purposes.
+    """
     def __init__(self, serializable):
         self._serializable = serializable
     @property
@@ -600,6 +615,8 @@ class FakeTable:
         return self._serializable
 
 def test_vector_serializable():
+    """Test that the Vector class is serializable.
+    """
     t1 = FakeTable({"name": "table1"})
     t2 = FakeTable({"name": "table2"})
     vector = Vector()
@@ -616,6 +633,8 @@ def test_vector_serializable():
     assert vector.serializable == expected
 
 def test_table_serializable():
+    """Test that the Table class is serializable.
+    """
     name = "mytable"
     count = 42
     srs = "EPSG:4326"
