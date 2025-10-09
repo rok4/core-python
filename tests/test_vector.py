@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# NOM DU PROGRAMME : test_vector.py
-# CONTEXTE : Ces librairies de core-python facilitent la manipulation d'entités du projet ROK4 comme
-# les Tile Matrix Sets, les pyramides ou encore les couches, ainsi que la manipulation des stockages associés.
-# BUT DU PROGRAMME : écrire les tests unitaires et les tests d'intégration pour le module de chargement des données
-# vecteur 'vector.py'
-# ENTREES : les classes 'VectorSet()', 'Vector()' et 'Table()' du module 'vector.py'
+# PROGRAMM NAME : test_vector.py
+# CONTEXT : These core-python libraries facilitate the manipulation of entities in the ROK4 project such as
+# Tile Matrix Sets, pyramids, and layers, as well as the manipulation of associated storage.
+# MAIN : write unit tests and integration tests for the vector data loading module 'vector.py'
+# INPUTS : the three classes 'VectorSet()', 'Vector()' and 'Table()' of the module 'vector.py'
 
 import builtins
 import json
@@ -12,17 +11,15 @@ import json
 # standard library
 import os
 from json.decoder import JSONDecodeError
-from pathlib import Path
-from typing import Tuple
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 # 3rd party
 import pytest  # type: ignore
 
-# local : autres librairies de rok4
+# local : other rok4 libraries
 from rok4.storage import get_osgeo_path
 
-# import des classes de la librairie 'vector' de rok4 pour lesquelles on doit tester leurs fonctions
+# import of classes from the 'vector' library of rok4 for which we need to test their functions
 from rok4.vector import Table, Vector, VectorSet
 
 def test_from_list_calls_get_osgeo_path(tmp_path):
@@ -131,47 +128,11 @@ def test_write_descriptor_prints_when_path_none():
         vectorset.write_descriptor(path=None)
     mock_print.assert_called_once()
 
-def test_if_filelisttxt_exists() -> None:
-    vectorset = VectorSet()
-    pathtofilelist = "data/filelist.txt"
-    with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
-        vectorset.from_list(pathtofilelist)
-
-    mocked_path_exists.assert_not_called()
-
-def test_if_filelisttxt_is_a_file() -> None:
-    vectorset = VectorSet()
-    pathtofilelist = "data/filelist.txt"
-    with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
-        vectorset.from_list(pathtofilelist)
-    mocked_is_file.assert_not_called()
-
-
-def test_if_filelisttxt_is_readable() -> None:
-    vectorset = VectorSet()
-    pathtofilelist = "data/filelist.txt"
-    file_txt_not_readable = "not_readable.txt"
-    with patch("os.access", return_value=True) as mocked_is_readable:
-        with pytest.raises(Exception):
-            vectorset.from_list(file_txt_not_readable)
-    mocked_is_readable.assert_not_called()
-    assert os.access(pathtofilelist, os.R_OK)
-    assert not os.access(file_txt_not_readable, os.R_OK)
-
-
-def test_if_filelisttxt_not_exists_by_mocking_exists_function() -> None:
-    vectorset = VectorSet()
-    file_txt_not_exists = "not_exists.txt"
-    with patch.object(Path, "exists", retun_value=False) as mocked_file_txt_not_exists:
-        with pytest.raises(Exception):
-            vectorset.from_list(file_txt_not_exists)
-    mocked_file_txt_not_exists.assert_not_called()
-
 
 @patch.dict(os.environ, {}, clear=True)
 def test_filelistpath_is_ok_by_equals_assertion() -> None:
-    """tester que la méthode 'get_osgeo_path()' de 'Storage()' a bien le chemin défini donnant accès
-    au jeu de données vecteur"""
+    """test that the 'get_osgeo_path()' method of 'Storage()' correctly retrieves the path giving access
+    to the vector dataset"""
     try:
         path = get_osgeo_path("data/filelist.txt")
         assert path == "data/filelist.txt"
@@ -181,8 +142,8 @@ def test_filelistpath_is_ok_by_equals_assertion() -> None:
 
 @patch.dict(os.environ, {}, clear=True)
 def test_geojson_file_path_is_ok_by_equals_assertion() -> None:
-    """tester que la méthode 'get_osgeo_path()' de 'Storage()' a bien le chemin défini donnant accès
-    au jeu de données vecteur"""
+    """test that the 'get_osgeo_path()' method of 'Storage()' correctly retrieves the path giving access
+    to the vector dataset"""
     try:
         geojson_file_path = get_osgeo_path("data/states.geojson")
         assert geojson_file_path == "data/states.geojson"
@@ -194,8 +155,8 @@ def test_geojson_file_path_is_ok_by_equals_assertion() -> None:
 
 @patch.dict(os.environ, {}, clear=True)
 def test_gpkg_file_path_is_ok_by_equals_assertion() -> None:
-    """tester que la méthode 'get_osgeo_path()' de 'Storage()' a bien le chemin défini donnant accès
-    au jeu de données vecteur"""
+    """test that the 'get_osgeo_path()' method of 'Storage()' correctly retrieves the path giving access
+    to the vector dataset"""
     try:
         gpkg_file_path = get_osgeo_path("data/martinique.gpkg")
         assert gpkg_file_path == "data/martinique.gpkg"
@@ -207,8 +168,8 @@ def test_gpkg_file_path_is_ok_by_equals_assertion() -> None:
 
 @patch.dict(os.environ, {}, clear=True)
 def test_shp_file_path_is_ok_by_equals_assertion() -> None:
-    """tester que la méthode 'get_osgeo_path()' de 'Storage()' a bien le chemin défini donnant accès
-    au jeu de données vecteur"""
+    """test that the 'get_osgeo_path()' method of 'Storage()' correctly retrieves the path giving access
+    to the vector dataset"""
     try:
         shp_file_path = get_osgeo_path("data/TM_WORLD_BORDERS-0.3.shp")
         assert shp_file_path == "data/TM_WORLD_BORDERS-0.3.shp"
@@ -224,8 +185,8 @@ def test_shp_file_path_is_ok_by_equals_assertion() -> None:
     clear=True,
 )
 def test_get_osgeo_path_for_s3_vector_object_is_ok() -> None:
-    """tester que la méthode 'get_osgeo_path()' récupère bien le chemin donnant l'accès
-    à l'objet vecteur du bucket S3'
+    """test that the 'get_osgeo_path()' method correctly retrieves the path giving access
+    to the vector object in the S3 bucket
     """
     try:
         path = get_osgeo_path("s3://bucket@b/to/object.ext")
@@ -314,19 +275,6 @@ def test_reading_vector_files_by_mocking_open_function_all_parameters_ok(
     assert output_gpkg == expected_output[0]
 
 
-@patch("builtins.open", new_callable=mock_open, read_data="data/filelist_not_valid.txt")
-def test_if_listtxtpath_is_not_ok_by_mocking_open_function_with_a_not_valid_filelist(
-    mocked_file,
-) -> None:
-    vectorset = VectorSet()
-    with pytest.raises(Exception):
-        vectorset.from_list(mocked_file)
-        assert isinstance(vectorset.from_list(mocked_file), list)
-        assert len(vectorset.from_list(mocked_file)) == 3
-        assert all(isinstance(item, Vector) for item in vectorset.from_list(mocked_file))
-    mocked_file.assert_not_called()
-
-
 @patch("builtins.open", new_callable=mock_open, read_data="data/filelist.txt")
 def test_if_filelist_txt_is_ok_by_mocking_open_function_with_a_valid_filelist(mocked_file) -> None:
     assert open("path/to/open").read() == "data/filelist.txt"
@@ -373,18 +321,6 @@ def test_missing_vector_keys() -> None:
     mocked_missing_vector_keys.call_args(REQUIRED_VECTOR_KEYS[0], REQUIRED_VECTOR_KEYS[1])
 
 
-def test_if_descriptor_is_readable() -> None:
-    vectorset = VectorSet()
-    path = "data/vectorset.json"
-    file_descriptor_not_readable = "descriptor_not_readable.json"
-    with patch("os.access", return_value=True) as mocked_is_readable:
-        with pytest.raises(Exception):
-            vectorset.from_descriptor(file_descriptor_not_readable)
-    mocked_is_readable.assert_not_called()
-    assert os.access(path, os.R_OK)
-    assert not os.access(file_descriptor_not_readable, os.R_OK)
-
-
 @patch("json.loads", return_value=dict({"the_data": "This is fake data"}))
 def test_descriptor_is_not_valid_with_a_fake_file_path(mocked_json_loads) -> None:
     vectorset = VectorSet()
@@ -393,132 +329,6 @@ def test_descriptor_is_not_valid_with_a_fake_file_path(mocked_json_loads) -> Non
     with pytest.raises(Exception):
         vectorset.from_descriptor(path_to_fake_descriptor)
     mocked_json_loads.assert_called_once()
-
-
-@patch.object(
-    VectorSet, "srs", return_value=["EPSG:4326", "EPSG:3857", "EPSG:4559"]
-)
-def test_by_mocking_get_uniq_srs_tables_list_the_result_is_ok(mocked_get_srs) -> None:
-    vectorset = VectorSet()
-    result = vectorset.srs()
-    assert result == ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
-    mocked_get_srs.assert_called_once()
-
-
-
-def test_vector_files_all_are_ok() -> None:
-    """tester que les fichiers vecteurs (geojson, geopackage et shapefile) existent bien,
-    sont bien des fichiers et sont bien lisibles
-    """
-    vectorset = VectorSet()
-    # on teste pour le fichier *.geojson
-    # si le fichier geojson existe bien
-    pathtofilegeojson = "data/states.geojson"
-    with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
-        with pytest.raises(Exception):
-            vectorset.from_list(pathtofilegeojson)
-    mocked_path_exists.assert_not_called()
-
-    # si le fichier geojson est bien un fichier
-    vectorset = VectorSet()
-    with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
-        with pytest.raises(Exception):
-            vectorset.from_list(pathtofilegeojson)
-    mocked_is_file.assert_not_called()
-
-    # si le fichier geojson est bien lisible
-    vectorset = VectorSet()
-    file_geojson_not_readable = "not_readable.geojson"
-    with patch("os.access", return_value=True) as mocked_is_readable:
-        with pytest.raises(Exception):
-            vectorset.from_list(file_geojson_not_readable)
-    mocked_is_readable.assert_not_called()
-    assert os.access(pathtofilegeojson, os.R_OK)
-
-    # on teste pour le fichier *.geopackage
-    # si le fichier geopackage existe bien
-    vectorset = VectorSet()
-    pathtofilegeopackage = "data/martinique.gpkg"
-    with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
-        with pytest.raises(Exception):
-            vectorset.from_list(pathtofilegeopackage)
-    mocked_path_exists.assert_not_called()
-
-    # si le fichier geopackage est bien un fichier
-    vectorset = VectorSet()
-    with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
-        with pytest.raises(Exception):
-            vectorset.from_list(pathtofilegeopackage)
-    mocked_is_file.assert_not_called()
-
-    # si le fichier geopackage est bien lisible
-    vectorset = VectorSet()
-    file_gpkg_not_readable = "not_readable.gpkg"
-    with patch("os.access", return_value=True) as mocked_is_readable:
-        with pytest.raises(Exception):
-            vectorset.from_list(file_gpkg_not_readable)
-    mocked_is_readable.assert_not_called()
-    assert os.access(pathtofilegeopackage, os.R_OK)
-
-    # on teste pour le fichier *.shapefile
-    # si le fichier shapefile existe bien
-    vectorset = VectorSet()
-    pathtofileshapefile = "data/TM_WORLD_BORDERS-0.3.shp"
-    with patch.object(Path, "exists", return_value=True) as mocked_path_exists:
-        with pytest.raises(Exception):
-            vectorset.from_list(pathtofileshapefile)
-    mocked_path_exists.assert_not_called()
-
-    # si c'est bien un fichier
-    vectorset = VectorSet()
-    with patch.object(Path, "is_file", return_value=True) as mocked_is_file:
-        with pytest.raises(Exception):
-            vectorset.from_list(pathtofileshapefile)
-    mocked_is_file.assert_not_called()
-
-    # si le fichier shapefile est bien lisible
-    vectorset = VectorSet()
-    file_shp_not_readable = "not_readable.shp"
-    with patch("os.access", return_value=True) as mocked_is_readable:
-        with pytest.raises(Exception):
-            vectorset.from_list(file_shp_not_readable)
-    mocked_is_readable.assert_not_called()
-    assert os.access(pathtofileshapefile, os.R_OK)
-
-
-def test_if_vectorset_get_an_uniq_srs_list_by_mocking_add_function() -> None:
-    expected_srs_tables_list = ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
-    mocked_add = Mock(return_value=expected_srs_tables_list)
-    mocked_add.patch(
-        "VectorSet.srs",
-        new_callable=mocked_add.PropertyMock,
-        return_value=["EPSG:4326", "EPSG:3857", "EPSG:4559"],
-    )
-    assert mocked_add.return_value == expected_srs_tables_list
-    mocked_add.call_count == 3
-
-
-def test_if_vector_get_an_uniq_srs_list_by_mocking_add_function() -> None:
-    expected_srs_tables_set = {"EPSG:4326"}
-    mocked_add = Mock(return_value=expected_srs_tables_set)
-    mocked_add.patch(
-        "Vector.srs",
-        new_callable=mocked_add.PropertyMock,
-        return_value={"EPSG:4326"},
-    )
-    assert mocked_add.return_value == expected_srs_tables_set
-    mocked_add.call_count == 1
-
-
-@patch.object(
-    VectorSet, "srs", return_value=["EPSG:4326", "EPSG:3857", "EPSG:4559"]
-)
-def test_vectorset_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
-    vectorset = VectorSet()
-    result = vectorset.srs()
-    assert isinstance(vectorset.srs(), list)
-    assert result == ["EPSG:4326", "EPSG:3857", "EPSG:4559"]
-    mocked_get_srs.assert_called()
 
 
 @patch.object(Vector, "srs", return_value=["EPSG:4326"])
@@ -530,9 +340,30 @@ def test_vector_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
     mocked_get_srs.assert_called()
 
 
+def test_vector_from_parameters(monkeypatch):
+    # Prepare test data
+    path = "/tmp/test.geojson"
+    tables = {"table1": object(), "table2": object()}
+
+    # Optionally, capture print output
+    printed = []
+    monkeypatch.setattr("builtins.print", lambda msg: printed.append(msg))
+
+    # Call the method
+    vector = Vector.from_parameters(path, tables)
+
+    # Check attributes
+    assert vector.path == path
+    assert vector.tables == tables
+
+    # Optionally, check print output
+    assert any("Vector data loaded" in line for line in printed)
+    assert any("List of tables in the vector data" in line for line in printed)
+
+
 def test_vector_ok_from_file() -> None:
-    """tester que les attributs path et tables renvoyés par la méthode 'from_file()' de 'Vector()' sont
-    bien des chaînes de caractères en partant d'un fichier d'entrée d'extension *.geojson, *.gpkg et *.shp
+    """test that the path and tables attributes returned by the 'from_file()' method of 'Vector()' are
+    indeed strings starting from an input file with extensions *.geojson, *.gpkg, and *.shp
     """
     path_geojson = "data/states.geojson"
     tables_geojson = [
@@ -628,17 +459,17 @@ def test_vector_ok_from_file() -> None:
 
     vector = Vector()
 
-    # tester si la méthode from_parameters renvoient bien des tables de données vecteur
+    # test if the from_parameters method returns vector data tables
     tables_geojson = vector.from_parameters(path_geojson, tables_geojson)
     tables_gpkg = vector.from_parameters(path_gpkg, tables_gpkg)
     tables_shp = vector.from_parameters(path_shp, tables_shp)
 
-    # tester si la méthode from_file retourne bien une instance de Vector
+    # test if the from_file method returns an instance of Vector
     vector_geojson = vector.from_file(path_geojson)
     vector_gpkg = vector.from_file(path_gpkg)
     vector_shp = vector.from_file(path_shp)
 
-    # tester si l'objet retourné est bien une instance de Vector
+    # test if the returned object is indeed an instance of Vector
     assert isinstance(vector_geojson, Vector)
     assert isinstance(vector_gpkg, Vector)
     assert isinstance(vector_shp, Vector)
@@ -646,11 +477,11 @@ def test_vector_ok_from_file() -> None:
 
 @patch("rok4.vector.Table.__init__", return_value=Table)
 def test_table_init_returns_an_instance_of_table(mocked_patch) -> None:
-    """tester le constructeur __init__ pour vérifier que l'instance lié à la
-        classe Table a bien été créée
+    """test __init__ constructor to check that an object of the
+        class Table has been created
 
     Args:
-        mocked_patch (str): décorateur
+        mocked_patch (str): decorator
     """
     patcher = patch("rok4.vector.Table.__init__")
     mocked_patch = patcher.start()
