@@ -148,6 +148,7 @@ def test_write_descriptor_calls_put_data_str():
         args, kwargs = mock_put.call_args
         assert args[1] == "output.json"
         assert isinstance(args[0], str)  # The content should be a JSON string
+        os.remove("output.json") if os.path.exists("output.json") else None
 
 def test_vector_from_file_raises_storageerror_on_none_datasource():
     """Test that Vector.from_file raises StorageError when ogr.Open returns None.
