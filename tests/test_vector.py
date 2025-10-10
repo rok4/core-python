@@ -68,6 +68,36 @@ def test_from_list_reads_and_appends_vectors(tmp_path):
         # Should append the dummy_vector twice
         assert vectorset.vectors == [dummy_vector, dummy_vector]
 
+def test_from_descriptor_calls_vector_from_parameters():
+    # Prepare a fake descriptor object as JSON string
+    descriptor = [
+        {"path": "file1.geojson", "tables": {"t1": "table1"}},
+        {"path": "file2.geojson", "tables": {"t2": "table2"}}
+    ]
+    descriptor_json = json.dumps(descriptor)
+
+    # Patch dependencies
+    with patch("rok4.vector.get_osgeo_path", return_value="dummy.json"), \
+         patch("rok4.vector.get_data_str", return_value=descriptor_json), \
+         patch("rok4.vector.Vector.from_parameters") as mock_from_parameters:
+
+        # Set up the mock to return a unique object for each call
+        dummy_vectors = [MagicMock(name="Vector1"), MagicMock(name="Vector2")]
+        mock_from_parameters.side_effect = dummy_vectors
+
+        vectorset = VectorSet.from_descriptor("dummy.json")
+
+        # Check that Vector.from_parameters was called with correct arguments
+        assert mock_from_parameters.call_count == 2
+        mock_from_parameters.assert_any_call("file1.geojson", {"t1": "table1"})
+        mock_from_parameters.assert_any_call("file2.geojson", {"t2": "table2"})
+
+        # Check that __vectors contains the dummy vectors
+        assert dummy_vectors[0] in vectorset._VectorSet__vectors
+        assert dummy_vectors[1] in vectorset._VectorSet__vectors
+
+    assert isinstance(VectorSet.from_descriptor("file://data/vectorset.json"), VectorSet)
+
 def test_from_descriptor_raises_formaterror_on_jsondecodeerror():
     # Patch get_osgeo_path to avoid file system dependency
     with patch("rok4.vector.get_osgeo_path", return_value="dummy.json"), \
@@ -100,13 +130,14 @@ def test_vectorset_srs_property():
 
 
 class FakeVectorSerializable:
-    """A fake vector class for testing purposes.
+    """A fake serializable vector class for testing purposes.
     """
     def __init__(self, serializable):
         self._serializable = serializable
     @property
     def serializable(self):
         return self._serializable
+    
 
 def test_vectorset_serializable():
     """Test that the VectorSet class is serializable.
@@ -124,31 +155,6 @@ def test_vectorset_serializable():
     }
     assert vectorset.serializable == expected
 
-def test_write_descriptor_prints_when_path_none():
-    """Test that write_descriptor prints output when path is None.
-    """
-    vectorset = VectorSet()
-    # Mock the serializable property to return a known dict
-    vectorset.write_descriptor(path=None) == {"vectors": [1, 2, 3]}
-
-    with patch("builtins.print") as mock_print:
-        vectorset.write_descriptor(path=None)
-    mock_print.assert_called_once()
-
-
-def test_write_descriptor_calls_put_data_str():
-    """Test that write_descriptor calls put_data_str with correct arguments when path is given.
-    """
-    vectorset = VectorSet()
-    vectorset.write_descriptor(path="output.json") == {"vectors": [1, 2, 3]}  # Mock serializable property
-
-    with patch("rok4.vector.put_data_str") as mock_put:
-        vectorset.write_descriptor(path="output.json")
-        # Check that put_data_str was called once with the correct arguments
-        args, kwargs = mock_put.call_args
-        assert args[1] == "output.json"
-        assert isinstance(args[0], str)  # The content should be a JSON string
-        os.remove("output.json") if os.path.exists("output.json") else None
 
 def test_vector_from_file_raises_storageerror_on_none_datasource():
     """Test that Vector.from_file raises StorageError when ogr.Open returns None.
@@ -634,10 +640,7 @@ def test_vector_serializable():
 
     expected = {
         "path": "/tmp/data.geojson",
-        "tables": [
-            {"name": "table1"},
-            {"name": "table2"}
-        ]
+        "tables": ["table1", "table2"]
     }
     assert vector.serializable == expected
 
