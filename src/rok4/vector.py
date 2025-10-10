@@ -330,9 +330,12 @@ class Vector:
         Get the dictiionary version corresponding to the descriptor of the vector data
         """
         serialization = {"path": self.path, "tables": []}
+        print(type(self.tables))
+        print(self.tables)
         # for each table in the vector data, we get its serializable version
-        for table in self.tables.values():
-            serialization["tables"].append(table.serializable)
+        for table in self.tables:
+            serialization["tables"].append(table)
+        print(serialization)
         return serialization
 
 class Table:
@@ -387,7 +390,7 @@ if __name__ == "__main__":
     )
     vectorset = VectorSet()
     # VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaires) -> Table
-    # On veut récupérer les informations à partir d'une liste : VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaires) -> Table
+    # We want to retrieve information from a list : VectorSet.from_list -> Vector.from_file (usage of ogr to retrieve necessary information) -> Table
     vectorset.from_list(pathtofilelisttxt)
 
     ###################################################################################
