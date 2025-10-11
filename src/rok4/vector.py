@@ -334,7 +334,7 @@ class Vector:
         print(self.tables)
         # for each table in the vector data, we get its serializable version
         for table in self.tables:
-            serialization["tables"].append(table)
+            serialization["tables"].append(Table.serializable.fget(self.tables[table]))
         print(serialization)
         return serialization
 
