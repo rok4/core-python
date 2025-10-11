@@ -641,7 +641,7 @@ def test_vector_serializable():
     """Test that the Vector class is serializable."""
 
     vector = Vector()
-    
+
     # Create mock Table objects with known serializable output
     t1 = Table("table1", 1, "EPSG:4326", (0, 0, 1, 1), {"id": "int"}, ["geom"])
     t2 = Table("table2", 2, "EPSG:3857", (1, 1, 2, 2), {"name": "str"}, ["geom2"])
