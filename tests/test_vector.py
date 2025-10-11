@@ -630,23 +630,29 @@ class FakeTable:
         return self._serializable
 
 def test_vector_serializable():
-    """Test that the Vector class is serializable.
-    """
-    t1 = FakeTable({"name": "table1"})
-    t2 = FakeTable({"name": "table2"})
+    """Test that the Vector class is serializable."""
+
     vector = Vector()
+    
+    # Create mock Table objects with known serializable output
+    t1 = Table("table1", 1, "EPSG:4326", (0, 0, 1, 1), {"id": "int"}, ["geom"])
+    t2 = Table("table2", 2, "EPSG:3857", (1, 1, 2, 2), {"name": "str"}, ["geom2"])
+
     vector.path = "/tmp/data.geojson"
     vector.tables = {"table1": t1, "table2": t2}
 
-    expected = {
+    # expect the serializable output to match the tables' serializable properties
+    expected_tables = [t1.serializable, t2.serializable]
+
+    expected_result = vector.serializable
+
+    assert expected_result == {
         "path": "/tmp/data.geojson",
-        "tables": ["table1", "table2"]
+        "tables": expected_tables
     }
-    assert vector.serializable == expected
 
 def test_table_serializable():
-    """Test that the Table class is serializable.
-    """
+    """Test that the Table class is serializable."""
     name = "mytable"
     count = 42
     srs = "EPSG:4326"
