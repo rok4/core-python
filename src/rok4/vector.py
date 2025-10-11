@@ -420,7 +420,7 @@ if __name__ == "__main__":
     # inputs
     pathtofilelisttxt = os.path.abspath(os.path.join(pathtoparentdir, "data/filelist.txt"))
     vectorset = VectorSet()
-    # VectorSet.from_list -> Vector.from_file (usage de ogr pour récupérer les informations nécessaires) -> Table
+    # VectorSet.from_list -> Vector.from_file (usage of ogr to retrieve necessary information) -> Table
     # We want to retrieve information from a list : VectorSet.from_list -> Vector.from_file (usage of ogr to retrieve necessary information) -> Table
     vectorset.from_list(pathtofilelisttxt)
 
