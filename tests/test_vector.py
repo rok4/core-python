@@ -105,7 +105,7 @@ def test_from_descriptor_calls_vector_from_parameters() -> None:
         assert dummy_vectors[0] in vectorset._VectorSet__vectors
         assert dummy_vectors[1] in vectorset._VectorSet__vectors
 
-    assert isinstance(VectorSet.from_descriptor("file://data/vectorset.json"), VectorSet)
+    assert isinstance(VectorSet.from_descriptor("file://tests/fixtures/vectorset.json"), VectorSet)
 
 
 def test_from_descriptor_raises_formaterror_on_jsondecodeerror() -> None:
@@ -344,24 +344,10 @@ def test_if_filelist_txt_is_ok_by_mocking_open_function_with_a_valid_filelist(mo
 def test_bad_json() -> None:
     """Test that from_descriptor raises an exception on bad JSON structure."""
     vectorset = VectorSet()
-    path_to_descriptor_file = "data/vectorset.json"
-    bad_json = {
-        "path": "my_path",
-        "table": "my_table",
-        "data": [
-            {
-                "type": "shp",
-            },
-            {
-                "type": "object",
-            },
-        ],
-    }
-    with patch("json.loads", return_value=bad_json) as mocked_get_bad_json:
-        with pytest.raises(Exception):
-            output = vectorset.from_descriptor(path_to_descriptor_file)
-            assert json.loads(path_to_descriptor_file) == output
-    mocked_get_bad_json.assert_called()
+    path_to_descriptor_file = "tests/fixtures/bad_vectorset.json"
+
+    with pytest.raises(Exception):
+        output = vectorset.from_descriptor(path_to_descriptor_file)
 
 
 def test_missing_vector_keys() -> None:
@@ -369,13 +355,13 @@ def test_missing_vector_keys() -> None:
     vectorset = VectorSet()
     descriptor_file_with_missing_keys = [
         {
-            "path": "file://./data/martinique.gpkg",
+            "path": "file://./tests/fixtures/martinique.gpkg",
         }
     ]
     REQUIRED_VECTOR_KEYS = ["path", "tables"]
     with patch(
         "rok4.vector.VectorSet.from_descriptor",
-        return_value="[{'path': 'file://./data/martinique.gpkg',}]",
+        return_value="[{'path': 'file://./tests/fixtures/martinique.gpkg',}]",
     ) as mocked_missing_vector_keys:
         vectorset.from_descriptor(descriptor_file_with_missing_keys)
         assert "tables" not in descriptor_file_with_missing_keys
@@ -433,7 +419,7 @@ def test_vector_ok_from_file() -> None:
     """test that the path and tables attributes returned by the 'from_file()' method of 'Vector()' are
     indeed strings starting from an input file with extensions *.geojson, *.gpkg, and *.shp
     """
-    path_geojson = "data/states.geojson"
+    path_geojson = "tests/fixtures/states.geojson"
     tables_geojson = [
         {
             "name": "states",
@@ -450,7 +436,7 @@ def test_vector_ok_from_file() -> None:
             },
         }
     ]
-    path_gpkg = "data/martinique.gpkg"
+    path_gpkg = "tests/fixtures/martinique.gpkg"
     tables_gpkg = [
         {
             "name": "arrondissement",
@@ -498,7 +484,7 @@ def test_vector_ok_from_file() -> None:
             },
         },
     ]
-    path_shp = "data/TM_WORLD_BORDERS-0.3.shp"
+    path_shp = "tests/fixtures/TM_WORLD_BORDERS-0.3.shp"
     tables_shp = [
         {
             "name": "TM_WORLD_BORDERS-0.3",

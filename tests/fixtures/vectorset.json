@@ -1,6 +1,6 @@
 [
 	{
-		"path": "file://./data/martinique.gpkg",
+		"path": "file://./tests/fixtures/martinique.gpkg",
 		"tables": [
 			{
 				"name": "arrondissement",
@@ -50,7 +50,7 @@
 		]
 	},
 	{
-		"path": "file://./data/states.geojson",
+		"path": "file://./tests/fixtures/states.geojson",
 		"tables": [
 			{
 				"name": "states",
@@ -72,7 +72,7 @@
 		]
 	},
 	{
-		"path": "file://./data/TM_WORLD_BORDERS-0.3.shp",
+		"path": "file://./tests/fixtures/TM_WORLD_BORDERS-0.3.shp",
 		"tables": [
 			{
 				"name": "TM_WORLD_BORDERS-0.3",
