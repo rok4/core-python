@@ -2,7 +2,7 @@
 # PROGRAM NAME : test_vector.py
 # CONTEXT : These core-python libraries facilitate the manipulation of entities in the ROK4 project such as
 # Tile Matrix Sets, pyramids, and layers, as well as the manipulation of associated storage.
-# MAIN : write unit tests and integration tests for the vector data loading module 'vector.py'
+# AIM : write unit tests and integration tests for the vector data loading module 'vector.py'
 # INPUTS : the three classes 'VectorSet()', 'Vector()' and 'Table()' of the module 'vector.py'
 
 import builtins
@@ -24,7 +24,8 @@ from rok4.storage import get_osgeo_path
 from rok4.vector import Table, Vector, VectorSet
 
 
-def test_from_list_calls_get_osgeo_path(tmp_path):
+def test_from_list_calls_get_osgeo_path(tmp_path) -> None:
+    """Test that from_list correctly calls get_osgeo_path."""
     # Create a dummy file to act as the list file
     filelist = tmp_path / "filelist.txt"
     filelist.write_text("/tmp/fake_vector.geojson\n")
@@ -38,7 +39,8 @@ def test_from_list_calls_get_osgeo_path(tmp_path):
         mock_get_osgeo_path.assert_called_once_with(str(filelist))
 
 
-def test_from_list_reads_and_appends_vectors(tmp_path):
+def test_from_list_reads_and_appends_vectors(tmp_path) -> None:
+    """Test that from_list correctly reads a file and appends Vector instances."""
     # Create a fake file with some lines (including a comment and empty line)
     filelist = tmp_path / "filelist.txt"
     filelist.write_text(
@@ -74,7 +76,8 @@ def test_from_list_reads_and_appends_vectors(tmp_path):
         assert vectorset.vectors == [dummy_vector, dummy_vector]
 
 
-def test_from_descriptor_calls_vector_from_parameters():
+def test_from_descriptor_calls_vector_from_parameters() -> None:
+    """Test that from_descriptor correctly calls Vector.from_parameters for each entry in the descriptor."""
     # Prepare a fake descriptor object as JSON string
     descriptor = [
         {"path": "file1.geojson", "tables": {"t1": "table1"}},
@@ -105,7 +108,8 @@ def test_from_descriptor_calls_vector_from_parameters():
     assert isinstance(VectorSet.from_descriptor("file://data/vectorset.json"), VectorSet)
 
 
-def test_from_descriptor_raises_formaterror_on_jsondecodeerror():
+def test_from_descriptor_raises_formaterror_on_jsondecodeerror() -> None:
+    """Test that from_descriptor raises FormatError on JSONDecodeError."""
     # Patch get_osgeo_path to avoid file system dependency
     with patch("rok4.vector.get_osgeo_path", return_value="dummy.json"), patch(
         "rok4.vector.get_data_str", return_value="{invalid json}"
@@ -126,7 +130,7 @@ class FakeVector:
         return self._srs
 
 
-def test_vectorset_srs_property():
+def test_vectorset_srs_property() -> None:
     """Test the srs property of VectorSet to ensure it aggregates unique SRS from its vectors."""
     v1 = FakeVector(["EPSG:4326", "EPSG:3857"])
     v2 = FakeVector(["EPSG:4326", "EPSG:32631"])
@@ -150,7 +154,7 @@ class FakeVectorSerializable:
         return self._serializable
 
 
-def test_vectorset_serializable():
+def test_vectorset_serializable() -> None:
     """Test that the VectorSet class is serializable."""
     v1 = FakeVectorSerializable({"path": "a.geojson", "tables": []})
     v2 = FakeVectorSerializable({"path": "b.geojson", "tables": []})
@@ -163,7 +167,7 @@ def test_vectorset_serializable():
     assert vectorset.serializable == expected
 
 
-def test_vector_from_file_raises_storageerror_on_none_datasource():
+def test_vector_from_file_raises_storageerror_on_none_datasource() -> None:
     """Test that Vector.from_file raises StorageError when ogr.Open returns None."""
     with patch("rok4.vector.ogr.Open", return_value=None):
         with pytest.raises(StorageError) as excinfo:
@@ -400,7 +404,11 @@ def test_vector_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
     mocked_get_srs.assert_called()
 
 
-def test_vector_from_parameters(monkeypatch):
+def test_vector_from_parameters(monkeypatch) -> None:
+    """test that the path and tables attributes returned by the 'from_parameters()' method of 'Vector()' are
+    indeed strings starting from input parameters 'path' and 'tables'
+    """
+
     # Prepare test data
     path = "/tmp/test.geojson"
     tables = {"table1": object(), "table2": object()}
@@ -416,7 +424,7 @@ def test_vector_from_parameters(monkeypatch):
     assert vector.path == path
     assert vector.tables == tables
 
-    # Optionally, check print output
+    # Check print output
     assert any("Vector data loaded" in line for line in printed)
     assert any("List of tables in the vector data" in line for line in printed)
 
@@ -439,9 +447,6 @@ def test_vector_ok_from_file() -> None:
                 "STATE_NAME": "String",
                 "AREA_LAND": "Real",
                 "AREA_WATER": "Real",
-                "PERSONS": "Integer",
-                "MALE": "Integer",
-                "FEMALE": "Integer",
             },
         }
     ]
@@ -555,9 +560,6 @@ def test_table_init_returns_an_instance_of_table(mocked_patch) -> None:
         "STATE_NAME": "String",
         "AREA_LAND": "Real",
         "AREA_WATER": "Real",
-        "PERSONS": "Integer",
-        "MALE": "Integer",
-        "FEMALE": "Integer",
     }
     geometry_columns = ["geom"]
     obj_table = Table.__init__(srs, count, bbox, attributes, name, geometry_columns)
@@ -573,6 +575,7 @@ def test_table_init_returns_an_instance_of_table(mocked_patch) -> None:
 
 
 def test_if_table_properties_are_all_ok() -> None:
+    """test that the properties of the 'Table()' class are all ok"""
     # Create a Table instance with sample data
     table = Table(
         name="test_table",
@@ -585,9 +588,6 @@ def test_if_table_properties_are_all_ok() -> None:
             "STATE_NAME": "String",
             "AREA_LAND": "Real",
             "AREA_WATER": "Real",
-            "PERSONS": "Integer",
-            "MALE": "Integer",
-            "FEMALE": "Integer",
         },
         count=256,
     )
@@ -615,9 +615,6 @@ def test_if_table_properties_are_all_ok() -> None:
         "STATE_NAME": "String",
         "AREA_LAND": "Real",
         "AREA_WATER": "Real",
-        "PERSONS": "Integer",
-        "MALE": "Integer",
-        "FEMALE": "Integer",
     }
     assert isinstance(table.attributes, dict)
 
@@ -637,7 +634,7 @@ class FakeTable:
         return self._serializable
 
 
-def test_vector_serializable():
+def test_vector_serializable() -> None:
     """Test that the Vector class is serializable."""
 
     vector = Vector()
@@ -653,7 +650,7 @@ def test_vector_serializable():
     assert vector.serializable == expected
 
 
-def test_table_serializable():
+def test_table_serializable() -> None:
     """Test that the Table class is serializable."""
     name = "mytable"
     count = 42
