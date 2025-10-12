@@ -292,7 +292,9 @@ class Vector:
             self.tables[name] = table_instance
 
         # printing out the retrieved information
-        print(f"[Vector/from_file] Vector data loaded : {self.path} with {len(self.tables)} table(s)")
+        print(
+            f"[Vector/from_file] Vector data loaded : {self.path} with {len(self.tables)} table(s)"
+        )
         print("\n")
 
         for table_name, table_instance in self.tables.items():
