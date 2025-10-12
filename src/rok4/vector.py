@@ -14,9 +14,9 @@ cf : specifications : "module de chargement de données vecteur" issue #97 dated
 We must call only the two following constructors and have the same state at the end such as:
 ```python
 from rok4.vector import VectorSet
-
+# from list of paths to vector data:
 vectorset = VectorSet.from_list("file://./filelist.txt")
-# ou
+# or : from_descriptor
 vectorset = VectorSet.from_descriptor("file://./vectorset.json")
 ```
 """
@@ -292,7 +292,7 @@ class Vector:
             self.tables[name] = table_instance
 
         # printing out the retrieved information
-        print(f"[Vector/from_file] Vector data loaded : {self.path} with {len(self.tables)} tables")
+        print(f"[Vector/from_file] Vector data loaded : {self.path} with {len(self.tables)} table(s)")
         print("\n")
 
         for table_name, table_instance in self.tables.items():
@@ -415,7 +415,7 @@ if __name__ == "__main__":
 
     # Below two usages for loading vector data from 'vectorset':
     ############################################################################################################
-    # EXAMPLE 1 : INPUT FILE => FILE CONTAINING THE PATHS OF VECTOR DATA : 'filelist.txt'       #
+    # EXAMPLE 1 : INPUT FILE => FILE CONTAINING THE PATHS OF VECTOR DATA : 'filelist.txt'                      #
     ############################################################################################################
     # inputs
     pathtofilelisttxt = os.path.abspath(os.path.join(pathtoparentdir, "data/filelist.txt"))
@@ -425,7 +425,7 @@ if __name__ == "__main__":
     vectorset.from_list(pathtofilelisttxt)
 
     ###################################################################################
-    # EXAMPLE 2 : INPUT FILE => FILE OF THE DESCRIPTOR : 'vectorset.json'       #
+    # EXAMPLE 2 : INPUT FILE => FILE OF THE DESCRIPTOR : 'vectorset.json'             #
     ###################################################################################
     # inputs
     pathtodescriptor = os.path.join(pathtoparentdir, "data/vectorset.json")
