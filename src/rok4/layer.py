@@ -53,6 +53,55 @@ class Layer:
 
         Returns:
             Layer: a Layer instance
+
+        Example :
+        *   Ci-jointe un exemple de sa structure en objet json du descripteur de couche BDORTHO :
+
+            ```json
+            {
+                "title": "Photographies aériennes",
+                "abstract": "Données BD Ortho",
+                "keywords":
+                            [
+                                "Ortho-photographies",
+                                "Données RGB"
+                            ],
+                "pyramids":
+                            [
+                                {
+                                    "bottom_level": "15",
+                                    "top_level": "0",
+                                    "path": "s3://pyramids/BDORTHO.json"
+                                }
+                            ],
+                "resampling": "bicubic",
+                "styles":
+                            [
+                                "normal"
+                            ],
+                                "extra_crs":
+                            [
+                                "EPSG:4559"
+                            ],
+                                "extra_tilematrixsets":["4326","UTM20W84MART_2.5m"],
+                                "wms":
+                            {
+                                "enabled": true
+                            },
+                                "wmts":
+                            {
+                                "enabled": true
+                            },
+                                "tms":
+                            {
+                                "enabled": true
+                            },
+                                "tiles":
+                            {
+                                "enabled": true
+                            }
+            }
+        ```
         """
         try:
             data = json.loads(get_data_str(descriptor))
