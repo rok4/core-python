@@ -385,17 +385,19 @@ def test_vector_srs_property_with_multiple_tables() -> None:
     """Test that Vector.srs returns unique SRS from all tables, testing lines 289-294."""
     vector = Vector()
     vector.path = "/tmp/test.gpkg"
-    
+
     # Create tables with different SRS
     table1 = Table("table1", 10, "EPSG:4326", (0, 0, 1, 1), {"id": "Integer"}, ["geom"])
     table2 = Table("table2", 20, "EPSG:3857", (0, 0, 2, 2), {"name": "String"}, ["geom"])
-    table3 = Table("table3", 30, "EPSG:4326", (0, 0, 3, 3), {"value": "Real"}, ["geom"])  # Duplicate SRS
-    
+    table3 = Table(
+        "table3", 30, "EPSG:4326", (0, 0, 3, 3), {"value": "Real"}, ["geom"]
+    )  # Duplicate SRS
+
     vector.tables = {"table1": table1, "table2": table2, "table3": table3}
-    
+
     # Test the srs property (lines 289-294)
     result = vector.srs
-    
+
     # Should return unique SRS only
     assert isinstance(result, list)
     assert len(result) == 2
@@ -408,9 +410,9 @@ def test_vector_srs_property_empty_tables() -> None:
     vector = Vector()
     vector.path = "/tmp/test.geojson"
     vector.tables = {}
-    
+
     result = vector.srs
-    
+
     assert isinstance(result, list)
     assert len(result) == 0
 
@@ -419,12 +421,12 @@ def test_vector_srs_property_single_table() -> None:
     """Test that Vector.srs returns single SRS for one table."""
     vector = Vector()
     vector.path = "/tmp/test.shp"
-    
+
     table = Table("single", 100, "EPSG:2154", (1, 2, 3, 4), {"attr": "String"}, ["geom"])
     vector.tables = {"single": table}
-    
+
     result = vector.srs
-    
+
     assert isinstance(result, list)
     assert len(result) == 1
     assert result[0] == "EPSG:2154"
@@ -444,7 +446,7 @@ def test_vector_from_parameters() -> None:
             "srs": "EPSG:4326",
             "bbox": [0.0, 0.0, 1.0, 1.0],
             "attributes": {"id": "Integer"},
-            "geometry_columns": ["geom"]
+            "geometry_columns": ["geom"],
         },
         "table2": {
             "name": "table2",
@@ -452,8 +454,8 @@ def test_vector_from_parameters() -> None:
             "srs": "EPSG:3857",
             "bbox": [0.0, 0.0, 2.0, 2.0],
             "attributes": {"name": "String"},
-            "geometry_columns": ["geometry"]
-        }
+            "geometry_columns": ["geometry"],
+        },
     }
 
     # Call the method
@@ -473,50 +475,50 @@ def test_vector_ok_from_file() -> None:
     # Create a mock datasource and layer
     mock_datasource = MagicMock()
     mock_layer = MagicMock()
-    
+
     # Configure the mock layer
     mock_layer.GetName.return_value = "test_layer"
     mock_layer.GetFeatureCount.return_value = 100
     mock_layer.GetGeometryColumn.return_value = "geom"
-    
+
     # Mock spatial reference
     mock_srs = MagicMock()
     mock_srs.GetAuthorityName.return_value = "EPSG"
     mock_srs.GetAuthorityCode.return_value = "4326"
     mock_layer.GetSpatialRef.return_value = mock_srs
-    
+
     # Mock extent (xmin, xmax, ymin, ymax)
     mock_layer.GetExtent.return_value = (0.0, 10.0, 0.0, 10.0)
-    
+
     # Mock FID column
     mock_layer.GetFIDColumn.return_value = ""
-    
+
     # Mock layer definition with fields
     mock_layer_def = MagicMock()
     mock_layer_def.GetFieldCount.return_value = 1
-    
+
     mock_field = MagicMock()
     mock_field.GetName.return_value = "id"
     mock_field.GetTypeName.return_value = "Integer"
     mock_layer_def.GetFieldDefn.return_value = mock_field
-    
+
     mock_layer.GetLayerDefn.return_value = mock_layer_def
-    
+
     # Configure the datasource
     mock_datasource.GetLayerCount.return_value = 1
     mock_datasource.GetLayer.return_value = mock_layer
-    
+
     # Patch ogr.Open to return our mock datasource
     with patch("rok4.vector.ogr.Open", return_value=mock_datasource):
         vector_geojson = Vector.from_file("test.geojson")
         vector_gpkg = Vector.from_file("test.gpkg")
         vector_shp = Vector.from_file("test.shp")
-        
+
         # Test if the returned objects are indeed instances of Vector
         assert isinstance(vector_geojson, Vector)
         assert isinstance(vector_gpkg, Vector)
         assert isinstance(vector_shp, Vector)
-        
+
         # Verify that tables were created
         assert len(vector_geojson.tables) == 1
         assert "test_layer" in vector_geojson.tables
@@ -528,58 +530,58 @@ def test_vector_from_file_with_fid_column() -> None:
     # Create a mock datasource and layer
     mock_datasource = MagicMock()
     mock_layer = MagicMock()
-    
+
     # Configure the mock layer
     mock_layer.GetName.return_value = "layer_with_fid"
     mock_layer.GetFeatureCount.return_value = 50
     mock_layer.GetGeometryColumn.return_value = "geom"
-    
+
     # Mock spatial reference
     mock_srs = MagicMock()
     mock_srs.GetAuthorityName.return_value = "EPSG"
     mock_srs.GetAuthorityCode.return_value = "3857"
     mock_layer.GetSpatialRef.return_value = mock_srs
-    
+
     # Mock extent
     mock_layer.GetExtent.return_value = (1.0, 5.0, 2.0, 6.0)
-    
+
     # Mock FID column - THIS TESTS LINE 224-225
     mock_layer.GetFIDColumn.return_value = "fid"
-    
+
     # Mock layer definition with fields
     mock_layer_def = MagicMock()
     mock_layer_def.GetFieldCount.return_value = 2
-    
+
     # Mock two fields
     mock_field1 = MagicMock()
     mock_field1.GetName.return_value = "name"
     mock_field1.GetTypeName.return_value = "String"
-    
+
     mock_field2 = MagicMock()
     mock_field2.GetName.return_value = "value"
     mock_field2.GetTypeName.return_value = "Real"
-    
+
     mock_layer_def.GetFieldDefn.side_effect = [mock_field1, mock_field2]
     mock_layer.GetLayerDefn.return_value = mock_layer_def
-    
+
     # Configure the datasource
     mock_datasource.GetLayerCount.return_value = 1
     mock_datasource.GetLayer.return_value = mock_layer
-    
+
     # Patch ogr.Open to return our mock datasource
     with patch("rok4.vector.ogr.Open", return_value=mock_datasource):
         vector = Vector.from_file("test_with_fid.gpkg")
-        
+
         # Verify vector was created
         assert isinstance(vector, Vector)
         assert len(vector.tables) == 1
         assert "layer_with_fid" in vector.tables
-        
+
         # Verify the FID column was added to attributes (line 225)
         table = vector.tables["layer_with_fid"]
         assert "fid" in table.attributes
         assert table.attributes["fid"] == "Integer"
-        
+
         # Verify other fields were also added
         assert "name" in table.attributes
         assert table.attributes["name"] == "String"
@@ -592,51 +594,51 @@ def test_vector_from_file_without_fid_column() -> None:
     # Create a mock datasource and layer
     mock_datasource = MagicMock()
     mock_layer = MagicMock()
-    
+
     # Configure the mock layer
     mock_layer.GetName.return_value = "layer_no_fid"
     mock_layer.GetFeatureCount.return_value = 25
     mock_layer.GetGeometryColumn.return_value = "geometry"
-    
+
     # Mock spatial reference
     mock_srs = MagicMock()
     mock_srs.GetAuthorityName.return_value = "EPSG"
     mock_srs.GetAuthorityCode.return_value = "4326"
     mock_layer.GetSpatialRef.return_value = mock_srs
-    
+
     # Mock extent
     mock_layer.GetExtent.return_value = (0.0, 10.0, 0.0, 10.0)
-    
+
     # Mock FID column - empty string (no FID column)
     mock_layer.GetFIDColumn.return_value = ""
-    
+
     # Mock layer definition with one field
     mock_layer_def = MagicMock()
     mock_layer_def.GetFieldCount.return_value = 1
-    
+
     mock_field = MagicMock()
     mock_field.GetName.return_value = "id"
     mock_field.GetTypeName.return_value = "Integer"
-    
+
     mock_layer_def.GetFieldDefn.return_value = mock_field
     mock_layer.GetLayerDefn.return_value = mock_layer_def
-    
+
     # Configure the datasource
     mock_datasource.GetLayerCount.return_value = 1
     mock_datasource.GetLayer.return_value = mock_layer
-    
+
     # Patch ogr.Open to return our mock datasource
     with patch("rok4.vector.ogr.Open", return_value=mock_datasource):
         vector = Vector.from_file("test_no_fid.geojson")
-        
+
         # Verify vector was created
         assert isinstance(vector, Vector)
         assert len(vector.tables) == 1
-        
+
         # Verify NO FID column was added to attributes
         table = vector.tables["layer_no_fid"]
         assert "fid" not in table.attributes
-        
+
         # Verify only the regular field was added
         assert "id" in table.attributes
         assert table.attributes["id"] == "Integer"
@@ -777,23 +779,23 @@ def test_table_serializable() -> None:
 def test_vectorset_write_descriptor_with_path() -> None:
     """Test that write_descriptor correctly writes JSON to the provided path."""
     vectorset = VectorSet()
-    
+
     # Create a simple vector with mock serializable data
     mock_vector = MagicMock()
     mock_vector.serializable = {"path": "test.geojson", "tables": []}
     vectorset.vectors = [mock_vector]
-    
+
     with patch("rok4.vector.put_data_str") as mock_put_data_str:
         vectorset.write_descriptor("s3://bucket/descriptor.json")
-        
+
         # Verify put_data_str was called with correct arguments
         mock_put_data_str.assert_called_once()
         args = mock_put_data_str.call_args[0]
-        
+
         # Check the JSON content
         json_content = args[0]
         assert json.loads(json_content) == {"vectors": [{"path": "test.geojson", "tables": []}]}
-        
+
         # Check the path
         assert args[1] == "s3://bucket/descriptor.json"
 
@@ -801,15 +803,15 @@ def test_vectorset_write_descriptor_with_path() -> None:
 def test_vectorset_write_descriptor_without_path() -> None:
     """Test that write_descriptor does nothing when path is None."""
     vectorset = VectorSet()
-    
+
     # Create a simple vector with mock serializable data
     mock_vector = MagicMock()
     mock_vector.serializable = {"path": "test.geojson", "tables": []}
     vectorset.vectors = [mock_vector]
-    
+
     with patch("rok4.vector.put_data_str") as mock_put_data_str:
         vectorset.write_descriptor(None)
-        
+
         # Verify put_data_str was NOT called
         mock_put_data_str.assert_not_called()
 
@@ -817,25 +819,25 @@ def test_vectorset_write_descriptor_without_path() -> None:
 def test_vectorset_write_descriptor_json_format() -> None:
     """Test that write_descriptor produces correctly formatted JSON."""
     vectorset = VectorSet()
-    
+
     # Create vectors with realistic data
     v1 = Vector()
     v1.path = "file1.geojson"
     v1.tables = {}
-    
+
     v2 = Vector()
     v2.path = "file2.geojson"
     v2.tables = {}
-    
+
     vectorset.vectors = [v1, v2]
-    
+
     with patch("rok4.vector.put_data_str") as mock_put_data_str:
         vectorset.write_descriptor("/tmp/output.json")
-        
+
         # Get the JSON content that was written
         json_content = mock_put_data_str.call_args[0][0]
         parsed = json.loads(json_content)
-        
+
         # Verify structure
         assert "vectors" in parsed
         assert len(parsed["vectors"]) == 2
@@ -849,9 +851,9 @@ def test_vectorset_write_descriptor_storage_error() -> None:
     """Test that write_descriptor propagates StorageError when put_data_str fails."""
     vectorset = VectorSet()
     vectorset.vectors = []
-    
+
     with patch("rok4.vector.put_data_str") as mock_put_data_str:
         mock_put_data_str.side_effect = StorageError("S3", "Failed to write")
-        
+
         with pytest.raises(StorageError):
             vectorset.write_descriptor("/tmp/output.json")
