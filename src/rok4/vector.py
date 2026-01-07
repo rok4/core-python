@@ -1,24 +1,23 @@
 """Provide class to read informations on vector data set from paths list of vector files or from descriptor file or S3 vector objects paths.
+
 The aim is to have one module who allows to load important informations of a set of vector data.
 Data can be vector files or S3 vector objects.
-The module contains the three classes as follows :
 
-- `VectorSet` - Vector Data (Files/Objects) Set
-- `Vector` - Vector Data (File/Object)
-- `Table` - Table Data (name (name of the table), attributes ({names of columns : their types}), count (number of objects),
-   srs (coordinates reference system), bbox (boundary box surrounding), geometry_columns (names of geometry columns))
+The module contains the three classes as follows:
+    - VectorSet: Vector Data (Files/Objects) Set
+    - Vector: Vector Data (File/Object)
+    - Table: Table Data (name, attributes, count, srs, bbox, geometry_columns)
 
 These classes would be necessary to make easily interactions between tools with these data.
-cf : specifications : "module de chargement de données vecteur" issue #97 dated 2025-06-05
-=> three classes : 'VectorSet', 'Vector' et 'Table' with the main idea is to call only VectorSet class.
-We must call only the two following constructors and have the same state at the end such as:
-```python
-from rok4.vector import VectorSet
-# from list of paths to vector data:
-vectorset = VectorSet.from_list("file://./filelist.txt")
-# or : from_descriptor
-vectorset = VectorSet.from_descriptor("file://./vectorset.json")
-```
+
+Example:
+    ```python
+    from rok4.vector import VectorSet
+    # from list of paths to vector data:
+    vectorset = VectorSet.from_list("file://./filelist.txt")
+    # or from descriptor:
+    vectorset = VectorSet.from_descriptor("file://./vectorset.json")
+    ```
 """
 
 # -- IMPORTS --
@@ -43,57 +42,40 @@ ogr.UseExceptions()
 
 
 class VectorSet:
-    """
-    correspond to a set of vector files/objects
-     : List of vector data
+    """A set of vector files/objects.
 
+    Attributes:
+        vectors (List[Vector]): List of Vector instances
     """
-
-    __vectors: List["Vector"] = []  # type: ignore # instances of Vector class
 
     def __init__(self) -> None:
-        """
-        A file or an object containg all the informations to access the vector data (files/objects)
-        """
-
-        self.vectors: List["Vector"] = VectorSet.__vectors  # instances of Vector class
+        """Initialize a VectorSet instance."""
+        self.vectors: List["Vector"] = []
 
     @classmethod
     def from_list(cls, path: str) -> "VectorSet":
-        """
-        A file or an object containg a list of path to vector data (files/objects)
+        """Create a VectorSet from a list file containing paths to vector data.
 
-        :param path: List of path to vector data
-        """
+        Args:
+            path (str): Path to a file or object containing a list of paths to vector data.
+                Each line should contain one path. Lines starting with # are ignored.
 
+        Returns:
+            VectorSet: A new VectorSet instance with loaded vector data
+
+        Raises:
+            StorageError: If the list file cannot be read or copied
+        """
         self = cls()
         self.vectors = []
 
-        print(f"[VectorSet/from_list] List file used : {path}")
-        print(
-            f"[VectorSet/from_list] Initial number of vector data in the set : {len(self.vectors)}"
-        )
-        print(f"[VectorSet/from_list] Initial list of vector data in the set : {self.vectors}")
-        print("\n")
-
-        # we want to read the list of path to vector data
-        # each line of the file contains one path to vector data
-        # retrieve path to the file or object
         working_path = get_osgeo_path(path)
 
-        # create temporary file
         tmp_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
-
-        # retrieve path to the temporary file
         tmp_list_file = tmp_list_obj.name
 
-        # Copy from the source location of the list to the temporary file
         copy(working_path, tmp_list_file)
 
-        print(f"[VectorSet/from_list] Temporary file used : {tmp_list_file}")
-        print(f"[VectorSet/from_list] List file used : {working_path}")
-
-        # read temporary file
         with open(tmp_list_file) as file:
             for line in file:
                 line = line.strip()
@@ -101,72 +83,53 @@ class VectorSet:
                     vector = Vector.from_file(line)
                     self.vectors.append(vector)
 
-        print(f"[VectorSet/from_list] Number of vector data in the set : {len(self.vectors)}")
-        print(f"[VectorSet/from_list] List of vector data in the set : {self.vectors}")
-        print("\n")
-
-        # once the information is retrieved
-        # we can close the temporary file
         tmp_list_obj.close()
-
-        # we delete the temporary file
         os.remove(tmp_list_file)
 
         return self
 
     @classmethod
     def from_descriptor(cls, path: str) -> "VectorSet":
-        """
-        A file or an object containg all the informations to access the vector data (files/objects)
+        """Create a VectorSet from a descriptor file containing all information about vector data.
 
-        :param path: Path to descriptor file
-        """
+        Args:
+            path (str): Path to descriptor file (JSON format)
 
+        Returns:
+            VectorSet: A new VectorSet instance with loaded vector data
+
+        Raises:
+            FormatError: If the descriptor file is not valid JSON
+            StorageError: If the descriptor file cannot be read
+        """
         vectorset = cls()
         descriptor_file = path
-        vectorset.descriptor_object = []
+        descriptor_object = []
 
-        # retrieve path to the file or object
         working_path = get_osgeo_path(descriptor_file)
         descriptor_file = working_path
-        print(f"[VectorSet/from_descriptor] Descriptor file used : {descriptor_file}")
 
-        # read descriptor
         try:
-            vectorset.descriptor_object = json.loads(get_data_str(descriptor_file))
+            descriptor_object = json.loads(get_data_str(descriptor_file))
         except json.JSONDecodeError as e:
-            raise FormatError("JSON", vectorset.descriptor_object, e)
-        print(f"[VectorSet/from_descriptor] Descriptor object : {vectorset.descriptor_object}")
+            raise FormatError("JSON", descriptor_object, e)
 
-        # we retrieve all the vector data file/object sets from the descriptor file
-        for index_descriptor_object in range(len(vectorset.descriptor_object)):
-            # For each dictionary in the list, we call the `Vector.from_parameters` constructor with this dictionary
-            # 1°) retrieve all the attributes of Vector from the input dictionary (`path`)
-            # 2°) then, for each table in the `tables` field, call the Table constructor with all the following elements:
+        for descriptor_item in descriptor_object:
             vector = Vector.from_parameters(
-                vectorset.descriptor_object[index_descriptor_object]["path"],
-                vectorset.descriptor_object[index_descriptor_object]["tables"],
+                descriptor_item["path"],
+                descriptor_item["tables"],
             )
-            # We add the created vector object to the `__vectors` attribute of the VectorSet
-            vectorset.__vectors.append(vector)
-
-        print("[VectorSet/from_descriptor] vectorset.__vectors == " + str(vectorset.__vectors))
-        print(
-            f"[VectorSet/from_descriptor] Number of vector data in the set : {len(vectorset.vectors)}"
-        )
-        print(f"[VectorSet/from_descriptor] List of vector data in the set : {vectorset.vectors}")
+            vectorset.vectors.append(vector)
 
         return vectorset
 
     @property
     def srs(self) -> List[str]:
-        """
-        Get the list of uniq SRS of the tables in the set
+        """Get the list of unique SRS of the tables in the set.
 
-        :return: List of SRS
-        :rtype: List[str]
+        Returns:
+            List[str]: List of unique SRS identifiers
         """
-
         srs_list = []
 
         # for each vector in the set, we get its SRS
@@ -178,59 +141,60 @@ class VectorSet:
 
     @property
     def serializable(self) -> Dict[str, Union[str, List[str]]]:
-        """Get the serializable version of the vector set
+        """Get the serializable version of the vector set.
 
         Returns:
-            Dict[str, Union[str, List[str]]]: Get the dictionary version compliant to the descriptor of the vector set
+            Dict[str, Union[str, List[str]]]: Dictionary version compliant to the descriptor format
         """
-
-        # Get the dict version corresponding to the descriptor of the vector data
         serialization = {"vectors": []}
 
-        # for each vector in the set, we get its serializable version
         for vector in self.vectors:
             serialization["vectors"].append(vector.serializable)
 
         return serialization
 
     def write_descriptor(self, path: str = None) -> None:
-        """Print descriptor as JSON format to the provided path, in the standard output if not provided
+        """Write descriptor as JSON format to the provided path or return as string.
 
         Args:
-            path (str, optional): Complete path (file or object) where to print the JSON. Defaults to None, JSON is printed to standard output.
+            path (str, optional): Complete path (file or object) where to write the JSON.
+                Defaults to None, in which case the JSON is returned to the caller.
+
+        Raises:
+            StorageError: If the descriptor cannot be written to the specified path
         """
         content = json.dumps(self.serializable, sort_keys=True)
 
-        if path is None:
-            print(content)
-        else:
+        if path is not None:
             put_data_str(content, path)
 
 
 class Vector:
-    """A vector file/Object"""
+    """A vector file/object.
 
-    __path: str = ""  # path of the vector file/object
-    __tables: Dict[str, "Table"] = (
-        {}
-    )  # dictionnary of Table instances, key is the name of the table and the value the instance of Table class
+    Attributes:
+        path (str): Path to the vector file/object
+        tables (Dict[str, Table]): Dictionary of Table instances, keyed by table name
+    """
 
     def __init__(self) -> None:
-        """
-        to retrieve information directly
-        """
-
-        self.path = Vector.__path
-        self.tables = Vector.__tables
+        """Initialize a Vector instance."""
+        self.path: str = ""
+        self.tables: Dict[str, "Table"] = {}
 
     @classmethod
     def from_file(cls, path: str) -> "Vector":
-        """
-        to retrieve information from a vector file or a vector object
+        """Create a Vector instance from a vector file or object.
 
-        :param path: Path to vector file/object file
-        """
+        Args:
+            path (str): Path to vector file/object
 
+        Returns:
+            Vector: A new Vector instance with loaded data
+
+        Raises:
+            StorageError: If the vector file/object cannot be opened
+        """
         self = cls()
         self.path = path
 
@@ -239,104 +203,86 @@ class Vector:
 
         if datasource is None:
             raise StorageError("FILE", f"Cannot open vector file/object {working_path}")
-        print(f"[Vector/from_file] Vector file/object used : {working_path}")
 
-        # initialization of the tables dictionary
         self.tables = {}
 
-        # initialization of the attributes dictionary
-        attributes = {}
-
-        # initialization of the geometry columns list
-        geometry_columns = []
-
-        # we want to retrieve information for each layer in the datasource
         for i in range(datasource.GetLayerCount()):
-
             layer = datasource.GetLayer(i)
             name = layer.GetName()
-            count = layer.GetFeatureCount()
+            count = layer.GetFeatureCount(0)
             srs = f"{layer.GetSpatialRef().GetAuthorityName(None)}:{layer.GetSpatialRef().GetAuthorityCode(None)}"
-            # we want bbox in the following order xmin ymin xmax ymax
             bbox = (
                 layer.GetExtent()[0],
                 layer.GetExtent()[2],
                 layer.GetExtent()[1],
                 layer.GetExtent()[3],
             )
-            geometry_columns.append(layer.GetGeometryColumn())
+            geometry_columns = [layer.GetGeometryColumn()]
 
-            print(f"Name: {layer.GetName()}")
-            print(
-                f"Bbox: {layer.GetExtent()[0]},{layer.GetExtent()[2]} {layer.GetExtent()[1]},{layer.GetExtent()[3]}"
-            )
-            print(f"Count: {layer.GetFeatureCount()}")
-            print(f"Geometry column: {layer.GetGeometryColumn()}")
-            print(
-                f"SRS: {layer.GetSpatialRef().GetAuthorityName(None)}:{layer.GetSpatialRef().GetAuthorityCode(None)}"
-            )
-
-            # Field recognized as FID is not the field in GetFieldDefn
+            attributes = {}
             if layer.GetFIDColumn() != "":
-                print(f' "{layer.GetFIDColumn()}": "Integer"')
+                attributes[layer.GetFIDColumn()] = "Integer"
 
             for j in range(layer.GetLayerDefn().GetFieldCount()):
                 field = layer.GetLayerDefn().GetFieldDefn(j)
                 attributes[field.GetName()] = field.GetTypeName()
-                print(f'   "{field.GetName()}": "{field.GetTypeName()}"')
 
-            print("\n")
-
-            # we create an instance of Table class
             table_instance = Table(name, count, srs, bbox, attributes, geometry_columns)
             self.tables[name] = table_instance
 
-        # printing out the retrieved information
-        print(f"[Vector/from_file] Vector data loaded : {self.path} with {len(self.tables)} table(s)")
-        print("\n")
-
-        for table_name, table_instance in self.tables.items():
-            print(
-                f'[Vector/from_file] List of tables in the vector data : "{table_name}" + {list(table_instance.__dict__.values()).__str__()}'
-            )
-        print(f"[Vector/from_file] List of SRS in the vector data : {self.srs}")
-        print(f"[Vector/from_file] List of geometries in the vector data : {geometry_columns}")
-        print(f"[Vector/from_file] List of attributes in the vector data : {attributes}")
-        print(f"[Vector/from_file] List of vector data in the set : {self}")
-
-        # once the information is retrieved
-        # we can close the datasource
         datasource = None
 
         return self
 
     @classmethod
     def from_parameters(cls, path: str, tables: Dict[str, "Table"]) -> "Vector":
-        """
-        to retrieve information directly
+        """Create a Vector instance from parameters.
 
-        :param path: Path to vector file/object
-        :param tables: List of table names to consider in the vector data (default: all tables)
-        """
+        Args:
+            path (str): Path to vector file/object
+            tables (Dict[str, "Table"]): dictionary of table data.
 
+        Returns:
+            Vector: A new Vector instance
+        """
         self = cls()
         self.path = path
-        self.tables = tables
-        print(
-            f"[Vector/from_parameters] Vector data loaded : {self.path} with {len(self.tables)} tables"
-        )
-        print(f"[Vector/from_parameters] List of tables in the vector data : {self.tables}")
-        print(f"[Vector/from_parameters] List of vector data in the set : {self}")
+        self.tables = {}
+
+        # Handle both list and dict formats
+        if isinstance(tables, list):
+            # List format from descriptor
+            for table_data in tables:
+                table_instance = Table(
+                    name=table_data["name"],
+                    count=table_data["count"],
+                    srs=table_data["srs"],
+                    bbox=tuple(table_data["bbox"]),
+                    attributes=table_data["attributes"],
+                    geometry_columns=table_data["geometry_columns"],
+                )
+                self.tables[table_data["name"]] = table_instance
+        else:
+            # Dict format
+            for table_name, table_data in tables.items():
+                table_instance = Table(
+                    name=table_data["name"],
+                    count=table_data["count"],
+                    srs=table_data["srs"],
+                    bbox=tuple(table_data["bbox"]),
+                    attributes=table_data["attributes"],
+                    geometry_columns=table_data["geometry_columns"],
+                )
+                self.tables[table_name] = table_instance
 
         return self
 
     @property
     def srs(self) -> List[str]:
-        """
-        Get the list of uniq SRS of the tables in the vector data
+        """Get the list of unique SRS of the tables in the vector data.
 
-        :return: List of SRS
-        :rtype: List[str]
+        Returns:
+            List[str]: List of unique SRS identifiers
         """
         srs_list = []
         # for each table in the vector data, we get its SRS
@@ -347,21 +293,30 @@ class Vector:
 
     @property
     def serializable(self) -> Dict[str, Union[str, List[str]]]:
-        """
-        Get the dictiionary version corresponding to the descriptor of the vector data
+        """Get the dictionary version corresponding to the descriptor of the vector data.
+
+        Returns:
+            Dict[str, Union[str, List[str]]]: Dictionary version compliant to the descriptor format
         """
         serialization = {"path": self.path, "tables": []}
-        print(type(self.tables))
-        print(self.tables)
-        # for each table in the vector data, we get its serializable version
-        for table in self.tables:
-            serialization["tables"].append(Table.serializable.fget(self.tables[table]))
-        print(serialization)
+
+        for table in self.tables.values():
+            serialization["tables"].append(table.serializable)
+
         return serialization
 
 
 class Table:
-    """A table file/Object"""
+    """A table in a vector file/object.
+
+    Attributes:
+        name (str): Name of the table
+        count (int): Number of features in the table
+        srs (str): Spatial reference system of the table
+        bbox (Tuple[float, float, float, float]): Bounding box (minX, minY, maxX, maxY)
+        attributes (Dict[str, str]): Column names and their types
+        geometry_columns (List[str]): Names of geometry columns
+    """
 
     def __init__(
         self,
@@ -372,15 +327,15 @@ class Table:
         attributes: Dict[str, str],
         geometry_columns: List[str],
     ) -> None:
-        """
-        to retrieve information directly
+        """Initialize a Table instance.
 
-        :param name: Name of the table
-        :param count: Number of features in the table
-        :param srs: SRS of the table
-        :param bbox: Bounding box of the table (minX, minY, maxX, maxY)
-        :param attributes: Name of the columns and their type (key is the name of the attribute and value is the type of the attribute)
-        :param geometry_columns: Name of the geometry columns
+        Args:
+            name (str): Name of the table
+            count (int): Number of features in the table
+            srs (str): SRS of the table
+            bbox (Tuple[float, float, float, float]): Bounding box (minX, minY, maxX, maxY)
+            attributes (Dict[str, str]): Column names and their types
+            geometry_columns (List[str]): Names of geometry columns
         """
         self.name = name
         self.count = count
@@ -393,9 +348,10 @@ class Table:
     def serializable(
         self,
     ) -> Dict[str, Union[str, int, Tuple[float, float, float, float], List[str]]]:
-        """Get the dict version of the table, descriptor compliant
+        """Get the dict version of the table, descriptor compliant.
+
         Returns:
-            Dict[str, Union[str, int, Tuple[float, float, float, float], List[str]]]: dictionary corresponding to the descriptor of the table
+            Dict[str, Union[str, int, Tuple[float, float, float, float], List[str]]]: Dictionary corresponding to the descriptor format
         """
 
         serialization = {
@@ -407,30 +363,3 @@ class Table:
             "geometry_columns": self.geometry_columns,
         }
         return serialization
-
-
-if __name__ == "__main__":
-
-    pathtoparentdir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
-    # Below two usages for loading vector data from 'vectorset':
-    ############################################################################################################
-    # EXAMPLE 1 : INPUT FILE => FILE CONTAINING THE PATHS OF VECTOR DATA : 'filelist.txt'                      #
-    ############################################################################################################
-    # inputs
-    pathtofilelisttxt = os.path.abspath(os.path.join(pathtoparentdir, "data/filelist.txt"))
-    vectorset = VectorSet()
-    # VectorSet.from_list -> Vector.from_file (usage of ogr to retrieve necessary information) -> Table
-    # We want to retrieve information from a list : VectorSet.from_list -> Vector.from_file (usage of ogr to retrieve necessary information) -> Table
-    vectorset.from_list(pathtofilelisttxt)
-
-    ###################################################################################
-    # EXAMPLE 2 : INPUT FILE => FILE OF THE DESCRIPTOR : 'vectorset.json'             #
-    ###################################################################################
-    # inputs
-    pathtodescriptor = os.path.join(pathtoparentdir, "data/vectorset.json")
-    vectorset = VectorSet()
-    # We want to retrieve information from a geojson file : Vector.from_file(pathtogeojsonfilename) -> Table
-    # VectorSet.from_descriptor (reading all information from the descriptor) -> Vector.from_parameters -> Table
-    # We want to retrieve information from a descriptor : VectorSet.from_descriptor (reading all information from the descriptor) -> Vector.from_parameters -> Table
-    vectorset.from_descriptor(pathtodescriptor)
