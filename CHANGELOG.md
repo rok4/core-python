@@ -1,37 +1,47 @@
-## 2.2.3
+# Changelog
 
-### [Changed]
+Tous les changements sont consignés dans ce fichier.
+
+Le format est basé sur [Keep a Changelog](https://keepachangelog.com/) et ce projet respecte le [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+
+## [2.2.3] - 2024-10-01
+
+### Changed
 
 * Module `storage` : il est possible de l'utiliser sans avoir la librairie GDAL : seule la fonction `get_osgeo_path` pour du S3 ne sera pas disponible
 
-## 2.2.0
-
-### [Added]
+### Added
 
 * Ajout de la librairie de gestion d'un style ROK4
 
-## 2.1.5
+## [2.1.5] - 2024-04-29
 
-### [Changed]
+### Changed
 
 * Pyramid : la fonction de chargement de la liste en mémoire retourne le nombre de dalle
 
-## 2.1.4
+## [2.1.4] - 2024-02-13
 
-### [Fixed]
+### Fixed
 
 * Storage : la réponse à un HEAD (test existence en S3) donne un code 404 et non NoSuchKey (confusion avec la lecture d'objet)
 * RasterSet: le chargement d'un raster set à partir d'un fichier ou d'un descripteur utilise la librairie Storage et non la librairie GDAL
 
-## 2.1.3
+## [2.1.3] - 2024-02-08
 
-### [Fixed]
+### Fixed
 
 * Storage : dans le cas d'une lecture ou d'un test existence sur un objet S3 absent, le code dans la réponse n'est pas 404 mais NoSuchKey
 
-## 2.1.0
-
-### [Added]
+### Added
 
 * Pyramid
     * Ajout de fonctions pour récupérer la tile_limits et le nombre de canaux de cette pyramide
@@ -39,38 +49,38 @@
 * TileMatrixSet
     * Ajout de fonctions pour récupérer la hauteur et la largeur de tuiles d'un TileMatrixSet
 
-### [Changed]
+### Changed
 
 * Pyramid
     * Ajout d'un paramètre optionnel "mask" pour le constructeur from other afin de pouvoir conserver ou non les masques de la pyramide servant de base à la nouvellle
 * Gestion des documentations des différentes versions avec l'outil [mike](https://github.com/jimporter/mike)
 
-## 2.0.1
+## [2.0.1] - 2023-10-09
 
-### [Added]
+### Added
 
 * `storage` : le cache de lecture est configurable en taille (avec ROK4_READING_LRU_CACHE_SIZE) et en temps de rétention (avec ROK4_READING_LRU_CACHE_TTL)
 
-### [Security]
+### Security
 
 * Montée de version de pillow (faille de sécurité liée à libwebp)
 
-## 2.0.0
+## [2.0.0] - 2023-09-26
 
-### [Fixed]
+### Fixed
 
 * Pyramid
     * quand on lit une tuile dans une pyramide PNG 1 canal, on retourne bien aussi un numpy.array à 3 dimensions (la dernière dimension sera bien un array à un élément)
 
-### [Changed]
+### Changed
 
 * Storage
     * Le client S3 garde ouverte des connexions
     * La fonction get_data_binary a un système de cache de type LRU, avec un temps de validité de 5 minutes
 
-## 1.7.1
+## [1.7.1] - 2023-07-10
 
-### [Added]
+### Added
 
 * Raster
     * Classe RasterSet, réprésentant une collection d'objets de la classe Raster, avec des informations supplémentaires
@@ -88,7 +98,7 @@
     * Ajout de la copie de HTTP vers FILE/S3/CEPH
     * Ajout de la fonction de lecture d'un fichier HTTP, de l'existence d'un fichier HTTP et du calcul de taille d'un fichier HTTP
 
-### [Changed]
+### Changed
 
 * Raster
     * Homogénéisation du code
@@ -100,41 +110,41 @@
     * Mise en conformité PEP-8 des fonctions `compute_bbox` et `compute_format`
 
 
-### [Fixed]
+### Fixed
 
 * Utils
     * Correction d'un nom de variable dans la fonction `compute_format`, qui écrasait une fonction du noyau python.
 
 
 
-## 1.6.0
+## [1.6.0] - 2023-03-20
 
 Lecture par système de fichier virtuel avec GDAL
 
-### [Added]
+### Added
 
 * Storage
     * Fonction `get_osgeo_path` permettant de configurer le bon sytème de fichier virtuel en fonction du chemin fourni, et retourne celui à utiliser dans le Open de gdal ou ogr
 
-### [Changed]
+### Changed
 
 * Storage
     * la récupération d'un client S3 (`__get_s3_client`) permet de récupérer le client, l'hôte, les clés d'accès et secrète, ainsi que le nom du bucket sans l'éventuel hôte du cluster
 
-### [Fixed]
+### Fixed
 
 * Storage
     * Lecture binaire S3 : mauvaise configuration du nom du bucket et de l'objet et mauvaise lecture partielle
 
-### [Removed]
+### Removed
 
 * Exceptions
     * `NotImplementedError` est une exceptions native
 
 
-## 1.5.0
+## [1.5.0] - 2023-03-17
 
-### [Added]
+### Added
 
 * Level
     * Fonction de test d'une tuile `is_in_limits` : ses indices sont ils dans les limites du niveau ?
@@ -146,7 +156,7 @@ Lecture par système de fichier virtuel avec GDAL
     * Meilleure gestion de reprojection par `reproject_bbox` : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul
     * Ajout de la fonction de reprojection d'un point `reproject_point` : on détecte des systèmes identiques en entrée ou quand seul l'ordre des axes changent, pour éviter le calcul
 
-### [Changed]
+### Changed
 
 * Utils :
     * `bbox_to_geometry` : on ne fournit plus de système de coordonnées, la fonction se content de créer la géométrie OGR à partir de la bbox, avec éventuellement une densification en points des bords
@@ -154,11 +164,11 @@ Lecture par système de fichier virtuel avec GDAL
     * Renommage de fonction : `update_limits` -> `set_limits_from_bbox`. Le but est d'être plus explicite sur le fonctionnement de la fonction (on écrase les limites, on ne les met pas juste à jour par union avec la bbox fournie)
 
 
-## 1.4.4
+## [1.4.4] - 2023-03-10
 
 Ajout de fonctionnalités de lecture de donnée d'une pyramide et suivi des recommandations PyPA pour la gestion du projet.
 
-### [Added]
+### Added
 
 * TileMatrix :
     * Fonction de calcul des indices de tuile et de pixel dans la tuile à partir d'un point dans le système de coordonnées du TMS
@@ -171,7 +181,7 @@ Ajout de fonctionnalités de lecture de donnée d'une pyramide et suivi des reco
 
 * Ajout de la publication PyPI dans la CI GitHub
 
-### [Changed]
+### Changed
 
 * Storage :
     * La lecture sous forme de chaîne s'appuie sur la lecture complète binaire. Aucun changement à l'usage.
@@ -180,11 +190,11 @@ Ajout de fonctionnalités de lecture de donnée d'une pyramide et suivi des reco
 * Passage de la configuration du projet dans le fichier `pyproject.toml`
 
 
-## 1.3.0
+## [1.3.0] - 2023-02-27
 
 Ajout de la librairie de lecture de données vecteur, de tests unitaires et ajout de fonctionnalité pour le stockage. Amélioration de la gestion du projet et de l'intégration continue.
 
-### [Added]
+### Added
 
 * Librairie de lecture de données vecteur :
   * Chargement de données vecteur pour des fichiers shapefile, Geopackage, CSV et GeoJSON
@@ -200,11 +210,11 @@ Ajout de la librairie de lecture de données vecteur, de tests unitaires et ajou
     * Compilation de la documentation et publication sur la branche gh-pages
 
 
-## 1.2.0
+## [1.2.0] - 2023-01-27
 
 Ajout des librairies pour l'utilitaire make-layer.py
 
-### [Added]
+### Added
 
 * Librairie Storage : complétion des tests unitaires
 
@@ -226,21 +236,21 @@ Ajout des librairies pour l'utilitaire make-layer.py
 * Configuration de l'outil coverage pour voir la couverture des tests unitaires
 
 
-## 1.1.0
+## [1.1.0] - 2023-01-13
 
 Prise en charge de plusieurs clusters S3 de stockage.
 
-### [Added]
+### Added
 
 * Librairie d'abstraction du stockage :
   * Prise en charge de plusieurs clusters S3. Les variables d'environnement pour le stockage S3 précisent plusieurs valeurs séparées par des virgules, et les noms des buckets peuvent être suffixés par "@{S3 cluster host}". Par défaut, le premier cluster défini est utilisé. L'hôte du cluster n'est jamais écrit dans le descripteur de pyramide ou le fichier liste (puisque stockés sur le cluster, on sait sur lequel sont les objets). Les objets symboliques ne le précisent pas non plus et ne peuvent être qu'au sein d'un cluster S3
 
 
-## 1.0.0
+## [1.0.0] - 2022-11-30
 
 Initialisation des librairies Python utilisées par les outils python à venir du dépôt [pytools](https://github.com/rok4/pytools).
 
-### [Added]
+### Added
 
 * Librairie d'abstraction du stockage (S3, CEPH ou FILE)
   * récupération du contenu sous forme de string

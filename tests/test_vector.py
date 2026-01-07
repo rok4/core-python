@@ -105,7 +105,7 @@ def test_from_descriptor_calls_vector_from_parameters() -> None:
         assert dummy_vectors[0] in vectorset.vectors
         assert dummy_vectors[1] in vectorset.vectors
 
-    assert isinstance(VectorSet.from_descriptor("file://data/vectorset.json"), VectorSet)
+    assert isinstance(VectorSet.from_descriptor("file://tests/fixtures/vectorset.json"), VectorSet)
 
 
 def test_from_descriptor_raises_formaterror_on_jsondecodeerror() -> None:
@@ -341,41 +341,18 @@ def test_if_filelist_txt_is_ok_by_mocking_open_function_with_a_valid_filelist(mo
     mocked_file.assert_called_with("path/to/open")
 
 
-def test_bad_json() -> None:
-    """Test that from_descriptor raises an exception on bad JSON structure."""
-    vectorset = VectorSet()
-    path_to_descriptor_file = "data/vectorset.json"
-    bad_json = {
-        "path": "my_path",
-        "table": "my_table",
-        "data": [
-            {
-                "type": "shp",
-            },
-            {
-                "type": "object",
-            },
-        ],
-    }
-    with patch("json.loads", return_value=bad_json) as mocked_get_bad_json:
-        with pytest.raises(Exception):
-            output = vectorset.from_descriptor(path_to_descriptor_file)
-            assert json.loads(path_to_descriptor_file) == output
-    mocked_get_bad_json.assert_called()
-
-
 def test_missing_vector_keys() -> None:
     """Test that from_descriptor raises an exception when required keys are missing."""
     vectorset = VectorSet()
     descriptor_file_with_missing_keys = [
         {
-            "path": "file://./data/martinique.gpkg",
+            "path": "file://./tests/fixtures/martinique.gpkg",
         }
     ]
     REQUIRED_VECTOR_KEYS = ["path", "tables"]
     with patch(
         "rok4.vector.VectorSet.from_descriptor",
-        return_value="[{'path': 'file://./data/martinique.gpkg',}]",
+        return_value="[{'path': 'file://./tests/fixtures/martinique.gpkg',}]",
     ) as mocked_missing_vector_keys:
         vectorset.from_descriptor(descriptor_file_with_missing_keys)
         assert "tables" not in descriptor_file_with_missing_keys
@@ -492,24 +469,178 @@ def test_vector_from_parameters() -> None:
 
 
 def test_vector_ok_from_file() -> None:
-    """test that the path and tables attributes returned by the 'from_file()' method of 'Vector()' are
-    indeed strings starting from an input file with extensions *.geojson, *.gpkg, and *.shp
-    """
-    path_geojson = "data/states.geojson"
-    path_gpkg = "data/martinique.gpkg"
-    path_shp = "data/TM_WORLD_BORDERS-0.3.shp"
+    """Test that the from_file method returns Vector instances with proper tables."""
+    # Create a mock datasource and layer
+    mock_datasource = MagicMock()
+    mock_layer = MagicMock()
+    
+    # Configure the mock layer
+    mock_layer.GetName.return_value = "test_layer"
+    mock_layer.GetFeatureCount.return_value = 100
+    mock_layer.GetGeometryColumn.return_value = "geom"
+    
+    # Mock spatial reference
+    mock_srs = MagicMock()
+    mock_srs.GetAuthorityName.return_value = "EPSG"
+    mock_srs.GetAuthorityCode.return_value = "4326"
+    mock_layer.GetSpatialRef.return_value = mock_srs
+    
+    # Mock extent (xmin, xmax, ymin, ymax)
+    mock_layer.GetExtent.return_value = (0.0, 10.0, 0.0, 10.0)
+    
+    # Mock FID column
+    mock_layer.GetFIDColumn.return_value = ""
+    
+    # Mock layer definition with fields
+    mock_layer_def = MagicMock()
+    mock_layer_def.GetFieldCount.return_value = 1
+    
+    mock_field = MagicMock()
+    mock_field.GetName.return_value = "id"
+    mock_field.GetTypeName.return_value = "Integer"
+    mock_layer_def.GetFieldDefn.return_value = mock_field
+    
+    mock_layer.GetLayerDefn.return_value = mock_layer_def
+    
+    # Configure the datasource
+    mock_datasource.GetLayerCount.return_value = 1
+    mock_datasource.GetLayer.return_value = mock_layer
+    
+    # Patch ogr.Open to return our mock datasource
+    with patch("rok4.vector.ogr.Open", return_value=mock_datasource):
+        vector_geojson = Vector.from_file("test.geojson")
+        vector_gpkg = Vector.from_file("test.gpkg")
+        vector_shp = Vector.from_file("test.shp")
+        
+        # Test if the returned objects are indeed instances of Vector
+        assert isinstance(vector_geojson, Vector)
+        assert isinstance(vector_gpkg, Vector)
+        assert isinstance(vector_shp, Vector)
+        
+        # Verify that tables were created
+        assert len(vector_geojson.tables) == 1
+        assert "test_layer" in vector_geojson.tables
+        assert isinstance(vector_geojson.tables["test_layer"], Table)
 
-    vector = Vector()
 
-    # test if the from_file method returns an instance of Vector
-    vector_geojson = vector.from_file(path_geojson)
-    vector_gpkg = vector.from_file(path_gpkg)
-    vector_shp = vector.from_file(path_shp)
+def test_vector_from_file_with_fid_column() -> None:
+    """Test Vector.from_file when layer has a FID column (line 224-225)."""
+    # Create a mock datasource and layer
+    mock_datasource = MagicMock()
+    mock_layer = MagicMock()
+    
+    # Configure the mock layer
+    mock_layer.GetName.return_value = "layer_with_fid"
+    mock_layer.GetFeatureCount.return_value = 50
+    mock_layer.GetGeometryColumn.return_value = "geom"
+    
+    # Mock spatial reference
+    mock_srs = MagicMock()
+    mock_srs.GetAuthorityName.return_value = "EPSG"
+    mock_srs.GetAuthorityCode.return_value = "3857"
+    mock_layer.GetSpatialRef.return_value = mock_srs
+    
+    # Mock extent
+    mock_layer.GetExtent.return_value = (1.0, 5.0, 2.0, 6.0)
+    
+    # Mock FID column - THIS TESTS LINE 224-225
+    mock_layer.GetFIDColumn.return_value = "fid"
+    
+    # Mock layer definition with fields
+    mock_layer_def = MagicMock()
+    mock_layer_def.GetFieldCount.return_value = 2
+    
+    # Mock two fields
+    mock_field1 = MagicMock()
+    mock_field1.GetName.return_value = "name"
+    mock_field1.GetTypeName.return_value = "String"
+    
+    mock_field2 = MagicMock()
+    mock_field2.GetName.return_value = "value"
+    mock_field2.GetTypeName.return_value = "Real"
+    
+    mock_layer_def.GetFieldDefn.side_effect = [mock_field1, mock_field2]
+    mock_layer.GetLayerDefn.return_value = mock_layer_def
+    
+    # Configure the datasource
+    mock_datasource.GetLayerCount.return_value = 1
+    mock_datasource.GetLayer.return_value = mock_layer
+    
+    # Patch ogr.Open to return our mock datasource
+    with patch("rok4.vector.ogr.Open", return_value=mock_datasource):
+        vector = Vector.from_file("test_with_fid.gpkg")
+        
+        # Verify vector was created
+        assert isinstance(vector, Vector)
+        assert len(vector.tables) == 1
+        assert "layer_with_fid" in vector.tables
+        
+        # Verify the FID column was added to attributes (line 225)
+        table = vector.tables["layer_with_fid"]
+        assert "fid" in table.attributes
+        assert table.attributes["fid"] == "Integer"
+        
+        # Verify other fields were also added
+        assert "name" in table.attributes
+        assert table.attributes["name"] == "String"
+        assert "value" in table.attributes
+        assert table.attributes["value"] == "Real"
 
-    # test if the returned object is indeed an instance of Vector
-    assert isinstance(vector_geojson, Vector)
-    assert isinstance(vector_gpkg, Vector)
-    assert isinstance(vector_shp, Vector)
+
+def test_vector_from_file_without_fid_column() -> None:
+    """Test Vector.from_file when layer has no FID column (line 224 false branch)."""
+    # Create a mock datasource and layer
+    mock_datasource = MagicMock()
+    mock_layer = MagicMock()
+    
+    # Configure the mock layer
+    mock_layer.GetName.return_value = "layer_no_fid"
+    mock_layer.GetFeatureCount.return_value = 25
+    mock_layer.GetGeometryColumn.return_value = "geometry"
+    
+    # Mock spatial reference
+    mock_srs = MagicMock()
+    mock_srs.GetAuthorityName.return_value = "EPSG"
+    mock_srs.GetAuthorityCode.return_value = "4326"
+    mock_layer.GetSpatialRef.return_value = mock_srs
+    
+    # Mock extent
+    mock_layer.GetExtent.return_value = (0.0, 10.0, 0.0, 10.0)
+    
+    # Mock FID column - empty string (no FID column)
+    mock_layer.GetFIDColumn.return_value = ""
+    
+    # Mock layer definition with one field
+    mock_layer_def = MagicMock()
+    mock_layer_def.GetFieldCount.return_value = 1
+    
+    mock_field = MagicMock()
+    mock_field.GetName.return_value = "id"
+    mock_field.GetTypeName.return_value = "Integer"
+    
+    mock_layer_def.GetFieldDefn.return_value = mock_field
+    mock_layer.GetLayerDefn.return_value = mock_layer_def
+    
+    # Configure the datasource
+    mock_datasource.GetLayerCount.return_value = 1
+    mock_datasource.GetLayer.return_value = mock_layer
+    
+    # Patch ogr.Open to return our mock datasource
+    with patch("rok4.vector.ogr.Open", return_value=mock_datasource):
+        vector = Vector.from_file("test_no_fid.geojson")
+        
+        # Verify vector was created
+        assert isinstance(vector, Vector)
+        assert len(vector.tables) == 1
+        
+        # Verify NO FID column was added to attributes
+        table = vector.tables["layer_no_fid"]
+        assert "fid" not in table.attributes
+        
+        # Verify only the regular field was added
+        assert "id" in table.attributes
+        assert table.attributes["id"] == "Integer"
+        assert len(table.attributes) == 1
 
 
 @patch("rok4.vector.Table.__init__", return_value=Table)

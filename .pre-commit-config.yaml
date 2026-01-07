@@ -14,12 +14,15 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
-      - id: fix-encoding-pragma
-        args: [--remove]
       - id: name-tests-test
         args: [--pytest-test-first]
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+    - id: pyupgrade
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.12.2"
