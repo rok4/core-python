@@ -202,7 +202,7 @@ class Vector:
         datasource = ogr.Open(working_path)
 
         if datasource is None:
-            raise StorageError("FILE", f"Cannot open vector file/object {path}")
+            raise StorageError("FILE", f"Cannot open vector file/object {working_path}")
 
         self.tables = {}
 
