@@ -101,9 +101,9 @@ def test_from_descriptor_calls_vector_from_parameters() -> None:
         mock_from_parameters.assert_any_call("file1.geojson", {"t1": "table1"})
         mock_from_parameters.assert_any_call("file2.geojson", {"t2": "table2"})
 
-        # Check that __vectors contains the dummy vectors
-        assert dummy_vectors[0] in vectorset._VectorSet__vectors
-        assert dummy_vectors[1] in vectorset._VectorSet__vectors
+        # Check that vectors contains the dummy vectors
+        assert dummy_vectors[0] in vectorset.vectors
+        assert dummy_vectors[1] in vectorset.vectors
 
     assert isinstance(VectorSet.from_descriptor("file://data/vectorset.json"), VectorSet)
 
@@ -404,29 +404,91 @@ def test_vector_get_uniq_srs_tables_list_mocked(mocked_get_srs) -> None:
     mocked_get_srs.assert_called()
 
 
-def test_vector_from_parameters(monkeypatch) -> None:
+def test_vector_srs_property_with_multiple_tables() -> None:
+    """Test that Vector.srs returns unique SRS from all tables, testing lines 289-294."""
+    vector = Vector()
+    vector.path = "/tmp/test.gpkg"
+    
+    # Create tables with different SRS
+    table1 = Table("table1", 10, "EPSG:4326", (0, 0, 1, 1), {"id": "Integer"}, ["geom"])
+    table2 = Table("table2", 20, "EPSG:3857", (0, 0, 2, 2), {"name": "String"}, ["geom"])
+    table3 = Table("table3", 30, "EPSG:4326", (0, 0, 3, 3), {"value": "Real"}, ["geom"])  # Duplicate SRS
+    
+    vector.tables = {"table1": table1, "table2": table2, "table3": table3}
+    
+    # Test the srs property (lines 289-294)
+    result = vector.srs
+    
+    # Should return unique SRS only
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert "EPSG:4326" in result
+    assert "EPSG:3857" in result
+
+
+def test_vector_srs_property_empty_tables() -> None:
+    """Test that Vector.srs returns empty list when no tables exist."""
+    vector = Vector()
+    vector.path = "/tmp/test.geojson"
+    vector.tables = {}
+    
+    result = vector.srs
+    
+    assert isinstance(result, list)
+    assert len(result) == 0
+
+
+def test_vector_srs_property_single_table() -> None:
+    """Test that Vector.srs returns single SRS for one table."""
+    vector = Vector()
+    vector.path = "/tmp/test.shp"
+    
+    table = Table("single", 100, "EPSG:2154", (1, 2, 3, 4), {"attr": "String"}, ["geom"])
+    vector.tables = {"single": table}
+    
+    result = vector.srs
+    
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0] == "EPSG:2154"
+
+
+def test_vector_from_parameters() -> None:
     """test that the path and tables attributes returned by the 'from_parameters()' method of 'Vector()' are
     indeed strings starting from input parameters 'path' and 'tables'
     """
 
     # Prepare test data
     path = "/tmp/test.geojson"
-    tables = {"table1": object(), "table2": object()}
-
-    # Optionally, capture print output
-    printed = []
-    monkeypatch.setattr("builtins.print", lambda msg: printed.append(msg))
+    tables = {
+        "table1": {
+            "name": "table1",
+            "count": 10,
+            "srs": "EPSG:4326",
+            "bbox": [0.0, 0.0, 1.0, 1.0],
+            "attributes": {"id": "Integer"},
+            "geometry_columns": ["geom"]
+        },
+        "table2": {
+            "name": "table2",
+            "count": 20,
+            "srs": "EPSG:3857",
+            "bbox": [0.0, 0.0, 2.0, 2.0],
+            "attributes": {"name": "String"},
+            "geometry_columns": ["geometry"]
+        }
+    }
 
     # Call the method
     vector = Vector.from_parameters(path, tables)
 
     # Check attributes
     assert vector.path == path
-    assert vector.tables == tables
-
-    # Check print output
-    assert any("Vector data loaded" in line for line in printed)
-    assert any("List of tables in the vector data" in line for line in printed)
+    assert len(vector.tables) == 2
+    assert "table1" in vector.tables
+    assert "table2" in vector.tables
+    assert isinstance(vector.tables["table1"], Table)
+    assert isinstance(vector.tables["table2"], Table)
 
 
 def test_vector_ok_from_file() -> None:
@@ -434,100 +496,10 @@ def test_vector_ok_from_file() -> None:
     indeed strings starting from an input file with extensions *.geojson, *.gpkg, and *.shp
     """
     path_geojson = "data/states.geojson"
-    tables_geojson = [
-        {
-            "name": "states",
-            "count": 52,
-            "srs": "EPSG:3857",
-            "bbox": [-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969],
-            "geometry_columns": ["geom"],
-            "attributes": {
-                "id": "String",
-                "STATE_ABBR": "String",
-                "STATE_NAME": "String",
-                "AREA_LAND": "Real",
-                "AREA_WATER": "Real",
-            },
-        }
-    ]
     path_gpkg = "data/martinique.gpkg"
-    tables_gpkg = [
-        {
-            "name": "arrondissement",
-            "count": 4,
-            "srs": "EPSG:4559",
-            "bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
-            "geometry_columns": ["geom"],
-            "attributes": {
-                "fid": "Integer",
-                "id": "Integer",
-                "id_geofla": "String",
-                "code_arr": "String",
-                "code_chf": "String",
-                "nom_chf": "String",
-                "x_chf_lieu": "Integer",
-                "y_chf_lieu": "Integer",
-                "x_centroid": "Integer",
-                "y_centroid": "Integer",
-                "code_dept": "String",
-                "nom_dept": "String",
-                "code_reg": "String",
-                "nom_reg": "String",
-            },
-        },
-        {
-            "name": "departement",
-            "count": 1,
-            "srs": "EPSG:4559",
-            "bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
-            "geometry_columns": ["geom"],
-            "attributes": {
-                "fid": "Integer",
-                "id": "Integer",
-                "id_geofla": "String",
-                "code_dept": "String",
-                "nom_dept": "String",
-                "code_chf": "String",
-                "nom_chf": "String",
-                "x_chf_lieu": "Integer",
-                "y_chf_lieu": "Integer",
-                "x_centroid": "Integer",
-                "y_centroid": "Integer",
-                "code_reg": "String",
-                "nom_reg": "String",
-            },
-        },
-    ]
     path_shp = "data/TM_WORLD_BORDERS-0.3.shp"
-    tables_shp = [
-        {
-            "name": "TM_WORLD_BORDERS-0.3",
-            "count": 246,
-            "srs": "EPSG:4326",
-            "bbox": (-179.99999999999997, 180.0, -90.0, 83.62359600000008),
-            "geometry_columns": ["geom"],
-            "attributes": {
-                "FIPS": "String",
-                "ISO2": "String",
-                "ISO3": "String",
-                "UN": "Integer",
-                "NAME": "String",
-                "AREA": "Integer",
-                "POP2005": "Integer64",
-                "REGION": "Integer",
-                "SUBREGION": "Integer",
-                "LON": "Real",
-                "LAT": "Real",
-            },
-        }
-    ]
 
     vector = Vector()
-
-    # test if the from_parameters method returns vector data tables
-    tables_geojson = vector.from_parameters(path_geojson, tables_geojson)
-    tables_gpkg = vector.from_parameters(path_gpkg, tables_gpkg)
-    tables_shp = vector.from_parameters(path_shp, tables_shp)
 
     # test if the from_file method returns an instance of Vector
     vector_geojson = vector.from_file(path_geojson)
@@ -669,3 +641,86 @@ def test_table_serializable() -> None:
         "geometry_columns": geometry_columns,  # Note: typo in key, should be "geometry_columns"
     }
     assert table.serializable == expected
+
+
+def test_vectorset_write_descriptor_with_path() -> None:
+    """Test that write_descriptor correctly writes JSON to the provided path."""
+    vectorset = VectorSet()
+    
+    # Create a simple vector with mock serializable data
+    mock_vector = MagicMock()
+    mock_vector.serializable = {"path": "test.geojson", "tables": []}
+    vectorset.vectors = [mock_vector]
+    
+    with patch("rok4.vector.put_data_str") as mock_put_data_str:
+        vectorset.write_descriptor("s3://bucket/descriptor.json")
+        
+        # Verify put_data_str was called with correct arguments
+        mock_put_data_str.assert_called_once()
+        args = mock_put_data_str.call_args[0]
+        
+        # Check the JSON content
+        json_content = args[0]
+        assert json.loads(json_content) == {"vectors": [{"path": "test.geojson", "tables": []}]}
+        
+        # Check the path
+        assert args[1] == "s3://bucket/descriptor.json"
+
+
+def test_vectorset_write_descriptor_without_path() -> None:
+    """Test that write_descriptor does nothing when path is None."""
+    vectorset = VectorSet()
+    
+    # Create a simple vector with mock serializable data
+    mock_vector = MagicMock()
+    mock_vector.serializable = {"path": "test.geojson", "tables": []}
+    vectorset.vectors = [mock_vector]
+    
+    with patch("rok4.vector.put_data_str") as mock_put_data_str:
+        vectorset.write_descriptor(None)
+        
+        # Verify put_data_str was NOT called
+        mock_put_data_str.assert_not_called()
+
+
+def test_vectorset_write_descriptor_json_format() -> None:
+    """Test that write_descriptor produces correctly formatted JSON."""
+    vectorset = VectorSet()
+    
+    # Create vectors with realistic data
+    v1 = Vector()
+    v1.path = "file1.geojson"
+    v1.tables = {}
+    
+    v2 = Vector()
+    v2.path = "file2.geojson"
+    v2.tables = {}
+    
+    vectorset.vectors = [v1, v2]
+    
+    with patch("rok4.vector.put_data_str") as mock_put_data_str:
+        vectorset.write_descriptor("/tmp/output.json")
+        
+        # Get the JSON content that was written
+        json_content = mock_put_data_str.call_args[0][0]
+        parsed = json.loads(json_content)
+        
+        # Verify structure
+        assert "vectors" in parsed
+        assert len(parsed["vectors"]) == 2
+        assert parsed["vectors"][0]["path"] == "file1.geojson"
+        assert parsed["vectors"][1]["path"] == "file2.geojson"
+        assert parsed["vectors"][0]["tables"] == []
+        assert parsed["vectors"][1]["tables"] == []
+
+
+def test_vectorset_write_descriptor_storage_error() -> None:
+    """Test that write_descriptor propagates StorageError when put_data_str fails."""
+    vectorset = VectorSet()
+    vectorset.vectors = []
+    
+    with patch("rok4.vector.put_data_str") as mock_put_data_str:
+        mock_put_data_str.side_effect = StorageError("S3", "Failed to write")
+        
+        with pytest.raises(StorageError):
+            vectorset.write_descriptor("/tmp/output.json")
