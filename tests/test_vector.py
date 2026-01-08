@@ -123,10 +123,12 @@ class FakeVector:
     """Fake Vector class for testing purposes."""
 
     def __init__(self, srs_list):
+        """Initialize with a list of SRS."""
         self._srs = srs_list
 
     @property
     def srs(self):
+        """Return the SRS list."""
         return self._srs
 
 
@@ -147,10 +149,12 @@ class FakeVectorSerializable:
     """A fake serializable vector class for testing purposes."""
 
     def __init__(self, serializable):
+        """Initialize with a serializable representation."""
         self._serializable = serializable
 
     @property
     def serializable(self):
+        """Return the serializable representation."""
         return self._serializable
 
 
@@ -732,10 +736,12 @@ class FakeTable:
     """A fake table class for testing purposes."""
 
     def __init__(self, serializable):
+        """Initialize with a serializable representation."""
         self._serializable = serializable
 
     @property
     def serializable(self):
+        """Return the serializable representation."""
         return self._serializable
 
 
