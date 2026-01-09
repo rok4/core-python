@@ -240,7 +240,7 @@ class Vector:
 
         Args:
             path (str): Path to vector file/object
-            tables (Dict[str, "Table"]): dictionary of table data.
+            tables (Dict[str, "Table"]): dictionary of table data with key-value pairs whose keys are table names and values are Table instances.
 
         Returns:
             Vector: A new Vector instance
