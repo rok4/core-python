@@ -1,0 +1,12 @@
+{
+    "path": "my_path",
+    "table": "my_table",
+    "data": [
+        {
+            "type": "shp",
+        },
+        {
+            "type": "object",
+        },
+    ],
+}

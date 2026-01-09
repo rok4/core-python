@@ -1,21 +1,39 @@
-"""Provide class to read informations on vector data from file path or object path
+"""Provide class to read informations on vector data set from paths list of vector files or from descriptor file or S3 vector objects paths.
 
-The module contains the following class :
+The aim is to have one module who allows to load important informations of a set of vector data.
+Data can be vector files or S3 vector objects.
 
-- `Vector` - Data Vector
+The module contains the three classes as follows:
+    - VectorSet: Vector Data (Files/Objects) Set
+    - Vector: Vector Data (File/Object)
+    - Table: Table Data (name, attributes, count, srs, bbox, geometry_columns)
+
+These classes would be necessary to make easily interactions between tools with these data.
+
+Example:
+    ```python
+    from rok4.vector import VectorSet
+    # from list of paths to vector data:
+    vectorset = VectorSet.from_list("file://./filelist.txt")
+    # or from descriptor:
+    vectorset = VectorSet.from_descriptor("file://./vectorset.json")
+    ```
 """
 
 # -- IMPORTS --
 
 # standard library
+import json
 import os
 import tempfile
+from typing import Dict, List, Tuple, Union
 
 # 3rd party
 from osgeo import ogr
 
 # package
-from rok4.storage import copy, get_osgeo_path
+from rok4.exceptions import FormatError, StorageError
+from rok4.storage import copy, get_data_str, get_osgeo_path, put_data_str
 
 # -- GLOBALS --
 
@@ -23,204 +41,325 @@ from rok4.storage import copy, get_osgeo_path
 ogr.UseExceptions()
 
 
-class Vector:
-    """A data vector
+class VectorSet:
+    """A set of vector files/objects.
 
     Attributes:
-        path (str): path to the file/object
-        bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
-        layers (List[Tuple[str, int, List[Tuple[str, str]]]]) : Vector layers with their name, their number of objects and their attributes
+        vectors (List[Vector]): List of Vector instances
     """
 
+    def __init__(self) -> None:
+        """Initialize a VectorSet instance."""
+        self.vectors: List["Vector"] = []
+
     @classmethod
-    def from_file(cls, path: str, **kwargs) -> "Vector":
-        """Constructor method of a Vector from a file (Shapefile, Geopackage, CSV and GeoJSON)
+    def from_list(cls, path: str) -> "VectorSet":
+        """Create a VectorSet from a list file containing paths to vector data.
 
         Args:
-            path (str): path to the file/object
-            **csv (Dict[str : str]) : dictionnary of CSV parameters :
-                -srs (str) ("EPSG:2154" if not provided) : spatial reference system of the geometry
-                -column_x (str) ("x" if not provided) : field of the x coordinate
-                -column_y (str) ("y" if not provided) : field of the y coordinate
-                -column_wkt (str) (None if not provided) : field of the WKT of the geometry if WKT use to define coordinate
+            path (str): Path to a file or object containing a list of paths to vector data.
+                Each line should contain one path. Lines starting with # are ignored.
 
-        Examples:
-
-            from rok4.vector import Vector
-
-            try:
-                vector = Vector.from_file("file://tests/fixtures/ARRONDISSEMENT.shp")
-                vector_csv1 = Vector.from_file("file://tests/fixtures/vector.csv" , csv={"delimiter":";", "column_x":"x", "column_y":"y"})
-                vector_csv2 = Vector.from_file("file://tests/fixtures/vector2.csv" , csv={"delimiter":";", "column_wkt":"WKT"})
-
-            except Exception as e:
-                print(f"Vector creation raises an exception: {exc}")
+        Returns:
+            VectorSet: A new VectorSet instance with loaded vector data
 
         Raises:
-            MissingEnvironmentError: Missing object storage informations
-            StorageError: Storage read issue
-            Exception: Wrong column
-            Exception: Wrong data in column
-            Exception: Wrong format of file
-            Exception: Wrong data in the file
-
+            StorageError: If the list file cannot be read or copied
         """
-
         self = cls()
+        self.vectors = []
 
-        self.path = path
+        working_path = get_osgeo_path(path)
 
-        path_split = path.split("/")
+        tmp_list_obj = tempfile.NamedTemporaryFile(mode="r", delete=False)
+        tmp_list_file = tmp_list_obj.name
 
-        if path_split[0] == "ceph:" or path.endswith(".csv"):
-            if path.endswith(".shp"):
-                with tempfile.TemporaryDirectory() as tmp:
-                    tmp_path = tmp + "/" + path_split[-1][:-4]
+        copy(working_path, tmp_list_file)
 
-                    copy(path, "file://" + tmp_path + ".shp")
-                    copy(path[:-4] + ".shx", "file://" + tmp_path + ".shx")
-                    copy(path[:-4] + ".cpg", "file://" + tmp_path + ".cpg")
-                    copy(path[:-4] + ".dbf", "file://" + tmp_path + ".dbf")
-                    copy(path[:-4] + ".prj", "file://" + tmp_path + ".prj")
+        with open(tmp_list_file) as file:
+            for line in file:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    vector = Vector.from_file(line)
+                    self.vectors.append(vector)
 
-                    dataSource = ogr.Open(tmp_path + ".shp", 0)
-
-            elif path.endswith(".gpkg"):
-                with tempfile.TemporaryDirectory() as tmp:
-                    tmp_path = tmp + "/" + path_split[-1][:-5]
-
-                    copy(path, "file://" + tmp_path + ".gpkg")
-
-                    dataSource = ogr.Open(tmp_path + ".gpkg", 0)
-
-            elif path.endswith(".geojson"):
-                with tempfile.TemporaryDirectory() as tmp:
-                    tmp_path = tmp + "/" + path_split[-1][:-8]
-
-                    copy(path, "file://" + tmp_path + ".geojson")
-
-                    dataSource = ogr.Open(tmp_path + ".geojson", 0)
-
-            elif path.endswith(".csv"):
-                # Récupération des informations optionnelles
-                if "csv" in kwargs:
-                    csv = kwargs["csv"]
-                else:
-                    csv = {}
-
-                if "srs" in csv and csv["srs"] is not None:
-                    srs = csv["srs"]
-                else:
-                    srs = "EPSG:2154"
-
-                if "column_x" in csv and csv["column_x"] is not None:
-                    column_x = csv["column_x"]
-                else:
-                    column_x = "x"
-
-                if "column_y" in csv and csv["column_y"] is not None:
-                    column_y = csv["column_y"]
-                else:
-                    column_y = "y"
-
-                if "column_wkt" in csv:
-                    column_wkt = csv["column_wkt"]
-                else:
-                    column_wkt = None
-
-                with tempfile.TemporaryDirectory() as tmp:
-                    tmp_path = tmp + "/" + path_split[-1][:-4]
-                    name_fich = path_split[-1][:-4]
-
-                    copy(path, "file://" + tmp_path + ".csv")
-
-                    with tempfile.NamedTemporaryFile(
-                        mode="w", suffix=".vrt", dir=tmp, delete=False
-                    ) as tmp2:
-                        vrt_file = "<OGRVRTDataSource>\n"
-                        vrt_file += '<OGRVRTLayer name="' + name_fich + '">\n'
-                        vrt_file += "<SrcDataSource>" + tmp_path + ".csv</SrcDataSource>\n"
-                        vrt_file += "<SrcLayer>" + name_fich + "</SrcLayer>\n"
-                        vrt_file += "<LayerSRS>" + srs + "</LayerSRS>\n"
-                        if column_wkt is None:
-                            vrt_file += (
-                                '<GeometryField encoding="PointFromColumns" x="'
-                                + column_x
-                                + '" y="'
-                                + column_y
-                                + '"/>\n'
-                            )
-                        else:
-                            vrt_file += (
-                                '<GeometryField encoding="WKT" field="' + column_wkt + '"/>\n'
-                            )
-                        vrt_file += "</OGRVRTLayer>\n"
-                        vrt_file += "</OGRVRTDataSource>"
-                        tmp2.write(vrt_file)
-                    dataSourceVRT = ogr.Open(tmp2.name, 0)
-                    os.remove(tmp2.name)
-                    dataSource = ogr.GetDriverByName("ESRI Shapefile").CopyDataSource(
-                        dataSourceVRT, tmp_path + "shp"
-                    )
-
-            else:
-                raise Exception("This format of file cannot be loaded")
-
-        else:
-            dataSource = ogr.Open(get_osgeo_path(path), 0)
-
-        multipolygon = ogr.Geometry(ogr.wkbGeometryCollection)
-        try:
-            layer = dataSource.GetLayer()
-        except AttributeError:
-            raise Exception(f"The content of {self.path} cannot be read")
-
-        layers = []
-        for i in range(dataSource.GetLayerCount()):
-            layer = dataSource.GetLayer(i)
-            name = layer.GetName()
-            count = layer.GetFeatureCount()
-            layerDefinition = layer.GetLayerDefn()
-            attributes = []
-            for j in range(layerDefinition.GetFieldCount()):
-                fieldName = layerDefinition.GetFieldDefn(j).GetName()
-                fieldTypeCode = layerDefinition.GetFieldDefn(j).GetType()
-                fieldType = layerDefinition.GetFieldDefn(j).GetFieldTypeName(fieldTypeCode)
-                attributes += [(fieldName, fieldType)]
-            for feature in layer:
-                geom = feature.GetGeometryRef()
-                if geom is not None:
-                    multipolygon.AddGeometry(geom)
-            layers += [(name, count, attributes)]
-
-        self.layers = layers
-        self.bbox = multipolygon.GetEnvelope()
+        tmp_list_obj.close()
+        os.remove(tmp_list_file)
 
         return self
 
     @classmethod
-    def from_parameters(cls, path: str, bbox: tuple, layers: list) -> "Vector":
-        """Constructor method of a Vector from a parameters
+    def from_descriptor(cls, path: str) -> "VectorSet":
+        """Create a VectorSet from a descriptor file containing all information about vector data.
 
         Args:
-            path (str): path to the file/object
-            bbox (Tuple[float, float, float, float]): bounding rectange in the data projection
-            layers (List[Tuple[str, int, List[Tuple[str, str]]]]) : Vector layers with their name, their number of objects and their attributes
+            path (str): Path to descriptor file (JSON format)
 
-        Examples:
+        Returns:
+            VectorSet: A new VectorSet instance with loaded vector data
 
-            try :
-                vector = Vector.from_parameters("file://tests/fixtures/ARRONDISSEMENT.shp", (1,2,3,4), [('ARRONDISSEMENT', 14, [('ID', 'String'), ('NOM', 'String'), ('INSEE_ARR', 'String'), ('INSEE_DEP', 'String'), ('INSEE_REG', 'String'), ('ID_AUT_ADM', 'String'), ('DATE_CREAT', 'String'), ('DATE_MAJ', 'String'), ('DATE_APP', 'Date'), ('DATE_CONF', 'Date')])])
-
-            except Exception as e:
-                print(f"Vector creation raises an exception: {exc}")
-
+        Raises:
+            FormatError: If the descriptor file is not valid JSON
+            StorageError: If the descriptor file cannot be read
         """
+        vectorset = cls()
+        descriptor_file = path
+        descriptor_object = []
 
+        working_path = get_osgeo_path(descriptor_file)
+        descriptor_file = working_path
+
+        try:
+            descriptor_object = json.loads(get_data_str(descriptor_file))
+        except json.JSONDecodeError as e:
+            raise FormatError("JSON", descriptor_object, e)
+
+        for descriptor_item in descriptor_object:
+            vector = Vector.from_parameters(
+                descriptor_item["path"],
+                descriptor_item["tables"],
+            )
+            vectorset.vectors.append(vector)
+
+        return vectorset
+
+    @property
+    def srs(self) -> List[str]:
+        """Get the list of unique SRS of the tables in the set.
+
+        Returns:
+            List[str]: List of unique SRS identifiers
+        """
+        srs_list = []
+
+        # for each vector in the set, we get its SRS
+        for vector in self.vectors:
+            for srs in vector.srs:
+                if srs not in srs_list:
+                    srs_list.append(srs)
+        return srs_list
+
+    @property
+    def serializable(self) -> Dict[str, Union[str, List[str]]]:
+        """Get the serializable version of the vector set.
+
+        Returns:
+            Dict[str, Union[str, List[str]]]: Dictionary version compliant to the descriptor format
+        """
+        serialization = {"vectors": []}
+
+        for vector in self.vectors:
+            serialization["vectors"].append(vector.serializable)
+
+        return serialization
+
+    def write_descriptor(self, path: str = None) -> None:
+        """Write descriptor as JSON format to the provided path or return as string.
+
+        Args:
+            path (str, optional): Complete path (file or object) where to write the JSON.
+                Defaults to None, in which case the JSON is returned to the caller.
+
+        Raises:
+            StorageError: If the descriptor cannot be written to the specified path
+        """
+        content = json.dumps(self.serializable, sort_keys=True)
+
+        if path is not None:
+            put_data_str(content, path)
+
+
+class Vector:
+    """A vector file/object.
+
+    Attributes:
+        path (str): Path to the vector file/object
+        tables (Dict[str, Table]): Dictionary of Table instances, keyed by table name
+    """
+
+    def __init__(self) -> None:
+        """Initialize a Vector instance."""
+        self.path: str = ""
+        self.tables: Dict[str, "Table"] = {}
+
+    @classmethod
+    def from_file(cls, path: str) -> "Vector":
+        """Create a Vector instance from a vector file or object.
+
+        Args:
+            path (str): Path to vector file/object
+
+        Returns:
+            Vector: A new Vector instance with loaded data
+
+        Raises:
+            StorageError: If the vector file/object cannot be opened
+        """
         self = cls()
-
         self.path = path
-        self.bbox = bbox
-        self.layers = layers
+
+        working_path = get_osgeo_path(path)
+        datasource = ogr.Open(working_path)
+
+        if datasource is None:
+            raise StorageError("FILE", f"Cannot open vector file/object {working_path}")
+
+        self.tables = {}
+
+        for i in range(datasource.GetLayerCount()):
+            layer = datasource.GetLayer(i)
+            name = layer.GetName()
+            count = layer.GetFeatureCount(0)
+            srs = f"{layer.GetSpatialRef().GetAuthorityName(None)}:{layer.GetSpatialRef().GetAuthorityCode(None)}"
+            bbox = (
+                layer.GetExtent()[0],
+                layer.GetExtent()[2],
+                layer.GetExtent()[1],
+                layer.GetExtent()[3],
+            )
+            geometry_columns = [layer.GetGeometryColumn()]
+
+            attributes = {}
+            if layer.GetFIDColumn() != "":
+                attributes[layer.GetFIDColumn()] = "Integer"
+
+            for j in range(layer.GetLayerDefn().GetFieldCount()):
+                field = layer.GetLayerDefn().GetFieldDefn(j)
+                attributes[field.GetName()] = field.GetTypeName()
+
+            table_instance = Table(name, count, srs, bbox, attributes, geometry_columns)
+            self.tables[name] = table_instance
+
+        datasource = None
 
         return self
+
+    @classmethod
+    def from_parameters(cls, path: str, tables: Dict[str, "Table"]) -> "Vector":
+        """Create a Vector instance from parameters.
+
+        Args:
+            path (str): Path to vector file/object
+            tables (Dict[str, "Table"]): dictionary of table data with key-value pairs whose keys are table names and values are Table instances.
+
+        Returns:
+            Vector: A new Vector instance
+        """
+        self = cls()
+        self.path = path
+        self.tables = {}
+
+        # Handle both list and dict formats
+        if isinstance(tables, list):
+            # List format from descriptor
+            for table_data in tables:
+                table_instance = Table(
+                    name=table_data["name"],
+                    count=table_data["count"],
+                    srs=table_data["srs"],
+                    bbox=tuple(table_data["bbox"]),
+                    attributes=table_data["attributes"],
+                    geometry_columns=table_data["geometry_columns"],
+                )
+                self.tables[table_data["name"]] = table_instance
+        else:
+            # Dict format
+            for table_name, table_data in tables.items():
+                table_instance = Table(
+                    name=table_data["name"],
+                    count=table_data["count"],
+                    srs=table_data["srs"],
+                    bbox=tuple(table_data["bbox"]),
+                    attributes=table_data["attributes"],
+                    geometry_columns=table_data["geometry_columns"],
+                )
+                self.tables[table_name] = table_instance
+
+        return self
+
+    @property
+    def srs(self) -> List[str]:
+        """Get the list of unique SRS of the tables in the vector data.
+
+        Returns:
+            List[str]: List of unique SRS identifiers
+        """
+        srs_list = []
+        # for each table in the vector data, we get its SRS
+        for table in self.tables.values():
+            if table.srs not in srs_list:
+                srs_list.append(table.srs)
+        return srs_list
+
+    @property
+    def serializable(self) -> Dict[str, Union[str, List[str]]]:
+        """Get the dictionary version corresponding to the descriptor of the vector data.
+
+        Returns:
+            Dict[str, Union[str, List[str]]]: Dictionary version compliant to the descriptor format
+        """
+        serialization = {"path": self.path, "tables": []}
+
+        for table in self.tables.values():
+            serialization["tables"].append(table.serializable)
+
+        return serialization
+
+
+class Table:
+    """A table in a vector file/object.
+
+    Attributes:
+        name (str): Name of the table
+        count (int): Number of features in the table
+        srs (str): Spatial reference system of the table
+        bbox (Tuple[float, float, float, float]): Bounding box (minX, minY, maxX, maxY)
+        attributes (Dict[str, str]): Column names and their types
+        geometry_columns (List[str]): Names of geometry columns
+    """
+
+    def __init__(
+        self,
+        name: str,
+        count: int,
+        srs: str,
+        bbox: Tuple[float, float, float, float],
+        attributes: Dict[str, str],
+        geometry_columns: List[str],
+    ) -> None:
+        """Initialize a Table instance.
+
+        Args:
+            name (str): Name of the table
+            count (int): Number of features in the table
+            srs (str): SRS of the table
+            bbox (Tuple[float, float, float, float]): Bounding box (minX, minY, maxX, maxY)
+            attributes (Dict[str, str]): Column names and their types
+            geometry_columns (List[str]): Names of geometry columns
+        """
+        self.name = name
+        self.count = count
+        self.srs = srs
+        self.bbox = bbox
+        self.attributes = attributes
+        self.geometry_columns = geometry_columns
+
+    @property
+    def serializable(
+        self,
+    ) -> Dict[str, Union[str, int, Tuple[float, float, float, float], List[str]]]:
+        """Get the dict version of the table, descriptor compliant.
+
+        Returns:
+            Dict[str, Union[str, int, Tuple[float, float, float, float], List[str]]]: Dictionary corresponding to the descriptor format
+        """
+
+        serialization = {
+            "name": self.name,
+            "count": self.count,
+            "srs": self.srs,
+            "bbox": tuple(self.bbox),
+            "attributes": self.attributes,
+            "geometry_columns": self.geometry_columns,
+        }
+        return serialization

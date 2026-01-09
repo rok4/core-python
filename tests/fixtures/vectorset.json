@@ -1,0 +1,99 @@
+[
+	{
+		"path": "file://./tests/fixtures/martinique.gpkg",
+		"tables": [
+			{
+				"name": "arrondissement",
+				"count": 4,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_arr": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			},
+			{
+				"name": "departement",
+				"count": 1,
+				"srs": "EPSG:4559",
+				"bbox": [690574.399999426, 1592426.09999943, 736126.499998242, 1645659.8],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "fid": "Integer",
+			        "id": "Integer",
+			        "id_geofla": "String",
+			        "code_dept": "String",
+			        "nom_dept": "String",
+			        "code_chf": "String",
+			        "nom_chf": "String",
+			        "x_chf_lieu": "Integer",
+			        "y_chf_lieu": "Integer",
+			        "x_centroid": "Integer",
+			        "y_centroid": "Integer",
+			        "code_reg": "String",
+			        "nom_reg": "String"
+				}
+			}
+		]
+	},
+	{
+		"path": "file://./tests/fixtures/states.geojson",
+		"tables": [
+			{
+				"name": "states",
+				"count": 52,
+				"srs": "EPSG:3857",
+				"bbox": [-19951818.272319775, 2017836.357428821, -7254560.414595957, 11553642.98126969],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "id": "String",
+			        "STATE_ABBR": "String",
+			        "STATE_NAME": "String",
+			        "AREA_LAND": "Real",
+			        "AREA_WATER": "Real",
+			        "PERSONS": "Integer",
+			        "MALE": "Integer",
+			        "FEMALE": "Integer"
+				}
+			}
+		]
+	},
+	{
+		"path": "file://./tests/fixtures/TM_WORLD_BORDERS-0.3.shp",
+		"tables": [
+			{
+				"name": "TM_WORLD_BORDERS-0.3",
+				"count": 246,
+				"srs": "EPSG:4326",
+				"bbox": [-179.99999999999997, 180.0, -90.0, 83.62359600000008],
+				"geometry_columns": ["geom"],
+				"attributes": {
+			        "FIPS": "String",
+			        "ISO2": "String",
+			        "ISO3": "String",
+			        "UN": "Integer",
+			        "NAME": "String",
+			        "AREA": "Integer",
+			        "POP2005": "Integer64",
+			        "REGION": "Integer",
+			        "SUBREGION": "Integer",
+			        "LON": "Real",
+			        "LAT": "Real"
+				}
+			}
+		]
+	}
+]
