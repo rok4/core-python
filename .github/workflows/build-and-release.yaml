@@ -139,7 +139,7 @@ jobs:
 
     steps:
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: dist-py3
           path: dist/
