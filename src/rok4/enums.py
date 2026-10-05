@@ -1,4 +1,4 @@
-#! python3  # noqa: E265
+#! python3
 
 # standard lib
 from enum import Enum
