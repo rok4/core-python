@@ -101,8 +101,7 @@ except KeyError:
 
 try:
     __LRU_TTL = int(os.environ["ROK4_READING_LRU_CACHE_TTL"])
-    if __LRU_TTL < 0:
-        __LRU_TTL = 0
+    __LRU_TTL = max(__LRU_TTL, 0)
 except ValueError:
     pass
 except KeyError:

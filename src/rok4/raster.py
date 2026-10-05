@@ -253,14 +253,10 @@ class RasterSet:
             if bbox == [None, None, None, None]:
                 bbox = list(raster.bbox)
             else:
-                if bbox[0] > raster.bbox[0]:
-                    bbox[0] = raster.bbox[0]
-                if bbox[1] > raster.bbox[1]:
-                    bbox[1] = raster.bbox[1]
-                if bbox[2] < raster.bbox[2]:
-                    bbox[2] = raster.bbox[2]
-                if bbox[3] < raster.bbox[3]:
-                    bbox[3] = raster.bbox[3]
+                bbox[0] = min(bbox[0], raster.bbox[0])
+                bbox[1] = min(bbox[1], raster.bbox[1])
+                bbox[2] = max(bbox[2], raster.bbox[2])
+                bbox[3] = max(bbox[3], raster.bbox[3])
 
             # Inventaire des colors distinctes
             self.colors.add((raster.bands, raster.format))

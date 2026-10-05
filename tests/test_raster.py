@@ -340,7 +340,7 @@ class TestRasterSetFromList(TestCase):
             assert math.isclose(serial_out["bbox"][i], serial_in["bbox"][i], rel_tol=1e-5)
         assert len(rasterset.colors) > 0
         assert rasterset.colors == colors
-        for key in serial_in.keys():
+        for key in serial_in:
             if key != "bbox":
                 assert serial_out[key] == serial_in[key]
         assert isinstance(serial_out["bbox"], list)
@@ -419,7 +419,7 @@ class TestRasterSetFromDescriptor(TestCase):
         for i in range(0, 4, 1):
             assert math.isclose(rasterset.bbox[i], serial_in["bbox"][i], rel_tol=1e-5)
             assert math.isclose(serial_out["bbox"][i], serial_in["bbox"][i], rel_tol=1e-5)
-        for key in serial_in.keys():
+        for key in serial_in:
             if key != "bbox":
                 assert serial_out[key] == serial_in[key]
 
