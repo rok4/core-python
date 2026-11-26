@@ -14,8 +14,6 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
-      - id: fix-encoding-pragma
-        args: [--remove]
       - id: name-tests-test
         args: [--pytest-test-first]
       - id: trailing-whitespace
@@ -40,7 +38,7 @@ repos:
         args: ["--profile", "black", "--filter-files"]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.22.0
     hooks:
       - id: pyupgrade
         args:

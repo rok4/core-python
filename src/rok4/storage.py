@@ -28,6 +28,7 @@ Using S3 storage requires environment variables :
 - ROK4_S3_KEY
 - ROK4_S3_SECRETKEY
 - ROK4_S3_URL
+- ROK4_S3_REGION (optional)
 
 To use several S3 clusters, each environment variable have to contain a list (comma-separated), with the same number of elements
 
@@ -36,6 +37,8 @@ Example, work with 2 S3 clusters:
 - ROK4_S3_KEY=KEY1,KEY2
 - ROK4_S3_SECRETKEY=SKEY1,SKEY2
 - ROK4_S3_URL=https://s3.storage.fr,https://s4.storage.fr
+- ROK4_S3_REGION=region1,region2
+
 
 To precise the cluster to use, bucket name should be bucket_name@s3.storage.fr or bucket_name@s4.storage.fr. If no host is defined (no @) in the bucket name, first S3 cluster is used
 """
@@ -144,8 +147,13 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
             keys = os.environ["ROK4_S3_KEY"].split(",")
             secret_keys = os.environ["ROK4_S3_SECRETKEY"].split(",")
             urls = os.environ["ROK4_S3_URL"].split(",")
+            # ROK4_S3_REGION est optionnelle : None est utilisé pour les clusters sans région définie
+            if os.environ.get("ROK4_S3_REGION", "") != "":
+                regions = os.environ["ROK4_S3_REGION"].split(",")
+            else:
+                regions = [None] * len(keys)
 
-            if len(keys) != len(secret_keys) or len(keys) != len(urls):
+            if len(keys) != len(secret_keys) or len(keys) != len(urls) or len(keys) != len(regions):
                 raise StorageError(
                     "S3",
                     "S3 informations in environment variables are inconsistent : same number of element in each list is required",
@@ -164,6 +172,7 @@ def __get_s3_client(bucket_name: str) -> Tuple[Dict[str, Union["boto3.client", s
                         aws_secret_access_key=secret_keys[i],
                         verify=verify,
                         endpoint_url=urls[i],
+                        region_name=regions[i],
                         config=botocore.config.Config(tcp_keepalive=True, max_pool_connections=10),
                     ),
                     "key": keys[i],

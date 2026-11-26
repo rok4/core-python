@@ -92,6 +92,60 @@ def test_s3_invalid_envs():
 
 
 @mock.patch.dict(
+    os.environ,
+    {
+        "ROK4_S3_URL": "a,b",
+        "ROK4_S3_SECRETKEY": "b,c",
+        "ROK4_S3_KEY": "c,d",
+        "ROK4_S3_REGION": "r1,r2,r3",
+    },
+    clear=True,
+)
+def test_s3_invalid_optionnal_envs():
+    with pytest.raises(StorageError):
+        get_data_str("s3://bucket/path/to/object")
+
+
+@mock.patch.dict(
+    os.environ,
+    {"ROK4_S3_URL": "https://a", "ROK4_S3_SECRETKEY": "b", "ROK4_S3_KEY": "c"},
+    clear=True,
+)
+@mock.patch("rok4.storage.boto3.client")
+def test_s3_client_without_region(mocked_s3_client):
+    disconnect_s3_clients()
+    s3_instance = MagicMock()
+    s3_instance.get_object.return_value = {"Body": MagicMock(read=MagicMock(return_value=b"data"))}
+    mocked_s3_client.return_value = s3_instance
+    get_data_str("s3://bucket/path/to/object-no-region")
+    mocked_s3_client.assert_called_once()
+    assert mocked_s3_client.call_args.kwargs["region_name"] is None
+    disconnect_s3_clients()
+
+
+@mock.patch.dict(
+    os.environ,
+    {
+        "ROK4_S3_URL": "https://a",
+        "ROK4_S3_SECRETKEY": "b",
+        "ROK4_S3_KEY": "c",
+        "ROK4_S3_REGION": "r1",
+    },
+    clear=True,
+)
+@mock.patch("rok4.storage.boto3.client")
+def test_s3_client_with_region(mocked_s3_client):
+    disconnect_s3_clients()
+    s3_instance = MagicMock()
+    s3_instance.get_object.return_value = {"Body": MagicMock(read=MagicMock(return_value=b"data"))}
+    mocked_s3_client.return_value = s3_instance
+    get_data_str("s3://bucket/path/to/object-with-region")
+    mocked_s3_client.assert_called_once()
+    assert mocked_s3_client.call_args.kwargs["region_name"] == "r1"
+    disconnect_s3_clients()
+
+
+@mock.patch.dict(
     os.environ, {"ROK4_S3_URL": "a", "ROK4_S3_SECRETKEY": "b", "ROK4_S3_KEY": "c"}, clear=True
 )
 @mock.patch("rok4.storage.boto3.client")

@@ -38,6 +38,7 @@ Les variables d'environnement suivantes peuvent être nécessaires, par module :
     * `ROK4_S3_KEY` : Clé(s) de(s) serveur(s) S3
     * `ROK4_S3_SECRETKEY` : Clé(s) secrète(s) de(s) serveur(s) S3
     * `ROK4_S3_URL` : URL de(s) serveur(s) S3
+    * `ROK4_S3_REGION` : Région de(s) serveur(s) S3
     * `ROK4_SSL_NO_VERIFY` : Désactivation de la vérification SSL pour les accès S3 (n'importe quelle valeur non vide)
 * `tile_matrix_set` :
     * `ROK4_TMS_DIRECTORY` : Dossier racine (fichier ou objet) des tile matrix sets
