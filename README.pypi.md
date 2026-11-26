@@ -35,6 +35,7 @@ Following environment variables could be used, by module :
     * `ROK4_S3_KEY` : Key(s) for S3 server(s)
     * `ROK4_S3_SECRETKEY` : Secret key(s) for S3 server(s)
     * `ROK4_S3_URL` : URL(s) for S3 server(s)
+    * `ROK4_S3_REGION` : Region(s) for S3 server(s)
     * `ROK4_SSL_NO_VERIFY` : Disable SSL conrols for S3 access (any non empty value)
 * `tile_matrix_set` :
     * `ROK4_TMS_DIRECTORY` : Root directory (file or object) for tile matrix sets
